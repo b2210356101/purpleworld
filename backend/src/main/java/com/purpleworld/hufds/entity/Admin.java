@@ -29,4 +29,13 @@ public class Admin {
     @Column(name = "Password", nullable = false, length = 32)
     private String password;
 
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+    @PrePersist
+    public void setDefaultRole() {
+        if (this.role == null) {
+            this.role = Role.ADMIN;
+        }
+    }
 }

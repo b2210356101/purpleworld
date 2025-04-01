@@ -23,7 +23,7 @@ public class Customer {
     @Column(name = "Email", nullable = false, length = 50)
     private String email;
 
-    @Column(name = "Password", nullable = false, length = 32)
+    @Column(name = "Password", nullable = false, length = 255)
     private String password;
 
     @Column(name = "PhoneNumber", length = 10,nullable = false)
@@ -38,4 +38,14 @@ public class Customer {
 
     @Column(name = "IsBanned", nullable = false)
     private boolean isBanned;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+    @PrePersist
+    public void setDefaultRole() {
+        if (this.role == null) {
+            this.role = Role.CUSTOMER;
+        }
+    }
 }
