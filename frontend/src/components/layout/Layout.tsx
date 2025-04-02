@@ -5,11 +5,13 @@ import { Box, Container } from '@mui/material';
 
 const Layout = () => {
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
-            <Header />
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Header userType='customer' />
+			
             <Container component="main" sx={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <Outlet />
             </Container>
+
             <Footer />
         </Box>
     );
