@@ -14,4 +14,9 @@ public class RestaurantRegisterRequest {
     private String phone_Number;
     private String address;
     private String tax_Id;
+    private Double latitude;
+    private Double longitude;
+
+    private String buildingNumber;
+    private String apartmentNumber;
 }

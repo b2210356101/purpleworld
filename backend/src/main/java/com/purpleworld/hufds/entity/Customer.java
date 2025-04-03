@@ -1,5 +1,6 @@
 package com.purpleworld.hufds.entity;
 
+import com.purpleworld.hufds.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -1,4 +1,4 @@
-package com.purpleworld.hufds.entity;
+package com.purpleworld.hufds.enums;
 
 public enum Role {
     CUSTOMER,

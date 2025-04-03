@@ -1,10 +1,14 @@
 package com.purpleworld.hufds.dto.response;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@AllArgsConstructor
 public class RegisterResponse {
     private String message;
+    private boolean success;
+
+    public RegisterResponse(String message, boolean success) {
+        this.message = message;
+        this.success = success;
+    }
 }

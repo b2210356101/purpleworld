@@ -1,5 +1,7 @@
 package com.purpleworld.hufds.entity;
 
+import com.purpleworld.hufds.enums.AccountStatus;
+import com.purpleworld.hufds.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,17 +28,15 @@ public class Restaurant {
     @Column(name = "PhoneNumber", nullable = false, length = 10)
     private String phoneNumber;
 
-    @Column(name = "Address", nullable = false)
-    private String address;
-
     @Column(name = "Manager_First_Name", nullable = false, length = 255)
     private String managerFirstName;
 
     @Column(name = "Manager_Last_Name", nullable = false, length = 255)
     private String managerLastName;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "Status", nullable = false)
-    private boolean status;
+    private AccountStatus status = AccountStatus.PENDING;
 
     @Column(name = "MaxDeliveryDistance")
     private Integer maxDeliveryDistance;

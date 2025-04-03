@@ -1,5 +1,6 @@
 package com.purpleworld.hufds.entity;
 
+import com.purpleworld.hufds.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,7 +27,7 @@ public class Admin {
     @Column(name = "Email", nullable = false, length = 255)
     private String email;
 
-    @Column(name = "Password", nullable = false, length = 32)
+    @Column(name = "Password", nullable = false, length = 255)
     private String password;
 
     @Enumerated(EnumType.STRING)
