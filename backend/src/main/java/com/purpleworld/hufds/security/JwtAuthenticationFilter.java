@@ -14,6 +14,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
+// ai-gen(gpt-4,1)
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -48,3 +49,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
+// ai-gen(gpt-4,1)
