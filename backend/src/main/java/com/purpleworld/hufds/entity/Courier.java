@@ -1,5 +1,7 @@
 package com.purpleworld.hufds.entity;
 
+import com.purpleworld.hufds.enums.AccountStatus;
+import com.purpleworld.hufds.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,13 +28,27 @@ public class Courier {
     @Column(name = "IsAvailable", nullable = false)
     private boolean isAvailable;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "Status", nullable = false)
+    private AccountStatus status = AccountStatus.PENDING;
+
     @Column(name = "PhoneNumber", nullable = false, length = 10)
     private String phoneNumber;
 
     @Column(name = "Email", nullable = false, length = 255)
     private String email;
 
-    @Column(name = "Password", nullable = false, length = 32)
+    @Column(name = "Password", nullable = false, length = 255)
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+    @PrePersist
+    public void setDefaultRole() {
+        if (this.role == null) {
+            this.role = Role.COURIER;
+        }
+    }
 
 }

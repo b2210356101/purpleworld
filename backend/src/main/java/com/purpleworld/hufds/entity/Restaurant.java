@@ -1,5 +1,7 @@
 package com.purpleworld.hufds.entity;
 
+import com.purpleworld.hufds.enums.AccountStatus;
+import com.purpleworld.hufds.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,14 +19,14 @@ public class Restaurant {
     @Column(name = "Restaurant_Name", nullable = false, length = 255)
     private String restaurantName;
 
-    @Column(name = "Password", nullable = false, length = 32)
+    @Column(name = "Password", nullable = false, length = 255)
     private String password;
+
+    @Column(name = "Email", nullable = false, length = 50)
+    private String email;
 
     @Column(name = "PhoneNumber", nullable = false, length = 10)
     private String phoneNumber;
-
-    @Column(name = "AddressId", nullable = false)
-    private Long address;
 
     @Column(name = "Manager_First_Name", nullable = false, length = 255)
     private String managerFirstName;
@@ -32,8 +34,9 @@ public class Restaurant {
     @Column(name = "Manager_Last_Name", nullable = false, length = 255)
     private String managerLastName;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "Status", nullable = false)
-    private boolean status;
+    private AccountStatus status = AccountStatus.PENDING;
 
     @Column(name = "MaxDeliveryDistance")
     private Integer maxDeliveryDistance;
@@ -41,6 +44,16 @@ public class Restaurant {
     @Column(name = "MinOrderAmount")
     private Integer minOrderAmount;
 
-    @Column(name = "TaxiID", length = 10)
-    private String taxiId;
+    @Column(name = "TaxID", length = 10)
+    private String taxId;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+    @PrePersist
+    public void setDefaultRole() {
+        if (this.role == null) {
+            this.role = Role.RESTAURANT;
+        }
+    }
 }

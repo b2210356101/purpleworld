@@ -1,10 +1,7 @@
 package com.purpleworld.hufds.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
@@ -18,21 +15,44 @@ public class Address {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "customerid", nullable = false)
-    private Long customerId;
+    @ManyToOne
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
 
-    @Column(name = "city", length = 30, nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "restaurant_id")
+    private Restaurant restaurant;
+
+    @Column(name = "city", length = 50, nullable = true)
     private String city;
 
-    @Column(name = "address", length = 100, nullable = false)
-    private String address;
+    @Column(name = "district", length = 50, nullable = true)
+    private String district;
 
-    @Column(name = "phone", length = 10, nullable = false)
-    private String phone;
+    @Column(name = "neighborhood", length = 100, nullable = true)
+    private String neighborhood;
 
-    @Column(name = "last_update", nullable = false)
-    private LocalDateTime lastUpdate;
+    @Column(name = "street", length = 100, nullable = true)
+    private String street;
 
-    @Column(name = "district", nullable = false)
-    private Integer district;
+    @Column(name = "building_number", length = 20, nullable = true)
+    private String buildingNumber;
+
+    @Column(name = "apartment_number", length = 20, nullable = true)
+    private String apartmentNumber;
+
+    @Column(name = "full_address", length = 255, nullable = true)
+    private String fullAddress;
+
+    @Column(name = "postal_code", length = 255, nullable = true)
+    private String postalCode;
+
+
+
+    @Column(name = "latitude", nullable = false)
+    private Double latitude;
+
+    @Column(name = "longitude", nullable = false)
+    private Double longitude;
+
 }
