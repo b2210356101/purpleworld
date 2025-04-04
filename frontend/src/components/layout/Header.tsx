@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
     AppBar, Toolbar, IconButton, Box, Drawer, Avatar, Button, Typography, Stack, InputBase, Badge, useMediaQuery, useTheme
 } from '@mui/material';
@@ -12,44 +12,34 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 
 import MenuDrawer from './MenuDrawer';
 import CartDrawer from './CartDrawer';
+import { UserType } from '../../types';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { logout } from '../../store/slices/authSlice';
 
-type UserType = 'guest' | 'customer' | 'restaurant' | 'courier' | 'admin';
-
-// Get user information based on user type
-const getUserInfo = (userType: UserType) => {
-    switch (userType) {
-        case 'customer':
-            return { name: 'Beste Özdemir', email: 'beste@example.com' };
-        case 'restaurant':
-            return { name: 'Domitoz Pizza', email: 'pizza@example.com' };
-        case 'courier':
-            return { name: 'Mustafa Kaan Çevik', email: 'kaan@example.com' };
-        case 'admin':
-            return { name: 'Admin', email: 'admin@example.com' };
-        default:
-            return { name: 'Guest', email: '' };
-    }
-};
 
 const Header = ({ userType }: { userType: UserType }) => {
     const theme = useTheme();
+    const navigate = useNavigate();
     const isMobile = useMediaQuery(theme.breakpoints.up('sm'));
 
     const [mobileOpen, setMobileOpen] = useState(false);
     const [cartOpen, setCartOpen] = useState(false);
     const [cartCount] = useState(2); // cart count
 
+    const dispatch = useAppDispatch();
+    const { isAuthenticated } = useAppSelector(state => state.auth);
+
     const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
     const handleCartDrawerToggle = () => setCartOpen(!cartOpen);
     const handleLogout = () => {
+        navigate('/');
         handleDrawerToggle();
+        dispatch(logout());
     };
-
-    const userInfo = getUserInfo(userType);
 
     // Right side content based on user type
     const renderRightSideContent = () => {
-        if (userType === 'guest') {
+        if (!isAuthenticated) {
             return (
                 <Stack direction="row">
                     <Button
@@ -74,7 +64,7 @@ const Header = ({ userType }: { userType: UserType }) => {
             return (
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     {isMobile ? <Typography sx={{ mr: 1 }}>
-                        Hello, {userInfo.name}!
+                        Hello, {userType}!
                     </Typography> : <></>}
                     <IconButton
                         component={Link}
@@ -84,7 +74,7 @@ const Header = ({ userType }: { userType: UserType }) => {
                     </IconButton>
 
                     {/* Cart icon is shown only for customers */}
-                    {userType === 'customer' && (
+                    {userType === 'CUSTOMER' && (
                         <IconButton color="inherit" onClick={handleCartDrawerToggle}>
                             <Badge badgeContent={cartCount} color="error">
                                 <ShoppingCartIcon />
@@ -97,11 +87,11 @@ const Header = ({ userType }: { userType: UserType }) => {
     };
 
     // Show search bar only for guest and customer
-    const shouldShowSearchBar = isMobile && (userType === 'guest' || userType === 'customer');
+    const shouldShowSearchBar = isMobile && (!isAuthenticated || userType === 'CUSTOMER');
 
     return (
         <AppBar position="sticky" elevation={0}>
-            <Toolbar sx={{bgcolor:'primary.main'}}>
+            <Toolbar sx={{ bgcolor: 'primary.main' }}>
                 {/* Left side - Menu icon and logo */}
                 <IconButton
                     size="large"
@@ -193,7 +183,7 @@ const Header = ({ userType }: { userType: UserType }) => {
                 </Drawer>
 
                 {/* Right drawer - Cart for customer */}
-                {userType === 'customer' && (
+                {userType === 'CUSTOMER' && (
                     <Drawer
                         variant="temporary"
                         anchor="right"
@@ -220,3 +210,7 @@ const Header = ({ userType }: { userType: UserType }) => {
 };
 
 export default Header;
+
+function dispatch(arg0: any) {
+    throw new Error('Function not implemented.');
+}

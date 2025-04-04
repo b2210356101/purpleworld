@@ -16,8 +16,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
-
-type UserType = 'guest' | 'customer' | 'restaurant' | 'courier' | 'admin';
+import { UserType } from '../../types';
+import { isAuthenticated } from '../../utils/auth';
 
 interface MenuDrawerProps {
     userType: UserType;
@@ -29,7 +29,7 @@ interface MenuDrawerProps {
 // User-specific menu items
 const getMenuItems = (userType: UserType) => {
     switch (userType) {
-        case 'customer':
+        case 'CUSTOMER':
             return [
                 { text: 'Home', icon: <HomeIcon />, path: '/' },
                 { text: 'Restaurants', icon: <RestaurantIcon />, path: '/restaurants' },
@@ -38,7 +38,7 @@ const getMenuItems = (userType: UserType) => {
                 { text: 'About Us', icon: <InfoIcon />, path: '/about' },
                 { text: 'Contact', icon: <ContactSupportIcon />, path: '/contact' },
             ];
-        case 'restaurant':
+        case 'RESTAURANT':
             return [
                 { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
                 { text: 'Orders', icon: <ReceiptIcon />, path: '/restaurant/orders' },
@@ -47,13 +47,13 @@ const getMenuItems = (userType: UserType) => {
                 { text: 'About Us', icon: <InfoIcon />, path: '/about' },
                 { text: 'Contact', icon: <ContactSupportIcon />, path: '/contact' },
             ];
-        case 'courier':
+        case 'COURIER':
             return [
                 { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
                 { text: 'About Us', icon: <InfoIcon />, path: '/about' },
                 { text: 'Contact', icon: <ContactSupportIcon />, path: '/contact' },
             ];
-        case 'admin':
+        case 'ADMIN':
             return [
                 { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
                 { text: 'User Management', icon: <AccountCircleIcon />, path: '/admin/users' },
@@ -75,13 +75,13 @@ const getMenuItems = (userType: UserType) => {
 // Get profile-specific menu items
 const getUserInfo = (userType: UserType) => {
     switch (userType) {
-        case 'customer':
+        case 'CUSTOMER':
             return { name: 'Beste Özdemir', email: 'beste@example.com' };
-        case 'restaurant':
+        case 'RESTAURANT':
             return { name: 'Domitoz Pizza', email: 'pizza@example.com' };
-        case 'courier':
+        case 'COURIER':
             return { name: 'Mustafa Kaan Çevik', email: 'kaan@example.com' };
-        case 'admin':
+        case 'ADMIN':
             return { name: 'Admin', email: 'admin@example.com' };
         default:
             return { name: 'Guest', email: '' };
@@ -91,6 +91,7 @@ const getUserInfo = (userType: UserType) => {
 const MenuDrawer = ({ userType, open, onClose, onLogout }: MenuDrawerProps) => {
     const menuItems = getMenuItems(userType);
     const userInfo = getUserInfo(userType);
+    const isLoggedIn = isAuthenticated();
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100svh', bgcolor: 'background.default' }}>
@@ -144,7 +145,7 @@ const MenuDrawer = ({ userType, open, onClose, onLogout }: MenuDrawerProps) => {
                     }}
                 />
 
-                {userType === 'guest' ? (
+                {!isLoggedIn ? (
                     <>
                         <Typography sx={{ fontSize: 18, fontWeight: 'medium' }}>
                             Hello!
@@ -153,6 +154,7 @@ const MenuDrawer = ({ userType, open, onClose, onLogout }: MenuDrawerProps) => {
                             variant="contained"
                             component={Link}
                             to="/login"
+                            onClick={onClose}
                             sx={{
                                 mt: 1,
                                 bgcolor: 'secondary.main',
@@ -170,6 +172,7 @@ const MenuDrawer = ({ userType, open, onClose, onLogout }: MenuDrawerProps) => {
                             variant="contained"
                             component={Link}
                             to="/profile"
+                            onClick={onClose}
                             sx={{
                                 mt: 1,
                                 bgcolor: 'secondary.main',
@@ -222,7 +225,7 @@ const MenuDrawer = ({ userType, open, onClose, onLogout }: MenuDrawerProps) => {
                     </ListItem>
                 </List>
 
-                {userType !== 'guest' && (<Button
+                {isLoggedIn && (<Button
                     variant='contained'
                     onClick={onLogout}
                     startIcon={<LogoutIcon />}
