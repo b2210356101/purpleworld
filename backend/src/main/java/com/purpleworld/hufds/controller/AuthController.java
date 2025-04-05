@@ -52,30 +52,30 @@ public class AuthController {
         var customer = customerRepository.findByEmail(email);
         if (customer.isPresent() && passwordEncoder.matches(password, customer.get().getPassword())) {
             String token = jwtService.generateToken(email, "CUSTOMER");
-            return ResponseEntity.ok(new LoginResponse(token, "CUSTOMER"));
+            return ResponseEntity.ok(new LoginResponse(token, "CUSTOMER",customer.get().getFirstName()));
         }
 
         // try Courier
         var courier = courierRepository.findByEmail(email);
         if (courier.isPresent() && passwordEncoder.matches(password, courier.get().getPassword())) {
             String token = jwtService.generateToken(email, "COURIER");
-            return ResponseEntity.ok(new LoginResponse(token, "COURIER"));
+            return ResponseEntity.ok(new LoginResponse(token, "COURIER",courier.get().getFirstName()));
         }
 
         // try Restaurant
         var restaurant = restaurantRepository.findByEmail(email);
         if (restaurant.isPresent() && passwordEncoder.matches(password, restaurant.get().getPassword())) {
             String token = jwtService.generateToken(email, "RESTAURANT");
-            return ResponseEntity.ok(new LoginResponse(token, "RESTAURANT"));
+            return ResponseEntity.ok(new LoginResponse(token, "RESTAURANT",restaurant.get().getRestaurantName()));
         }
 
         // try Admin
         var admin = adminRepository.findByEmail(email);
         if (admin.isPresent() && passwordEncoder.matches(password, admin.get().getPassword())) {
             String token = jwtService.generateToken(email, "ADMIN");
-            return ResponseEntity.ok(new LoginResponse(token, "ADMIN"));
+            return ResponseEntity.ok(new LoginResponse(token, "ADMIN",admin.get().getFirstName()));
         }
 
-        return ResponseEntity.status(401).body(new LoginResponse(null, "Invalid credentials"));
+        return ResponseEntity.status(401).body(new LoginResponse(null, "Invalid credentials",null));
     }
 }
