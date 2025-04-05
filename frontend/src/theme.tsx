@@ -2,18 +2,40 @@ import { createTheme } from '@mui/material/styles';
 
 const theme = createTheme({
     cssVariables: true,
-    palette: {
-        primary: {
-            main: '#845EC2',
-            light: '#F6F0FF',
+    colorSchemes: {
+        light: {
+            palette: {
+                primary: {
+                    main: '#845EC2',
+                    light: '#F6F0FF',
+                },
+                secondary: {
+                    main: '#FF1744',
+                },
+                text: {
+                    primary: '#212121',
+                    secondary: '#666666',
+                },
+            },
         },
-        secondary: {
-            main: '#FF1744',
-        },
-        text: {
-            primary: '#212121',
-            secondary: '#666666',
-        }
+        // dark: {
+        //     palette: {
+        //         primary: {
+        //             main: '#845EC2',
+        //             light: '#19111d',
+        //         },
+        //         secondary: {
+        //             main: '#FF1744',
+        //         },
+        //         text: {
+        //             primary: '#fefefe',
+        //             secondary: '#aaaaaa',
+        //         },
+        //         background: {
+        //             default: '#0f1214',
+        //         }
+        //     },
+        // },
     },
     typography: {
         allVariants: {
@@ -33,7 +55,7 @@ const theme = createTheme({
             styleOverrides: {
                 root: {
                     borderRadius: '50px', // oval
-                    padding: '4px 16px',  
+                    padding: '4px 16px',
                 },
             },
         },
