@@ -19,6 +19,10 @@ public class Restaurant {
     @Column(name = "Restaurant_Name", nullable = false, length = 255)
     private String restaurantName;
 
+    @Lob
+    @Column(name = "ProfileImg")
+    private byte[] profileImg;
+
     @Column(name = "Password", nullable = false, length = 255)
     private String password;
 

@@ -8,4 +8,7 @@ import lombok.*;
 public class AddressRequest {
     private Double latitude;
     private Double longitude;
+    private String name;
+    private String buildingNumber;
+    private String apartmentNumber;
 }

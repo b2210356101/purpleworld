@@ -1,6 +1,10 @@
 package com.purpleworld.hufds.security;
 
 import com.purpleworld.hufds.security.JwtService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,7 +40,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         final String jwt = authHeader.substring(7);
-        final String username = jwtService.extractUsername(jwt);
+        String username;
+
+        try {
+            username = jwtService.extractUsername(jwt);
+        } catch (ExpiredJwtException e) {
+            sendErrorResponse(response, "Token has expired");
+            return;
+        } catch (UnsupportedJwtException e) {
+            sendErrorResponse(response, "Unsupported token");
+            return;
+        } catch (MalformedJwtException e) {
+            sendErrorResponse(response, "Malformed token");
+            return;
+        } catch (SignatureException e) {
+            sendErrorResponse(response, "Invalid token signature");
+            return;
+        } catch (Exception e) {
+            sendErrorResponse(response, "Invalid token");
+            return;
+        }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             String role = jwtService.extractClaim(jwt, claims -> claims.get("role", String.class));
@@ -47,6 +70,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void sendErrorResponse(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.getWriter().write("{\"error\": \"" + message + "\"}");
+        response.getWriter().flush();
     }
 }
 // ai-gen(gpt-4,1)

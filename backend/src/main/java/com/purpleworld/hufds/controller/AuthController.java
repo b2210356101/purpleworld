@@ -52,30 +52,30 @@ public class AuthController {
         var customer = customerRepository.findByEmail(email);
         if (customer.isPresent() && passwordEncoder.matches(password, customer.get().getPassword())) {
             String token = jwtService.generateToken(email, "CUSTOMER");
-            return ResponseEntity.ok(new LoginResponse(token, "CUSTOMER",customer.get().getFirstName()));
+            return ResponseEntity.ok(new LoginResponse(token, "CUSTOMER",customer.get().getFirstName(),null));
         }
 
         // try Courier
         var courier = courierRepository.findByEmail(email);
         if (courier.isPresent() && passwordEncoder.matches(password, courier.get().getPassword())) {
             String token = jwtService.generateToken(email, "COURIER");
-            return ResponseEntity.ok(new LoginResponse(token, "COURIER",courier.get().getFirstName()));
+            return ResponseEntity.ok(new LoginResponse(token, "COURIER",courier.get().getFirstName(),null));
         }
 
         // try Restaurant
         var restaurant = restaurantRepository.findByEmail(email);
         if (restaurant.isPresent() && passwordEncoder.matches(password, restaurant.get().getPassword())) {
             String token = jwtService.generateToken(email, "RESTAURANT");
-            return ResponseEntity.ok(new LoginResponse(token, "RESTAURANT",restaurant.get().getRestaurantName()));
+            return ResponseEntity.ok(new LoginResponse(token, "RESTAURANT",restaurant.get().getRestaurantName(),restaurant.get().getProfileImg()));
         }
 
         // try Admin
         var admin = adminRepository.findByEmail(email);
         if (admin.isPresent() && passwordEncoder.matches(password, admin.get().getPassword())) {
             String token = jwtService.generateToken(email, "ADMIN");
-            return ResponseEntity.ok(new LoginResponse(token, "ADMIN",admin.get().getFirstName()));
+            return ResponseEntity.ok(new LoginResponse(token, "ADMIN",admin.get().getFirstName(),null));
         }
 
-        return ResponseEntity.status(401).body(new LoginResponse(null, "Invalid credentials",null));
+        return ResponseEntity.status(401).body(new LoginResponse(null, "Invalid credentials",null,null));
     }
 }

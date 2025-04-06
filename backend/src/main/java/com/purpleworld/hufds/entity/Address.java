@@ -23,6 +23,9 @@ public class Address {
     @JoinColumn(name = "restaurant_id")
     private Restaurant restaurant;
 
+    @Column(name = "name", length = 50, nullable = false)
+    private String name;
+
     @Column(name = "city", length = 50, nullable = true)
     private String city;
 
@@ -35,10 +38,10 @@ public class Address {
     @Column(name = "street", length = 100, nullable = true)
     private String street;
 
-    @Column(name = "building_number", length = 20, nullable = true)
+    @Column(name = "building_number", length = 20, nullable = false)
     private String buildingNumber;
 
-    @Column(name = "apartment_number", length = 20, nullable = true)
+    @Column(name = "apartment_number", length = 20, nullable = false)
     private String apartmentNumber;
 
     @Column(name = "full_address", length = 255, nullable = true)

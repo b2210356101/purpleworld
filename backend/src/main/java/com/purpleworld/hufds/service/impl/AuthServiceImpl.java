@@ -93,10 +93,12 @@ public class AuthServiceImpl implements AuthService {
         restaurant.setManagerFirstName(request.getManager_Name());
         restaurant.setManagerLastName(request.getManager_Last_Name());
         restaurant.setPhoneNumber(request.getPhone_Number());
+        restaurant.setProfileImg(request.getProfile_image());
         restaurant.setPassword(passwordEncoder.encode(request.getPassword()));
         restaurant.setRole(Role.RESTAURANT);
 
         Address address = googleMapsService.getAddressFromCoordinates(request.getLatitude(), request.getLongitude());
+        address.setName(request.getName());
         address.setBuildingNumber(request.getBuildingNumber());
         address.setApartmentNumber(request.getApartmentNumber());
         address.setRestaurant(restaurant);
