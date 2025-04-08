@@ -11,6 +11,7 @@ import com.purpleworld.hufds.service.GoogleMapsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import jakarta.transaction.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -77,6 +78,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public RegisterResponse registerRestaurant(RestaurantRegisterRequest request) {
         if (restaurantRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new RegistrationException("A restaurant with this email already exists");

@@ -27,6 +27,11 @@ export const getAuthHeader = () => {
     return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
+export const setAuthData = (token: string, roleType: string) => {
+    localStorage.setItem('token', token);
+    localStorage.setItem('roleType', roleType);
+  };
+
 // Log out the user
 export const logout = () => {
     localStorage.removeItem('token');

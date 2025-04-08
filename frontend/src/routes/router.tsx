@@ -7,6 +7,8 @@ import LoginPage from '../pages/LoginPage';
 import CustomerHomePage from '../pages/CustomerHomePage';
 import { login } from '../store/slices/authSlice';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
+import RegisterPage from '../pages/RegisterPage';
+
 
 // ai-gen start (claude sonnet 3.7,1)
 // Component for localStorage check to restore auth state on page refresh
@@ -98,6 +100,10 @@ const router = createBrowserRouter([
                 <div>Profile Page</div>
               </PrivateRoute>
             )
+          },
+          {
+            path: 'register',
+            element: <RegisterPage />
           },
           {
             path: '*',

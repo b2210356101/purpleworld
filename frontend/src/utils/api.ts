@@ -59,4 +59,53 @@ export const loginUser = async (email: string, password: string) => {
   }
 };
 
+// Courier
+export const registerCourier = async (formData: {
+  first_Name: string;
+  last_Name: string;
+  ssn: string;
+  email: string;
+  phone_Number: string;
+  password: string;
+}) => {
+  const response = await api.post('/auth/register/courier', formData);
+  return response.data;
+};
+
+// Customer
+export const registerCustomer = async (formData: {
+  first_Name: string;
+  last_Name: string;
+  phone_Number: string;
+  email: string;
+  password: string;
+}) => {
+  const response = await api.post('/auth/register/customer', formData);
+  return response.data;
+};
+
+// Restaurant
+export const registerRestaurant = async (formData: {
+  name: string;
+  email: string;
+  password: string;
+  manager_Name: string;
+  manager_Last_Name: string;
+  phone_Number: string;
+  address: string;
+  tax_Id: string;
+  latitude: number;
+  longitude: number;
+  profile_image?: string;
+  buildingNumber: string;
+  apartmentNumber: string;
+}) => {
+  const dataToSend = {
+    ...formData,
+    profile_image: formData.profile_image || '',
+  };
+  const response = await api.post('/auth/register/restaurant', dataToSend);
+  return response.data;
+};
+
 export default api;
