@@ -7,21 +7,27 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class AddressResponse {
-    private Long id;
+    private String name;
     private String city;
     private String district;
     private String neighborhood;
     private String street;
     private String buildingNumber;
+    private String floor;
     private String apartmentNumber;
+    private String fullAddress;
+    private String phoneNumber;
 
     public AddressResponse(Address address) {
-        this.id = address.getId();
+        this.name = address.getName();
         this.city = address.getCity();
         this.district = address.getDistrict();
         this.neighborhood = address.getNeighborhood();
         this.street = address.getStreet();
         this.buildingNumber = address.getBuildingNumber();
+        this.floor = address.getFloor();
         this.apartmentNumber = address.getApartmentNumber();
+        this.fullAddress = address.getFullAddress();
+        this.phoneNumber = address.getPhoneNumber();
     }
 }

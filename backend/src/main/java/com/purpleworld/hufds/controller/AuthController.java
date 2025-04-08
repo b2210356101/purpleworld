@@ -9,6 +9,7 @@ import com.purpleworld.hufds.repository.CustomerRepository;
 import com.purpleworld.hufds.repository.RestaurantRepository;
 import com.purpleworld.hufds.security.JwtService;
 import com.purpleworld.hufds.service.AuthService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -46,6 +47,7 @@ public class AuthController {
 
     @Transactional 
     @PostMapping("/login")
+    @Transactional
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
         String email = request.getEmail();
         String password = request.getPassword();

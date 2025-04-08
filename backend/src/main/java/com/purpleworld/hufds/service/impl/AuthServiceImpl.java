@@ -8,6 +8,7 @@ import com.purpleworld.hufds.exception.RegistrationException;
 import com.purpleworld.hufds.repository.*;
 import com.purpleworld.hufds.service.AuthService;
 import com.purpleworld.hufds.service.GoogleMapsService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -77,6 +78,7 @@ public class AuthServiceImpl implements AuthService {
         return new RegisterResponse("Courier registered successfully!", true);
     }
 
+    @Transactional
     @Override
     @Transactional
     public RegisterResponse registerRestaurant(RestaurantRegisterRequest request) {
