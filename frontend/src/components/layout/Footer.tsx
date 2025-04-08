@@ -24,7 +24,7 @@ const Footer = () => {
                             sx={{ display: 'flex', mb: 2 }}
                         >
                             <img
-                                src="/src/assets/logo.svg"
+                                src="/assets/logo.svg"
                                 alt="Logo"
                                 height="42"
                                 style={{
