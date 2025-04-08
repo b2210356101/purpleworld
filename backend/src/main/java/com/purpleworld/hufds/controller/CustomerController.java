@@ -77,9 +77,10 @@ public class CustomerController {
             address.setLongitude(request.getLongitude());
             address.setBuildingNumber(request.getBuildingNumber());
             address.setApartmentNumber(request.getApartmentNumber());
-
-            address.setFullAddress(address.getStreet() + " " + request.getBuildingNumber() + "/" + request.getApartmentNumber()
-                    + ", " + address.getNeighborhood() + ", " + address.getDistrict() + ", " + address.getCity());
+            address.setFloor(request.getFloor());
+            address.setFullAddress(request.getFullAddress());
+            address.setPhoneNumber(request.getPhoneNumber());
+            address.setDeliveryNote(request.getDeliveryNote());
 
             addressRepository.save(address);
 

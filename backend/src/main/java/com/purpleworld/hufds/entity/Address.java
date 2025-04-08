@@ -44,11 +44,23 @@ public class Address {
     @Column(name = "apartment_number", length = 20, nullable = false)
     private String apartmentNumber;
 
-    @Column(name = "full_address", length = 255, nullable = true)
+    @Column(name = "full_address", length = 255, nullable = false)
     private String fullAddress;
+
+    @Column(name = "delivery_note", length = 255, nullable = true)
+    private String deliveryNote;
+
+    @Column(name="floor",length = 10,nullable = false)
+    private String floor;
 
     @Column(name = "postal_code", length = 255, nullable = true)
     private String postalCode;
+
+
+    @Column(name = "Phone_number", length = 10,nullable = false)
+    private String phoneNumber;
+
+
 
 
 
