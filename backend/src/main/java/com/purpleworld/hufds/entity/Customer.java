@@ -31,8 +31,8 @@ public class Customer {
     private String phoneNumber;
 
     @Lob
-    @Column(name = "ProfileImg")
-    private byte[] profileImg;
+    @Column(name = "ProfileImg",columnDefinition = "TEXT")
+    private String profileImg;
 
     @Column(name = "CurrentAddressId")
     private Integer currentAddressId;

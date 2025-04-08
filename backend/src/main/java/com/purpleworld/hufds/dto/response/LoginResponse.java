@@ -1,5 +1,6 @@
 package com.purpleworld.hufds.dto.response;
 
+import com.purpleworld.hufds.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -9,5 +10,5 @@ public class LoginResponse {
     private String token;
     private String role;
     private String username;
-    private byte[] profileImage;
+    private String profileImage;
 }

@@ -30,8 +30,8 @@ public class MenuItem {
     private Boolean isAvailable;
 
     @Lob
-    @Column(name = "Img")
-    private byte[] img;
+    @Column(name = "Img",columnDefinition = "TEXT")
+    private String img;
 
     @ManyToOne
     @JoinColumn(name = "CategoryID")

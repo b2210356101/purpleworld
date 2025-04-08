@@ -20,8 +20,8 @@ public class Restaurant {
     private String restaurantName;
 
     @Lob
-    @Column(name = "ProfileImg")
-    private byte[] profileImg;
+    @Column(name = "ProfileImg",columnDefinition = "TEXT")
+    private String profileImg;
 
     @Column(name = "Password", nullable = false, length = 255)
     private String password;
