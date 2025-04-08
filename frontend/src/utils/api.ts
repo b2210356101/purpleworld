@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getToken, logout } from './auth';
 
-const API_URL = '/api';
+const API_URL = 'purpleworld-production.up.railway.app';
 
 // ai-gen start (claude sonnet 3.7, 0)
 const createAxiosInstance = () => {
