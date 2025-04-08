@@ -78,7 +78,6 @@ public class AuthServiceImpl implements AuthService {
         return new RegisterResponse("Courier registered successfully!", true);
     }
 
-    @Transactional
     @Override
     @Transactional
     public RegisterResponse registerRestaurant(RestaurantRegisterRequest request) {
