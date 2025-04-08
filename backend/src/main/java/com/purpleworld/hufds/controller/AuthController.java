@@ -45,7 +45,6 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
-    @Transactional 
     @PostMapping("/login")
     @Transactional
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
