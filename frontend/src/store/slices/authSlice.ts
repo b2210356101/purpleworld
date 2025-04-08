@@ -12,7 +12,7 @@ const initialState: AuthState = {
   isAuthenticated: !!localStorage.getItem('token'),
   token: localStorage.getItem('token'),
   userType: localStorage.getItem('roleType') as UserType || undefined,
-  userInfo: null
+  userInfo: null,
 };
 
 const authSlice = createSlice({
@@ -22,18 +22,34 @@ const authSlice = createSlice({
     login: (state, action: PayloadAction<{ token: string; roleType: string; userInfo?: UserInfo }>) => {
       const { token, roleType, userInfo } = action.payload;
       
-      // Validate roleType to ensure it's one of our UserType values
       let validRole: UserType = undefined;
       if (roleType === 'CUSTOMER' || roleType === 'RESTAURANT' || 
           roleType === 'COURIER' || roleType === 'ADMIN') {
         validRole = roleType as UserType;
       }
 
-      // Update localStorage
       localStorage.setItem('token', token);
       localStorage.setItem('roleType', roleType);
 
-      // Update state
+      state.isAuthenticated = true;
+      state.token = token;
+      state.userType = validRole;
+      if (userInfo) {
+        state.userInfo = userInfo;
+      }
+    },
+    registerSuccess: (state, action: PayloadAction<{ token: string; roleType: string; userInfo?: UserInfo }>) => {
+      const { token, roleType, userInfo } = action.payload;
+      
+      let validRole: UserType = undefined;
+      if (roleType === 'CUSTOMER' || roleType === 'RESTAURANT' || 
+          roleType === 'COURIER' || roleType === 'ADMIN') {
+        validRole = roleType as UserType;
+      }
+
+      localStorage.setItem('token', token);
+      localStorage.setItem('roleType', roleType);
+
       state.isAuthenticated = true;
       state.token = token;
       state.userType = validRole;
@@ -45,11 +61,9 @@ const authSlice = createSlice({
       state.userInfo = action.payload;
     },
     logout: (state) => {
-      // Clear localStorage
       localStorage.removeItem('token');
       localStorage.removeItem('roleType');
 
-      // Reset state
       state.isAuthenticated = false;
       state.token = null;
       state.userType = undefined;
@@ -58,5 +72,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { login, logout, updateUserInfo } = authSlice.actions;
+export const { login, logout, updateUserInfo, registerSuccess } = authSlice.actions;
 export default authSlice.reducer;
