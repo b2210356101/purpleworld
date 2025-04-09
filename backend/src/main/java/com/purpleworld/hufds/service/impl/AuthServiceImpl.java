@@ -24,7 +24,6 @@ public class AuthServiceImpl implements AuthService {
     private final AddressRepository addressRepository;
     private final RestaurantRepository restaurantRepository;
     private final PasswordEncoder passwordEncoder;
-    private final MenuRepository menuRepository;
 
     @Override
     public RegisterResponse registerCustomer(CustomerRegisterRequest request) {
@@ -79,6 +78,7 @@ public class AuthServiceImpl implements AuthService {
         return new RegisterResponse("Courier registered successfully!", true);
     }
 
+    @Transactional
     @Override
     @Transactional
     public RegisterResponse registerRestaurant(RestaurantRegisterRequest request) {
@@ -106,12 +106,6 @@ public class AuthServiceImpl implements AuthService {
         address.setBuildingNumber(request.getBuildingNumber());
         address.setApartmentNumber(request.getApartmentNumber());
         address.setRestaurant(restaurant);
-        address.setFloor("1");
-        address.setPhoneNumber("5555555555");
-
-        Menu defaultMenu = new Menu();
-        defaultMenu.setRestaurant(restaurant);
-        menuRepository.save(defaultMenu);
 
         restaurantRepository.save(restaurant);
         addressRepository.save(address);
