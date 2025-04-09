@@ -17,7 +17,8 @@ public class AddressResponse {
     private String apartmentNumber;
     private String fullAddress;
     private String phoneNumber;
-
+    private String deliveryNote;
+    private Long addressId;
     public AddressResponse(Address address) {
         this.name = address.getName();
         this.city = address.getCity();
@@ -29,5 +30,7 @@ public class AddressResponse {
         this.apartmentNumber = address.getApartmentNumber();
         this.fullAddress = address.getFullAddress();
         this.phoneNumber = address.getPhoneNumber();
+        this.deliveryNote = address.getDeliveryNote();
+        this.addressId = address.getId();
     }
 }

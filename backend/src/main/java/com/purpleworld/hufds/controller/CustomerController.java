@@ -93,4 +93,34 @@ public class CustomerController {
         }
     }
 
+    @PostMapping("/set-current-address")
+    public ResponseEntity<?> setCurrentAddress(@RequestParam Long addressId,
+                                               @AuthenticationPrincipal String email) {
+        try {
+            if (email == null || email.isBlank()) {
+                return ResponseEntity.status(401).body("Unauthorized: Invalid or missing token");
+            }
+
+            Customer customer = customerRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+            Address selectedAddress = addressRepository.findById(addressId)
+                    .orElseThrow(() -> new RuntimeException("Address not found"));
+
+            if (!selectedAddress.getCustomer().getId().equals(customer.getId())) {
+                return ResponseEntity.status(403).body("Forbidden: You can only select your own address");
+            }
+
+            customer.setCurrentAddressId(selectedAddress.getId());
+            customerRepository.save(customer);
+
+            return ResponseEntity.ok("Current address set successfully");
+
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(400).body("Error: " + ex.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Something went wrong: " + e.getMessage());
+        }
+    }
+
 }

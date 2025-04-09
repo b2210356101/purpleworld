@@ -35,7 +35,7 @@ public class Customer {
     private String profileImg;
 
     @Column(name = "CurrentAddressId")
-    private Integer currentAddressId;
+    private Long currentAddressId;
 
     @Column(name = "IsBanned", nullable = false)
     private boolean isBanned;
