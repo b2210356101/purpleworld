@@ -118,7 +118,7 @@ const MenuDrawer = ({ onClose, onLogout }: MenuDrawerProps) => {
                 }}
             >
                 <Avatar
-                    src={localStorage.getItem('user') || undefined}
+                    src={userInfo?.profileImage || undefined}
                     alt={userInfo?.username || 'User'}
                     sx={{
                         width: 80,
