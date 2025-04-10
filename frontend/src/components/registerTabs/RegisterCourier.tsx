@@ -16,17 +16,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { registerCourier } from "../../utils/api";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
-import { useAppDispatch } from "../../store/hooks";
-import { registerSuccess } from "../../store/slices/authSlice";
 
 const RegisterCourier = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
 
   const [showPassword, setShowPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const [generalError, setGeneralError] = useState(""); 
+  const [generalError, setGeneralError] = useState("");
 
   // Individual error states for each field
   const [firstNameError, setFirstNameError] = useState(false);
@@ -147,7 +144,7 @@ const RegisterCourier = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setGeneralError(""); 
+    setGeneralError("");
 
     if (validateInputs()) {
       const data = new FormData(event.currentTarget);
@@ -164,17 +161,7 @@ const RegisterCourier = () => {
       try {
         const response = await registerCourier(formData);
         console.log("Courier registered:", response);
-        dispatch(
-          registerSuccess({
-            token: response.token,
-            roleType: "COURIER",
-            userInfo: {
-              email: formData.email,
-              name: `${formData.first_Name} ${formData.last_Name}`,
-            },
-          })
-        );
-        navigate("/");
+        navigate("/login");
       } catch (err: any) {
         console.error("Registration failed:", err);
         if (err.response && err.response.data && err.response.data.message) {
@@ -200,11 +187,16 @@ const RegisterCourier = () => {
       noValidate
       onSubmit={handleSubmit}
       sx={{
+        maxWidth: 500, // Prevents the form from being too wide
+        mx: "auto", // Centers horizontally
+        px: { xs: 2, sm: 4 }, // Padding left/right based on screen size
+        py: 4,
         display: "flex",
         flexDirection: "column",
         gap: 3,
-        p: 4,
         borderRadius: 2,
+        width: "100%", // Allows responsive shrinking
+        boxSizing: "border-box",
       }}
     >
       <Typography
