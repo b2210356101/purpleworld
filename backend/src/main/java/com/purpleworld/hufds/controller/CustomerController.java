@@ -1,14 +1,12 @@
 package com.purpleworld.hufds.controller;
 
 import com.purpleworld.hufds.dto.request.AddressRequest;
-import com.purpleworld.hufds.dto.response.AddressIdResponse;
 import com.purpleworld.hufds.dto.response.AddressResponse;
 import com.purpleworld.hufds.entity.Address;
 import com.purpleworld.hufds.entity.Customer;
 import com.purpleworld.hufds.repository.AddressRepository;
 import com.purpleworld.hufds.repository.CustomerRepository;
 import com.purpleworld.hufds.service.GoogleMapsService;
-import jakarta.transaction.Transactional;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
