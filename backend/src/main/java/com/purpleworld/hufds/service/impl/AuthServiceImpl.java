@@ -39,6 +39,8 @@ public class AuthServiceImpl implements AuthService {
         customer.setPassword(passwordEncoder.encode(request.getPassword()));
         customer.setRole(Role.CUSTOMER);
         customer.setBanned(false);
+        Cart cart = new Cart();
+        cart.setCustomer(customer);
 
 //        Address address = googleMapsService.getAddressFromCoordinates(request.getLatitude(), request.getLongitude());
 //        address.setBuildingNumber(request.getBuildingNumber());
