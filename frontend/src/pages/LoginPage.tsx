@@ -77,7 +77,9 @@ const LoginPage = () => {
                 // Redux action dispatch
                 dispatch(login({
                     token: data.token,
-                    roleType: data.role,
+                    role: data.role,
+                    username: data.username,
+                    profileImage: data.profileImage
                 }));
 
                 navigate('/');
