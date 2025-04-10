@@ -105,6 +105,8 @@ public class AuthServiceImpl implements AuthService {
         address.setBuildingNumber(request.getBuildingNumber());
         address.setApartmentNumber(request.getApartmentNumber());
         address.setRestaurant(restaurant);
+        address.setPhoneNumber(request.getPhone_Number());
+        address.setFullAddress(request.getAddress());
         address.setFloor("1");
 
 

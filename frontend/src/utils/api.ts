@@ -171,12 +171,12 @@ export const setCurrentAddress = async (addressId: number) => {
 
 export const getCurrentAddress = async (): Promise<CurrentAddress> => {
     try {
-        const response = await axios.get('/customer/current-address');
+        const response = await api.get('/customer/current-address');
+
         return response.data;
     } catch (error) {
         throw error;
     }
 };
-
 
 export default api;
