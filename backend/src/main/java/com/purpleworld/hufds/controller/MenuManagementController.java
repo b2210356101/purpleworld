@@ -119,6 +119,32 @@ public class MenuManagementController {
     }
 
     // Update existing menu item.
+    @PutMapping("/items/{itemId}")
+    public ResponseEntity<?> updateMenuItem(@PathVariable Long itemId,
+                                            @RequestBody MenuItemRequest request,
+                                            @AuthenticationPrincipal String email) {
+        Optional<Restaurant> restaurantOpt = restaurantRepository.findByEmail(email);
+        if (restaurantOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Restaurant not found");
+        }
+
+        Optional<MenuItem> itemOpt = menuItemRepository.findById(itemId);
+        if (itemOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Menu item not found");
+        }
+
+        MenuItem menuItem = itemOpt.get();
+
+        menuItem.setName(request.getName());
+        menuItem.setPrice(request.getPrice());
+        menuItem.setDescription(request.getDescription());
+        menuItem.setImg(request.getImg());
+
+        menuItemRepository.save(menuItem);
+
+        return ResponseEntity.ok(new MenuItemResponse(menuItem));
+    }
+
 
     // Delete menu item.
 }
