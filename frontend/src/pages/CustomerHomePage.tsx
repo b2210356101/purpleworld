@@ -60,7 +60,7 @@ const CustomerHomePage = () => {
                 formattedAddresses = data.addresses.map((addr: ApiAddress) => ({
                     addressId: addr.addressId,
                     name: addr.name,
-                    fullAddress: addr.fullAddress + ", " + addr.neighborhood + ", " + addr.district + "/" + addr.city,
+                    fullAddress: addr.fullAddress,
                     phoneNumber: addr.phoneNumber,
                     neighborhood: addr.neighborhood,
                     buildingNumber: addr.buildingNumber,
@@ -85,6 +85,7 @@ const CustomerHomePage = () => {
         } catch (err) {
             console.error('Error fetching addresses:', err);
             setError('Failed to load addresses. Please try again later.');
+
         }
     };
 

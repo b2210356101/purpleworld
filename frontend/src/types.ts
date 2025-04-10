@@ -15,12 +15,13 @@ export interface Address {
     apartmentNumber: string;
     city?: string;
     district?: string;
-    neighborhood?: string;
+    neighborhood?: string ;
     street?: string | null;
     deliveryNote?: string;
     latitude?: number;
     longitude?: number;
 }
+
 
 export interface CurrentAddress {
     addressId: number;

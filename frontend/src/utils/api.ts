@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, {AxiosError} from 'axios';
 import { getToken, logout } from './auth';
 import { Address, CurrentAddress } from '../types';
 
@@ -169,12 +169,28 @@ export const setCurrentAddress = async (addressId: number) => {
     }
 };
 
-export const getCurrentAddress = async (): Promise<CurrentAddress> => {
+interface BackendErrorResponse {
+    error: string;
+    message: string;
+    status?: number;
+}
+
+export const getCurrentAddress = async (): Promise<CurrentAddress | null> => {
     try {
         const response = await api.get('/customer/current-address');
-
         return response.data;
     } catch (error) {
+        if (error instanceof AxiosError && error.response) {
+            const errData = error.response.data as BackendErrorResponse;
+
+            if (errData.error === 'No selected address.') {
+                console.warn('No address found for customer:', errData.message);
+                return null;
+            }
+
+            throw errData;
+        }
+
         throw error;
     }
 };

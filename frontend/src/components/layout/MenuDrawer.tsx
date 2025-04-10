@@ -26,7 +26,7 @@ interface MenuDrawerProps {
 
 // User-specific menu items
 const getMenuItems = () => {
-    switch (localStorage.getItem('role')) {
+    switch (localStorage.getItem('roleType')) {
         case 'CUSTOMER':
             return [
                 { text: 'Home', icon: <HomeIcon />, path: '/' },
@@ -213,18 +213,18 @@ const MenuDrawer = ({ onClose, onLogout }: MenuDrawerProps) => {
                 </List>
 
                 {isLoggedIn && (<Button
-                    variant='contained'
-                    onClick={onLogout}
-                    startIcon={<LogoutIcon />}
-                    sx={{
-                        bgcolor: 'secondary.main',
-                        width: '100%',
-                        borderRadius: 0,
-                        py: 1.5,
-                    }}
-                >
-                    Logout
-                </Button>
+                        variant='contained'
+                        onClick={onLogout}
+                        startIcon={<LogoutIcon />}
+                        sx={{
+                            bgcolor: 'secondary.main',
+                            width: '100%',
+                            borderRadius: 0,
+                            py: 1.5,
+                        }}
+                    >
+                        Logout
+                    </Button>
                 )}
             </Box>
         </Box >
