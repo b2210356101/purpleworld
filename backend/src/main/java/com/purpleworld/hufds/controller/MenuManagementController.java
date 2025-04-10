@@ -2,7 +2,9 @@ package com.purpleworld.hufds.controller;
 
 import com.purpleworld.hufds.dto.request.CategoryRequest;
 import com.purpleworld.hufds.dto.request.MenuItemRequest;
+import com.purpleworld.hufds.dto.response.CategoryResponse;
 import com.purpleworld.hufds.dto.response.MenuItemResponse;
+import com.purpleworld.hufds.dto.response.MenuResponse;
 import com.purpleworld.hufds.entity.Category;
 import com.purpleworld.hufds.entity.Menu;
 import com.purpleworld.hufds.entity.MenuItem;
@@ -17,6 +19,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -44,8 +48,8 @@ public class MenuManagementController {
     // Get restaurant menu.
     @Transactional
     @GetMapping
-    public ResponseEntity<?> getRestaurantMenu (@AuthenticationPrincipal Long restaurantId) {
-        Optional<Restaurant> restaurantOpt = restaurantRepository.findById(restaurantId);
+    public ResponseEntity<?> getRestaurantMenu (@AuthenticationPrincipal String email) {
+        Optional<Restaurant> restaurantOpt = restaurantRepository.findByEmail(email);
         if (restaurantOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Restaurant not found");
         }
@@ -56,7 +60,39 @@ public class MenuManagementController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Menu not found");
         }
 
-        return ResponseEntity.ok(menuManagementService.getMenuWithItemsByCategory(menu.get().getId()));
+
+        List<CategoryResponse> categoryResponses = new ArrayList<>();
+
+        for (Category category : menu.get().getCategories()) {
+            String categoryName = category.getName();
+            Long categoryId = category.getId();
+
+            List<MenuItemResponse> itemResponses = new ArrayList<>();
+
+            for (MenuItem item : category.getMenuItems()) {
+                itemResponses.add(new MenuItemResponse(
+                        item.getId(),
+                        item.getName(),
+                        item.getPrice(),
+                        item.getDescription(),
+                        item.getImg()
+                ));
+            }
+
+            categoryResponses.add(new CategoryResponse(
+                    categoryId,
+                    categoryName,
+                    itemResponses
+            ));
+        }
+
+        MenuResponse response = new MenuResponse(
+                menu.get().getId(),
+                menu.get().getRestaurant().getRestaurantName(),
+                categoryResponses
+        );
+
+        return ResponseEntity.ok(response);
     }
 
 
