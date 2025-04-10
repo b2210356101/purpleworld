@@ -11,34 +11,43 @@ import { login } from '../../store/slices/authSlice';
  */
 const Layout = () => {
     const dispatch = useAppDispatch();
-    const { userType } = useAppSelector(state => state.auth);
+    const { userType, userInfo } = useAppSelector(state => state.auth);
 
     // Restore auth state from localStorage on page refresh
     useEffect(() => {
         const token = localStorage.getItem('token');
         const storedUserType = localStorage.getItem('roleType');
-
-        if (token && storedUserType) {
+        const username = localStorage.getItem('username');
+        
+        if (token && storedUserType && username) {
+            // Restore auth state with all user information
             dispatch(login({
                 token,
-                roleType: storedUserType,
+                role: storedUserType,
+                username,
+                profileImage: localStorage.getItem('profileImage')
             }));
         }
     }, [dispatch]);
 
+
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-            <Header userType={userType} />
-            
-            <Container component="main" sx={{ 
-                flex: 1, 
-                display: 'flex', 
+            <Header
+                userType={userType}
+                username={userInfo?.username}
+                profileImage={userInfo?.profileImage}
+            />
+
+            <Container component="main" sx={{
+                flex: 1,
+                display: 'flex',
                 flexDirection: 'column',
-                py: 3 
+                py: 3
             }}>
                 <Outlet />
             </Container>
-            
+
             <Footer />
         </Box>
     );

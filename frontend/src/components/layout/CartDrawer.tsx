@@ -7,11 +7,10 @@ import { Link } from 'react-router-dom';
 import CloseIcon from '@mui/icons-material/Close';
 
 interface CartDrawerProps {
-    open: boolean;
     onClose: () => void;
 }
 
-const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
+const CartDrawer: React.FC<CartDrawerProps> = ({ onClose }) => {
     // Sample data
     const restaurants: Restaurant[] = [
         {
