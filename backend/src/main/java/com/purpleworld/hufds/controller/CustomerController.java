@@ -5,12 +5,10 @@ import com.purpleworld.hufds.dto.response.AddressResponse;
 import com.purpleworld.hufds.entity.Address;
 import com.purpleworld.hufds.entity.Customer;
 import com.purpleworld.hufds.repository.AddressRepository;
-import com.purpleworld.hufds.repository.AdminRepository;
 import com.purpleworld.hufds.repository.CustomerRepository;
 import com.purpleworld.hufds.service.GoogleMapsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -117,6 +115,31 @@ public class CustomerController {
             return ResponseEntity.ok("Current address set successfully");
 
         } catch (RuntimeException ex) {
+            return ResponseEntity.status(400).body("Error: " + ex.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Something went wrong: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/current-address")
+    public ResponseEntity<?> getCurrentAddress(@AuthenticationPrincipal String email) {
+
+        try {
+            if (email == null || email.isBlank()) {
+                return ResponseEntity.status(401).body("Unauthorized: Invalid or missing token");
+            }
+
+            Customer customer = customerRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Customer not found"));
+            if(customer.getCurrentAddressId() == null){
+
+                return ResponseEntity.status(401).body("No selected address.");
+            } else {
+                return ResponseEntity.ok(customer.getCurrentAddressId());
+
+            }
+
+        }catch (RuntimeException ex) {
             return ResponseEntity.status(400).body("Error: " + ex.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Something went wrong: " + e.getMessage());
