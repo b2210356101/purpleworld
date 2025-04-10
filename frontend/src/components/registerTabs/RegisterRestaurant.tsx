@@ -16,8 +16,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { registerRestaurant } from "../../utils/api";
-import { useAppDispatch } from "../../store/hooks";
-import { registerSuccess } from "../../store/slices/authSlice";
+import MyLocationIcon from "@mui/icons-material/MyLocation";
 
 // Track if the script has been loaded to prevent multiple loads
 const GOOGLE_MAPS_API_KEY = "AIzaSyBkEQfPxLwjzhWwPshlQAdIuWTHlk80Vls";
@@ -29,11 +28,9 @@ declare global {
     google: any;
   }
 }
-
 const RegisterRestaurant = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
   const mapRef = useRef<HTMLDivElement>(null);
   const [mapObject, setMapObject] = useState<google.maps.Map | null>(null);
 
@@ -137,6 +134,42 @@ const RegisterRestaurant = () => {
       });
     } catch (error) {
       console.error("Error initializing Google Maps:", error);
+    }
+  };
+  // Inside your RegisterRestaurant component, add this new function
+  const getCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const currentLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+
+          // Update location state
+          setLocation(currentLocation);
+
+          // Clear any location errors
+          setLocationError(false);
+          setLocationErrorMsg("");
+
+          // Update map and place marker
+          if (mapObject) {
+            mapObject.setCenter(currentLocation);
+            mapObject.setZoom(15); // Closer zoom for precision
+          }
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          setLocationError(true);
+          setLocationErrorMsg(
+            "Unable to get your current location. Please enable location services."
+          );
+        }
+      );
+    } else {
+      setLocationError(true);
+      setLocationErrorMsg("Geolocation is not supported by this browser.");
     }
   };
 
@@ -311,7 +344,7 @@ const RegisterRestaurant = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setGeneralError(""); 
+    setGeneralError("");
 
     if (validateInputs()) {
       const data = new FormData(e.currentTarget);
@@ -335,14 +368,7 @@ const RegisterRestaurant = () => {
       try {
         const response = await registerRestaurant(formData);
         console.log("Restaurant registered:", response);
-        dispatch(
-          registerSuccess({
-            token: response.token,
-            roleType: "RESTAURANT",
-            userInfo: { email: formData.email, name: formData.name },
-          })
-        );
-        navigate("/");
+        navigate("/login");
       } catch (err: any) {
         console.error("Registration failed:", err);
         if (err.response && err.response.data && err.response.data.message) {
@@ -351,7 +377,7 @@ const RegisterRestaurant = () => {
             setEmailError(true);
             setEmailErrorMsg("This email is already registered.");
           } else {
-            setGeneralError(errorMessage); 
+            setGeneralError(errorMessage);
           }
         } else {
           setGeneralError(
@@ -363,18 +389,25 @@ const RegisterRestaurant = () => {
   };
 
   return (
+    // ai-gen
     <Box
       component="form"
-      onSubmit={handleSubmit}
       noValidate
+      onSubmit={handleSubmit}
       sx={{
+        maxWidth: 500, // Prevents the form from being too wide
+        mx: "auto", // Centers horizontally
+        px: { xs: 2, sm: 4 }, // Padding left/right based on screen size
+        py: 4,
         display: "flex",
         flexDirection: "column",
         gap: 3,
-        p: 4,
         borderRadius: 2,
+        width: "100%", // Allows responsive shrinking
+        boxSizing: "border-box",
       }}
     >
+    {/* ai-gen end */}
       <Typography
         variant="h4"
         fontWeight={600}
@@ -590,18 +623,38 @@ const RegisterRestaurant = () => {
       <Typography fontWeight={500} mt={2}>
         Select Restaurant Location
       </Typography>
-      <Box
-        ref={mapRef}
-        sx={{
-          height: 400,
-          width: "100%",
-          borderRadius: 2,
-          backgroundColor: theme.palette.grey[200],
-          zIndex: 0,
-          position: "relative",
-          overflow: "hidden",
-        }}
-      />
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+        {/* Button above and aligned right */}
+        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+          <Button
+            variant="contained"
+            startIcon={<MyLocationIcon />}
+            onClick={getCurrentLocation}
+            sx={{
+              backgroundColor: theme.palette.background.paper,
+              color: theme.palette.primary.main,
+              boxShadow: 2,
+              "&:hover": {
+                backgroundColor: theme.palette.grey[100],
+              },
+            }}
+          >
+            My Location
+          </Button>
+        </Box>
+
+        {/* Map */}
+        <Box
+          ref={mapRef}
+          sx={{
+            height: 400,
+            width: "100%",
+            borderRadius: 2,
+            backgroundColor: theme.palette.grey[200],
+            overflow: "hidden",
+          }}
+        />
+      </Box>
 
       {location ? (
         <Typography fontSize={14} color="text.secondary">

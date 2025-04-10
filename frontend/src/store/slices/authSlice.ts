@@ -58,25 +58,7 @@ const authSlice = createSlice({
                 localStorage.setItem('profileImage', action.payload.profileImage);
             }
         },
-        registerSuccess: (state, action: PayloadAction<{ token: string; roleType: string; userInfo?: UserInfo }>) => {
-            const { token, roleType, userInfo } = action.payload;
 
-            let validRole: UserType = undefined;
-            if (roleType === 'CUSTOMER' || roleType === 'RESTAURANT' ||
-                roleType === 'COURIER' || roleType === 'ADMIN') {
-                validRole = roleType as UserType;
-            }
-
-            localStorage.setItem('token', token);
-            localStorage.setItem('roleType', roleType);
-
-            state.isAuthenticated = true;
-            state.token = token;
-            state.userType = validRole;
-            if (userInfo) {
-                state.userInfo = userInfo;
-            }
-        },
         logout: (state) => {
             // Clear localStorage
             localStorage.removeItem('token');
@@ -93,5 +75,5 @@ const authSlice = createSlice({
     },
 });
 
-export const { login, logout, updateUserInfo, registerSuccess } = authSlice.actions;
+export const { login, logout, updateUserInfo } = authSlice.actions;
 export default authSlice.reducer;
