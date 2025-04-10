@@ -1,10 +1,13 @@
-import { Box, Typography, Button, Avatar, Paper, Grid, Stack } from '@mui/material';
-import { ArrowForward, CircleRounded, Restaurant, } from '@mui/icons-material';
+import { Box, Typography, Button, Avatar, Paper, Grid, Stack, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Radio, RadioGroup, TextField, Alert } from '@mui/material';
+import { ArrowForward, CircleRounded, Add } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import RestaurantCard from '../components/restaurant/RestaurantCart';
 import PopularFoodCard from '../components/menu/PopularFoodCard';
 import FoodCategories from '../components/menu/FoodCategories';
-
+import { useState, useEffect } from 'react';
+import AddAddressModal from '../components/address/AddAddressModal';
+import { Address } from '../types';
+import { getCurrentAddress, getCustomerAddresses, saveAddress, setCurrentAddress } from '../utils/api';
 
 interface PopularFood {
     id: number;
@@ -12,6 +15,7 @@ interface PopularFood {
     image: string;
     restaurant: string;
     price: string;
+    description: string;
 }
 
 interface Restaurant {
@@ -23,7 +27,116 @@ interface Restaurant {
     reviews: number;
 }
 
+interface ApiAddress {
+    addressId: number;
+    name: string;
+    city: string;
+    district: string;
+    neighborhood: string;
+    street: string | null;
+    buildingNumber: string;
+    floor: string;
+    apartmentNumber: string;
+    fullAddress: string;
+    phoneNumber: string;
+}
+
 const CustomerHomePage = () => {
+    const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
+    const [addresses, setAddresses] = useState<Address[]>([]);
+    const [selectedAddress, setSelectedAddress] = useState<number | null>(null);
+    const [isNewAddressDialogOpen, setIsNewAddressDialogOpen] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchAddresses = async () => {
+        try {
+            const data = await getCustomerAddresses();
+
+            // Initialize addresses as empty array by default
+            let formattedAddresses: Address[] = [];
+
+            if (data && data.addresses && Array.isArray(data.addresses) && data.addresses.length > 0) {
+                // Transform API addresses to match our Address type
+                formattedAddresses = data.addresses.map((addr: ApiAddress) => ({
+                    addressId: addr.addressId,
+                    name: addr.name,
+                    fullAddress: addr.fullAddress + ", " + addr.neighborhood + ", " + addr.district + "/" + addr.city,
+                    phoneNumber: addr.phoneNumber,
+                    neighborhood: addr.neighborhood,
+                    buildingNumber: addr.buildingNumber,
+                    floor: addr.floor,
+                    apartmentNumber: addr.apartmentNumber,
+                }));
+            }
+
+            const currentAddress = await getCurrentAddress();
+
+            // Set addresses (either with parsed data or empty array)
+            setAddresses(formattedAddresses);
+
+            if (currentAddress) {
+                setSelectedAddress(currentAddress.addressId);
+            } else if (formattedAddresses.length > 0 && formattedAddresses[0].addressId) {
+                // Fallback to first address if current address not in list
+                setSelectedAddress(formattedAddresses[0].addressId);
+            } else {
+                setSelectedAddress(null);
+            }
+        } catch (err) {
+            console.error('Error fetching addresses:', err);
+            setError('Failed to load addresses. Please try again later.');
+        }
+    };
+
+    // fetchAddresses in useEffect
+    useEffect(() => {
+        fetchAddresses();
+    }, []);
+
+    const handleDialogOpen = () => {
+        setIsAddressDialogOpen(true);
+    };
+
+    const handleDialogClose = () => {
+        setIsAddressDialogOpen(false);
+    };
+
+    const handleAddNewAddress = () => {
+        setIsNewAddressDialogOpen(true);
+    };
+
+    const handleSaveNewAddress = async (address: Omit<Address, 'id'>, location: { lat: number, lng: number } | null) => {
+        try {
+            await saveAddress(address, location);
+
+            // Reload all addresses
+            await fetchAddresses();
+
+            setIsNewAddressDialogOpen(false);
+        } catch (error) {
+            // Handle errors
+        }
+    }
+
+    const handleSaveAddresses = async () => {
+        if (!selectedAddress) {
+            setError('Please select an address first');
+            return;
+        }
+
+        try {
+            await setCurrentAddress(selectedAddress);
+
+            handleDialogClose();
+        } catch (error) {
+            setError('Failed to set current address. Please try again.');
+        }
+    };
+
+    const handleAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSelectedAddress(Number(event.target.value));
+    };
+
     // Current order information
     const currentOrder = {
         id: "27349",
@@ -36,7 +149,6 @@ const CustomerHomePage = () => {
         distance: "1.2 km"
     };
 
-
     // Popular foods
     const popularFoods: PopularFood[] = [
         {
@@ -44,35 +156,40 @@ const CustomerHomePage = () => {
             name: 'Cheese Burger',
             image: 'https://picsum.photos/300/230',
             restaurant: 'Burger Arena',
-            price: '320₺'
+            price: '320₺',
+            description: 'blabla'
         },
         {
             id: 2,
             name: 'Toffe\'s Cake',
             image: 'https://picsum.photos/300/220',
             restaurant: 'Top Sticks',
-            price: '280₺'
+            price: '280₺',
+            description: 'blabla'
         },
         {
             id: 3,
             name: 'Dancake',
             image: 'https://picsum.photos/320/200',
             restaurant: 'Donuts hut',
-            price: '235₺'
+            price: '235₺',
+            description: 'blabla'
         },
         {
             id: 4,
             name: 'Crispy Sandwich',
             image: 'https://picsum.photos/310/200',
             restaurant: 'Fastfood Dine',
-            price: '320₺'
+            price: '320₺',
+            description: 'blabla'
         },
         {
             id: 5,
             name: 'Thai Soup',
             image: 'https://picsum.photos/300/210',
             restaurant: 'Foody man',
-            price: '620₺'
+            price: '620₺',
+            description: 'blabla'
         }
     ];
 
@@ -127,14 +244,14 @@ const CustomerHomePage = () => {
             <Grid container spacing={6} sx={{ bgcolor: 'primary.main', mt: { xs: 2, md: 6 }, p: 6, alignItems: 'center', justifyContent: 'space-between', borderRadius: 6, color: 'white' }}>
                 <Grid size={{ xs: 12, md: 6 }}>
                     <Typography variant="h4" fontWeight="bold" gutterBottom>
-                        Hello, Beste!
+                        Hello, {localStorage.getItem('username')}!
                     </Typography>
                     <Typography>
                         What would you like to eat today?<br />
                         Your favorite flavors are just a click away.
                     </Typography>
 
-                    <Button variant="contained" size="large" sx={{ mt: 2, color: 'primary.main', bgcolor: 'white' }}>
+                    <Button variant="contained" size="large" sx={{ mt: 2, color: 'primary.main', bgcolor: 'white' }} onClick={handleDialogOpen}>
                         Select Address
                     </Button>
                 </Grid>
@@ -142,7 +259,7 @@ const CustomerHomePage = () => {
                 <Grid size={{ xs: 12, md: 6 }} sx={{ textAlign: 'right' }}>
                     <Box
                         component="img"
-                        src="https://picsum.photos/500/350"
+                        src="src/assets/hero.jpeg"
                         alt="Food Delivery"
                         sx={{
                             maxWidth: '100%',
@@ -307,7 +424,7 @@ const CustomerHomePage = () => {
                         <Typography
                             variant="body2"
                             component={Link}
-                            to="/categories"
+                            to="/restaurants"
                             sx={{
                                 color: 'primary.main',
                                 textDecoration: 'none',
@@ -344,6 +461,88 @@ const CustomerHomePage = () => {
                     ))}
                 </Grid>
             </Box>
+
+            {/* Address Selection Dialog */}
+            <Dialog open={isAddressDialogOpen} onClose={handleDialogClose} fullWidth maxWidth="md">
+                <DialogTitle>Select Your Addresses</DialogTitle>
+                <DialogContent>
+                    {error ? (
+                        <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
+                    ) : addresses.length === 0 ? (
+                        <Alert severity="warning" sx={{ mb: 2 }}>
+                            You don't have any saved addresses yet. Please add a new address.
+                        </Alert>
+                    ) : (
+                        <Box sx={{ mb: 2 }}>
+                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                Your saved addresses
+                            </Typography>
+                            <RadioGroup
+                                value={selectedAddress}
+                                onChange={handleAddressChange}
+                            >
+                                {addresses.map((address, index) => (
+                                    <FormControlLabel
+                                        key={index}
+                                        value={address.addressId}
+                                        control={<Radio />}
+                                        label={
+                                            <Box sx={{ mb: 1 }}>
+                                                <Typography variant="body1">{address.name}</Typography>
+                                                <Typography variant="body2" color="text.secondary">{address.fullAddress}</Typography>
+                                                <Typography variant="body2" color="text.secondary">{address.phoneNumber}</Typography>
+                                            </Box>
+                                        }
+                                    />
+                                ))}
+                            </RadioGroup>
+                        </Box>
+                    )}
+
+                    <Grid container spacing={2}>
+                        <Grid size={{ xs: 12, md: 6 }}>
+                            <Button
+                                variant="outlined"
+                                startIcon={<Add />}
+                                fullWidth
+                                onClick={handleAddNewAddress}
+                            >
+                                Add New Address
+                            </Button>
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 6 }}>
+                            <Button
+                                component={Link}
+                                to="/profile"
+                                variant="outlined"
+                                fullWidth
+                                sx={{ color: 'secondary.main', borderColor: 'secondary.main' }}
+                            >
+                                Manage Addresses
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </DialogContent>
+                <DialogActions sx={{ p: 3 }}>
+                    <Button onClick={handleDialogClose} color="secondary">
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleSaveAddresses}
+                        disabled={!selectedAddress && addresses.length > 0}
+                        variant="contained"
+                        color="primary"
+                    >
+                        Select Address
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <AddAddressModal
+                open={isNewAddressDialogOpen}
+                onClose={() => setIsNewAddressDialogOpen(false)}
+                onSave={handleSaveNewAddress}
+            />
         </Box>
     );
 };

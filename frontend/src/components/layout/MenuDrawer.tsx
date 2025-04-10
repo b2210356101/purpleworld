@@ -16,19 +16,16 @@ import CloseIcon from '@mui/icons-material/Close';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
-import { UserType } from '../../types';
 import { isAuthenticated } from '../../utils/auth';
 
 interface MenuDrawerProps {
-    userType: UserType;
-    open: boolean;
     onClose: () => void;
     onLogout: () => void;
 }
 
 // User-specific menu items
-const getMenuItems = (userType: UserType) => {
-    switch (userType) {
+const getMenuItems = () => {
+    switch (localStorage.getItem('role')) {
         case 'CUSTOMER':
             return [
                 { text: 'Home', icon: <HomeIcon />, path: '/' },
@@ -72,25 +69,8 @@ const getMenuItems = (userType: UserType) => {
     }
 };
 
-// Get profile-specific menu items
-const getUserInfo = (userType: UserType) => {
-    switch (userType) {
-        case 'CUSTOMER':
-            return { name: 'Beste Özdemir', email: 'beste@example.com' };
-        case 'RESTAURANT':
-            return { name: 'Domitoz Pizza', email: 'pizza@example.com' };
-        case 'COURIER':
-            return { name: 'Mustafa Kaan Çevik', email: 'kaan@example.com' };
-        case 'ADMIN':
-            return { name: 'Admin', email: 'admin@example.com' };
-        default:
-            return { name: 'Guest', email: '' };
-    }
-};
-
-const MenuDrawer = ({ userType, open, onClose, onLogout }: MenuDrawerProps) => {
-    const menuItems = getMenuItems(userType);
-    const userInfo = getUserInfo(userType);
+const MenuDrawer = ({ onClose, onLogout }: MenuDrawerProps) => {
+    const menuItems = getMenuItems();
     const isLoggedIn = isAuthenticated();
 
     return (
@@ -166,7 +146,7 @@ const MenuDrawer = ({ userType, open, onClose, onLogout }: MenuDrawerProps) => {
                 ) : (
                     <>
                         <Typography sx={{ fontSize: 18, fontWeight: 'medium' }}>
-                            Hello, {userInfo.name}!
+                            Hello, {localStorage.getItem('username')}!
                         </Typography>
                         <Button
                             variant="contained"
