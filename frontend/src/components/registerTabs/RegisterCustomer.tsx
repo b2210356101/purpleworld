@@ -16,17 +16,14 @@ import { Link, useNavigate } from "react-router-dom";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { registerCustomer } from "../../utils/api";
-import { useAppDispatch } from '../../store/hooks';
-import { registerSuccess } from '../../store/slices/authSlice';
 
 const RegisterCustomer = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
 
   const [showPassword, setShowPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const [generalError, setGeneralError] = useState(""); 
+  const [generalError, setGeneralError] = useState("");
 
   const [firstNameError, setFirstNameError] = useState(false);
   const [lastNameError, setLastNameError] = useState(false);
@@ -46,12 +43,19 @@ const RegisterCustomer = () => {
   const handleClickShowPassword = () => setShowPassword(!showPassword);
 
   const validateInputs = (): boolean => {
-    const firstName = (document.getElementById("firstName") as HTMLInputElement)?.value || "";
-    const lastName = (document.getElementById("lastName") as HTMLInputElement)?.value || "";
-    const phone = (document.getElementById("phone") as HTMLInputElement)?.value || "";
-    const email = (document.getElementById("email") as HTMLInputElement)?.value || "";
-    const password = (document.getElementById("password") as HTMLInputElement)?.value || "";
-    const confirmPassword = (document.getElementById("confirmPassword") as HTMLInputElement)?.value || "";
+    const firstName =
+      (document.getElementById("firstName") as HTMLInputElement)?.value || "";
+    const lastName =
+      (document.getElementById("lastName") as HTMLInputElement)?.value || "";
+    const phone =
+      (document.getElementById("phone") as HTMLInputElement)?.value || "";
+    const email =
+      (document.getElementById("email") as HTMLInputElement)?.value || "";
+    const password =
+      (document.getElementById("password") as HTMLInputElement)?.value || "";
+    const confirmPassword =
+      (document.getElementById("confirmPassword") as HTMLInputElement)?.value ||
+      "";
 
     let isValid = true;
 
@@ -91,7 +95,8 @@ const RegisterCustomer = () => {
       setEmailErrorMsg("");
     }
 
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*_])[A-Za-z\d!@#$%^&*_]{8,}$/;
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*_])[A-Za-z\d!@#$%^&*_]{8,}$/;
     if (!password || !passwordRegex.test(password)) {
       setPasswordError(true);
       setPasswordErrorMsg(
@@ -124,7 +129,7 @@ const RegisterCustomer = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setGeneralError(""); 
+    setGeneralError("");
 
     if (validateInputs()) {
       const data = new FormData(e.currentTarget);
@@ -138,12 +143,8 @@ const RegisterCustomer = () => {
       try {
         const response = await registerCustomer(formData);
         console.log("Customer registered:", response);
-        dispatch(registerSuccess({
-          token: response.token,
-          roleType: 'CUSTOMER',
-          userInfo: { email: formData.email, name: `${formData.first_Name} ${formData.last_Name}` },
-        }));
-        navigate("/");
+
+        navigate("/login");
       } catch (err: any) {
         console.error("Registration failed:", err);
         if (err.response && err.response.data && err.response.data.message) {
@@ -155,7 +156,9 @@ const RegisterCustomer = () => {
             setGeneralError(errorMessage);
           }
         } else {
-          setGeneralError("An error occurred during registration. Please try again.");
+          setGeneralError(
+            "An error occurred during registration. Please try again."
+          );
         }
       }
     }
@@ -167,14 +170,24 @@ const RegisterCustomer = () => {
       noValidate
       onSubmit={handleSubmit}
       sx={{
+        maxWidth: 500, // Prevents the form from being too wide
+        mx: "auto", // Centers horizontally
+        px: { xs: 2, sm: 4 }, // Padding left/right based on screen size
+        py: 4,
         display: "flex",
         flexDirection: "column",
         gap: 3,
-        p: 4,
         borderRadius: 2,
+        width: "100%", // Allows responsive shrinking
+        boxSizing: "border-box",
       }}
     >
-      <Typography variant="h4" fontWeight={600} textAlign="center" color="primary">
+      <Typography
+        variant="h4"
+        fontWeight={600}
+        textAlign="center"
+        color="primary"
+      >
         Register as a Customer
       </Typography>
 
@@ -260,7 +273,7 @@ const RegisterCustomer = () => {
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
-                <IconButton 
+                <IconButton
                   onClick={handleClickShowPassword}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
@@ -288,7 +301,7 @@ const RegisterCustomer = () => {
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
-                <IconButton 
+                <IconButton
                   onClick={handleClickShowPassword}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >

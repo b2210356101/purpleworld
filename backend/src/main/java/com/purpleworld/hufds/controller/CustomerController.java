@@ -5,14 +5,14 @@ import com.purpleworld.hufds.dto.response.AddressResponse;
 import com.purpleworld.hufds.entity.Address;
 import com.purpleworld.hufds.entity.Customer;
 import com.purpleworld.hufds.repository.AddressRepository;
-import com.purpleworld.hufds.repository.AdminRepository;
 import com.purpleworld.hufds.repository.CustomerRepository;
 import com.purpleworld.hufds.service.GoogleMapsService;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -90,6 +90,68 @@ public class CustomerController {
             return ResponseEntity.status(401).body("Unauthorized: " + ex.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Something went wrong: " + e.getMessage());
+        }
+    }
+
+
+    @PostMapping("/set-current-address")
+    public ResponseEntity<?> setCurrentAddress(@RequestParam Long addressId,
+                                               @AuthenticationPrincipal String email) {
+        try {
+            if (email == null || email.isBlank()) {
+                return ResponseEntity.status(401).body("Unauthorized: Invalid or missing token");
+            }
+
+            Customer customer = customerRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+            Address selectedAddress = addressRepository.findById(addressId)
+                    .orElseThrow(() -> new RuntimeException("Address not found"));
+
+            if (!selectedAddress.getCustomer().getId().equals(customer.getId())) {
+                return ResponseEntity.status(403).body("Forbidden: You can only select your own address");
+            }
+
+            customer.setCurrentAddressId(selectedAddress.getId());
+            customerRepository.save(customer);
+
+            return ResponseEntity.ok("Current address set successfully");
+
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(400).body("Error: " + ex.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Something went wrong: " + e.getMessage());
+        }
+    }
+
+    @GetMapping(value = "/current-address", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, Object>> getCurrentAddress(@AuthenticationPrincipal String email) {
+
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            if (email == null || email.isBlank()) {
+                response.put("error", "Unauthorized: Invalid or missing token");
+                return ResponseEntity.status(401).body(response);
+            }
+
+            Customer customer = customerRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+            if (customer.getCurrentAddressId() == null) {
+                response.put("error", "No selected address.");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            response.put("addressId", customer.getCurrentAddressId());
+            return ResponseEntity.ok(response);
+
+        } catch (RuntimeException ex) {
+            response.put("error", "Error: " + ex.getMessage());
+            return ResponseEntity.status(400).body(response);
+        } catch (Exception e) {
+            response.put("error", "Something went wrong: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
         }
     }
 

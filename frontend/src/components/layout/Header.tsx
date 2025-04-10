@@ -16,8 +16,13 @@ import { UserType } from '../../types';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logout } from '../../store/slices/authSlice';
 
+interface HeaderProps {
+    userType: UserType;
+    username?: string;
+    profileImage?: string;
+}
 
-const Header = ({ userType }: { userType: UserType }) => {
+const Header: React.FC<HeaderProps> = ({ userType, username, profileImage }) => {
     const theme = useTheme();
     const navigate = useNavigate();
     const isMobile = useMediaQuery(theme.breakpoints.up('sm'));
@@ -64,13 +69,19 @@ const Header = ({ userType }: { userType: UserType }) => {
             return (
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     {isMobile ? <Typography sx={{ mr: 1 }}>
-                        Hello, {userType}!
+                        Hello, {username}!
                     </Typography> : <></>}
                     <IconButton
                         component={Link}
                         to="/profile"
                     >
-                        <Avatar sx={{ width: 32, height: 32 }} />
+                        <Avatar
+                            sx={{ width: 32, height: 32 }}
+                            src={profileImage || undefined}
+                            alt={username || 'User'}
+                        >
+                            {username?.charAt(0) || 'U'}
+                        </Avatar>
                     </IconButton>
 
                     {/* Cart icon is shown only for customers */}
@@ -175,8 +186,6 @@ const Header = ({ userType }: { userType: UserType }) => {
                     sx={{ '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 360 } }}
                 >
                     <MenuDrawer
-                        userType={userType}
-                        open={mobileOpen}
                         onClose={handleDrawerToggle}
                         onLogout={handleLogout}
                     />
@@ -199,7 +208,6 @@ const Header = ({ userType }: { userType: UserType }) => {
                         }}
                     >
                         <CartDrawer
-                            open={cartOpen}
                             onClose={handleCartDrawerToggle}
                         />
                     </Drawer>
@@ -210,7 +218,3 @@ const Header = ({ userType }: { userType: UserType }) => {
 };
 
 export default Header;
-
-function dispatch(arg0: any) {
-    throw new Error('Function not implemented.');
-}
