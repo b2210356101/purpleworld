@@ -78,7 +78,6 @@ public class AuthServiceImpl implements AuthService {
         return new RegisterResponse("Courier registered successfully!", true);
     }
 
-    @Transactional
     @Override
     @Transactional
     public RegisterResponse registerRestaurant(RestaurantRegisterRequest request) {
@@ -106,6 +105,10 @@ public class AuthServiceImpl implements AuthService {
         address.setBuildingNumber(request.getBuildingNumber());
         address.setApartmentNumber(request.getApartmentNumber());
         address.setRestaurant(restaurant);
+        address.setPhoneNumber(request.getPhone_Number());
+        address.setFullAddress(request.getAddress());
+        address.setFloor("1");
+
 
         restaurantRepository.save(restaurant);
         addressRepository.save(address);
