@@ -29,6 +29,11 @@ public class CustomerController {
                                            @AuthenticationPrincipal String email) {
         return customerService.createAddress(request, email);
     }
+    @DeleteMapping("/address")
+    public ResponseEntity<?> deleteAddress(@RequestParam Long addressId,
+                                           @AuthenticationPrincipal String email) {
+        return customerService.deleteAddress(addressId,email);
+    }
 
     @PostMapping("/set-current-address")
     public ResponseEntity<?> setCurrentAddress(@RequestParam Long addressId,
@@ -39,5 +44,11 @@ public class CustomerController {
     @GetMapping("/current-address")
     public ResponseEntity<?> getCurrentAddress(@AuthenticationPrincipal String email) {
         return customerService.getCurrentAddress(email);
+    }
+
+    @GetMapping("/nearest-restaurants")
+    public ResponseEntity<?> getNearestRestaurants(@AuthenticationPrincipal String email) {
+        return customerService.getNearestRestaurants(email);
+
     }
 }

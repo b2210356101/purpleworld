@@ -9,4 +9,7 @@ public interface CustomerService {
     ResponseEntity<?> createAddress(AddressRequest request, String email);
     ResponseEntity<?> setCurrentAddress(Long addressId, String email);
     ResponseEntity<?> getCurrentAddress(String email);
+    ResponseEntity<?> getNearestRestaurants(String email);
+
+    ResponseEntity<?> deleteAddress(Long addressId, String email);
 }

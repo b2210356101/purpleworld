@@ -3,6 +3,7 @@ package com.purpleworld.hufds.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.purpleworld.hufds.entity.Address;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -49,5 +50,40 @@ public class GoogleMapsService {
 
         return address;
     }
+
+    public TravelInfo getTravelInfo(Double originLat, Double originLng, Double destinationLat, Double destinationLng) {
+        String url = "https://maps.googleapis.com/maps/api/distancematrix/json?units=metric" +
+                "&origins=" + originLat + "," + originLng +
+                "&destinations=" + destinationLat + "," + destinationLng +
+                "&key=" + apiKey;
+
+        JsonNode root = restTemplate.getForObject(url, JsonNode.class);
+        TravelInfo travelInfo = new TravelInfo();
+
+        if (root != null
+                && root.has("rows")
+                && root.get("rows").size() > 0
+                && root.get("rows").get(0).has("elements")
+                && root.get("rows").get(0).get("elements").size() > 0) {
+
+            JsonNode element = root.get("rows").get(0).get("elements").get(0);
+            if (element.has("status") && "OK".equals(element.get("status").asText())) {
+
+                int durationSeconds = element.get("duration").get("value").asInt();
+                travelInfo.setDurationInMinutes(durationSeconds / 60);
+
+                double distanceMeters = element.get("distance").get("value").asDouble();
+                travelInfo.setDistanceInKilometers(distanceMeters / 1000.0);
+            }
+        }
+        return travelInfo;
+    }
+
+    @Data
+    public static class TravelInfo {
+        private int durationInMinutes;
+        private double distanceInKilometers;
+    }
+
 }
 // ai-gen end

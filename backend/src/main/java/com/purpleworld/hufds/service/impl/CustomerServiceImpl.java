@@ -2,12 +2,16 @@ package com.purpleworld.hufds.service.impl;
 
 import com.purpleworld.hufds.dto.request.AddressRequest;
 import com.purpleworld.hufds.dto.response.AddressResponse;
+import com.purpleworld.hufds.dto.response.NearestRestaurant;
 import com.purpleworld.hufds.entity.Address;
 import com.purpleworld.hufds.entity.Customer;
+import com.purpleworld.hufds.entity.Restaurant;
 import com.purpleworld.hufds.repository.AddressRepository;
 import com.purpleworld.hufds.repository.CustomerRepository;
+import com.purpleworld.hufds.repository.RestaurantRepository;
 import com.purpleworld.hufds.service.CustomerService;
 import com.purpleworld.hufds.service.GoogleMapsService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -21,6 +25,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
     private final AddressRepository addressRepository;
     private final GoogleMapsService googleMapsService;
+    private final RestaurantRepository restaurantRepository;
 
     @Override
     public ResponseEntity<String> dashboard() {
@@ -139,5 +144,68 @@ public class CustomerServiceImpl implements CustomerService {
             response.put("error", "Something went wrong: " + e.getMessage());
             return ResponseEntity.status(500).body(response);
         }
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<?> getNearestRestaurants(String email) {
+        Customer customer = customerRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        Long customerCurrentAddressId = customer.getCurrentAddressId();
+
+        if (customerCurrentAddressId == null) {
+
+            return ResponseEntity.badRequest().body("No current address set for customer");
+        }
+
+        Optional<Address> customerCurrentAddress = addressRepository.findById(customerCurrentAddressId);
+
+        Address currentAddress = customerCurrentAddress.get();
+
+        double customerLat = currentAddress.getLatitude();
+        double customerLng = currentAddress.getLongitude();
+
+        List<Restaurant> restaurants = restaurantRepository.findAll();
+
+        List<NearestRestaurant> nearestRestaurants = new ArrayList<>();
+        for (Restaurant restaurant : restaurants) {
+
+            Optional<Address> restaurantAddress = addressRepository.findByRestaurant(restaurant);
+            Address currentRestaurantAddress = restaurantAddress.get();
+            double restLat = currentRestaurantAddress.getLatitude();
+            double restLng = currentRestaurantAddress.getLongitude();
+
+            double distance = calculateHaversine(customerLat, customerLng, restLat, restLng);
+            if (distance <= 15.0) {
+                NearestRestaurant nearestRestaurant = new NearestRestaurant();
+                nearestRestaurant.setRestaurantId(restaurant.getId());
+                nearestRestaurant.setRestaurantName(restaurant.getRestaurantName());
+                nearestRestaurant.setDistanceInKm(distance);
+                nearestRestaurant.setImg(restaurant.getProfileImg());
+                nearestRestaurants.add(nearestRestaurant);
+            }
+        }
+
+        nearestRestaurants.sort(Comparator.comparingDouble(NearestRestaurant::getDistanceInKm));
+
+        return ResponseEntity.ok(nearestRestaurants);
+    }
+
+    @Override
+    public ResponseEntity<?> deleteAddress(Long addressId, String email) {
+        return null;
+    }
+
+
+    private double calculateHaversine(double lat1, double lon1, double lat2, double lon2) {
+        final int EARTH_RADIUS_KM = 6371;
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return EARTH_RADIUS_KM * c;
     }
 }

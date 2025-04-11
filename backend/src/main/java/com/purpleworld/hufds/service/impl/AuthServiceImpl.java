@@ -28,6 +28,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final AdminRepository adminRepository;
     private final MenuRepository menuRepository;
+    private final CartRepository cartRepository;
 
     @Override
     public RegisterResponse registerCustomer(CustomerRegisterRequest request) {
@@ -44,6 +45,10 @@ public class AuthServiceImpl implements AuthService {
         customer.setPassword(passwordEncoder.encode(request.getPassword()));
         customer.setRole(Role.CUSTOMER);
         customer.setBanned(false);
+
+        Cart cart = new Cart();
+        cart.setCustomer(customer);
+        cartRepository.save(cart);
 
 //        Address address = googleMapsService.getAddressFromCoordinates(request.getLatitude(), request.getLongitude());
 //        address.setBuildingNumber(request.getBuildingNumber());
@@ -112,6 +117,7 @@ public class AuthServiceImpl implements AuthService {
         address.setPhoneNumber(request.getPhone_Number());
         address.setFullAddress(request.getAddress());
         address.setFloor("1");
+        address.setRestaurant(restaurant);
 
         Menu defaultMenu = new Menu();
         defaultMenu.setRestaurant(restaurant);
