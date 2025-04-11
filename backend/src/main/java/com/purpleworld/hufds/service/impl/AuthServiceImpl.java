@@ -23,6 +23,7 @@ public class AuthServiceImpl implements AuthService {
     private final AddressRepository addressRepository;
     private final RestaurantRepository restaurantRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CartRepository cartRepository;
 
     @Override
     public RegisterResponse registerCustomer(CustomerRegisterRequest request) {
@@ -41,7 +42,6 @@ public class AuthServiceImpl implements AuthService {
         customer.setBanned(false);
         Cart cart = new Cart();
         cart.setCustomer(customer);
-
 //        Address address = googleMapsService.getAddressFromCoordinates(request.getLatitude(), request.getLongitude());
 //        address.setBuildingNumber(request.getBuildingNumber());
 //        address.setApartmentNumber(request.getApartmentNumber());
@@ -52,6 +52,7 @@ public class AuthServiceImpl implements AuthService {
 //
 //        customer.setCurrentAddressId(address.getId().intValue());
         customerRepository.save(customer);
+        cartRepository.save(cart);
 
         return new RegisterResponse("Customer registered successfully with address!", true);
     }
