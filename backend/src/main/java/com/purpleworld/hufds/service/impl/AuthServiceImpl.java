@@ -1,11 +1,13 @@
 package com.purpleworld.hufds.service.impl;
 
 import com.purpleworld.hufds.dto.request.*;
+import com.purpleworld.hufds.dto.response.LoginResponse;
 import com.purpleworld.hufds.dto.response.RegisterResponse;
 import com.purpleworld.hufds.entity.*;
 import com.purpleworld.hufds.enums.Role;
 import com.purpleworld.hufds.exception.RegistrationException;
 import com.purpleworld.hufds.repository.*;
+import com.purpleworld.hufds.security.JwtService;
 import com.purpleworld.hufds.service.AuthService;
 import com.purpleworld.hufds.service.GoogleMapsService;
 import jakarta.transaction.Transactional;
@@ -23,6 +25,9 @@ public class AuthServiceImpl implements AuthService {
     private final AddressRepository addressRepository;
     private final RestaurantRepository restaurantRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+    private final AdminRepository adminRepository;
+    private final MenuRepository menuRepository;
 
     @Override
     public RegisterResponse registerCustomer(CustomerRegisterRequest request) {
@@ -108,10 +113,50 @@ public class AuthServiceImpl implements AuthService {
         address.setFullAddress(request.getAddress());
         address.setFloor("1");
 
+        Menu defaultMenu = new Menu();
+        defaultMenu.setRestaurant(restaurant);
+        menuRepository.save(defaultMenu);
+
 
         restaurantRepository.save(restaurant);
         addressRepository.save(address);
 
+        address.setRestaurant(restaurant);
+
         return new RegisterResponse("Restaurant registered successfully!", true);
+    }
+
+
+    @Override
+    @Transactional
+    public LoginResponse login(LoginRequest request) {
+        String email = request.getEmail();
+        String password = request.getPassword();
+
+        var customer = customerRepository.findByEmail(email);
+        if (customer.isPresent() && passwordEncoder.matches(password, customer.get().getPassword())) {
+            String token = jwtService.generateToken(email, "CUSTOMER");
+            return new LoginResponse(token, "CUSTOMER", customer.get().getFirstName(), null);
+        }
+
+        var courier = courierRepository.findByEmail(email);
+        if (courier.isPresent() && passwordEncoder.matches(password, courier.get().getPassword())) {
+            String token = jwtService.generateToken(email, "COURIER");
+            return new LoginResponse(token, "COURIER", courier.get().getFirstName(), null);
+        }
+
+        var restaurant = restaurantRepository.findByEmail(email);
+        if (restaurant.isPresent() && passwordEncoder.matches(password, restaurant.get().getPassword())) {
+            String token = jwtService.generateToken(email, "RESTAURANT");
+            return new LoginResponse(token, "RESTAURANT", restaurant.get().getRestaurantName(), restaurant.get().getProfileImg());
+        }
+
+        var admin = adminRepository.findByEmail(email);
+        if (admin.isPresent() && passwordEncoder.matches(password, admin.get().getPassword())) {
+            String token = jwtService.generateToken(email, "ADMIN");
+            return new LoginResponse(token, "ADMIN", admin.get().getFirstName(), null);
+        }
+
+        throw new RuntimeException("Invalid credentials");
     }
 }
