@@ -45,6 +45,9 @@ public class AuthServiceImpl implements AuthService {
         customer.setPassword(passwordEncoder.encode(request.getPassword()));
         customer.setRole(Role.CUSTOMER);
         customer.setBanned(false);
+        Cart newCart = new Cart ();
+        newCart.setCustomer(customer);
+        cartRepository.save(newCart);
 
         Cart cart = new Cart();
         cart.setCustomer(customer);
@@ -60,7 +63,6 @@ public class AuthServiceImpl implements AuthService {
 //
 //        customer.setCurrentAddressId(address.getId().intValue());
         customerRepository.save(customer);
-
         return new RegisterResponse("Customer registered successfully with address!", true);
     }
 

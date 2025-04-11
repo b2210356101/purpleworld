@@ -7,5 +7,6 @@ import com.purpleworld.hufds.dto.response.ViewCartResponse;
 public interface CartService {
     AddToCartResponse addToCart(AddToCartRequest request,String email);
     ViewCartResponse viewCart(String email);
+    void removeItemFromCart(Long itemId, String email);
 
 }

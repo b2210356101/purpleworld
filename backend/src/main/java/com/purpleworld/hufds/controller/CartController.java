@@ -27,4 +27,11 @@ public class CartController {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return ResponseEntity.ok(cartService.viewCart(email));
     }
+
+    @DeleteMapping("/item/{itemId}")
+    public ResponseEntity<String> removeItem(@PathVariable Long itemId,
+                                             @AuthenticationPrincipal String email) {
+        cartService.removeItemFromCart(itemId, email);
+        return ResponseEntity.ok("Item removed from cart successfully");
+    }
 }

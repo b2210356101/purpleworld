@@ -58,7 +58,7 @@ public class CartServiceImpl implements CartService {
         });
 
         CartGroup cartGroup = cart.getCartGroups().stream()
-                .filter(cg -> cg.getRestaurant() != null && cg.getRestaurant().getId().equals(restaurant.getId()))
+                .filter(cg -> cg.getRestaurant() != null && cg.getRestaurant().equals(restaurant))
                 .findFirst()
                 .orElseGet(() -> {
                     CartGroup newGroup = new CartGroup();
@@ -70,7 +70,7 @@ public class CartServiceImpl implements CartService {
                 });
 
         Optional<CartItem> existingItemOpt = cartGroup.getCartItems().stream()
-                .filter(ci -> ci.getMenuItem() != null && ci.getMenuItem().getId().equals(menuItem.getId()))
+                .filter(ci -> ci.getMenuItem() != null && ci.getMenuItem().equals(menuItem))
                 .findFirst();
 
         CartItem cartItem;
@@ -83,8 +83,9 @@ public class CartServiceImpl implements CartService {
             cartItem.setMenuItem(menuItem);
             cartItem.setQuantity(request.getQuantity());
             cartGroup.getCartItems().add(cartItem);
+            cartItemRepository.save(cartItem);
         }
-        cartItemRepository.save(cartItem);
+
 
         int totalQuantity = cart.getCartGroups().stream()
                 .flatMap(group -> group.getCartItems().stream())
@@ -158,5 +159,32 @@ public class CartServiceImpl implements CartService {
                 groupResponses.size(),
                 groupResponses
         );
+    }
+
+
+    @Override
+    @Transactional
+    public void removeItemFromCart(Long itemId, String email) {
+        Customer customer = customerRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        Cart cart = cartRepository.findByCustomerId(customer.getId())
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+
+        CartItem item = cartItemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("CartItem not found"));
+
+        // double check for manuel testing
+        boolean belongsToCustomer = cart.getCartGroups().stream()
+                .flatMap(group -> group.getCartItems().stream())
+                .anyMatch(ci -> ci.equals(item));
+
+        if (!belongsToCustomer) {
+            throw new RuntimeException("Unauthorized: This item does not belong to your cart.");
+        }
+        System.out.println("CartItem with ID " + item.getId() + " deleted.");
+
+        cartItemRepository.deleteById(item.getId());
+
     }
 }
