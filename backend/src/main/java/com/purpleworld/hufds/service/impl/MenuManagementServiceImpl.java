@@ -2,6 +2,7 @@ package com.purpleworld.hufds.service.impl;
 
 import com.purpleworld.hufds.dto.request.CategoryRequest;
 import com.purpleworld.hufds.dto.request.MenuItemRequest;
+import com.purpleworld.hufds.dto.request.RemovableElementRequest;
 import com.purpleworld.hufds.dto.response.CategoryResponse;
 import com.purpleworld.hufds.dto.response.MenuItemResponse;
 import com.purpleworld.hufds.dto.response.MenuResponse;
@@ -150,27 +151,20 @@ public class MenuManagementServiceImpl implements MenuManagementService {
         menuItem.setDescription(request.getDescription());
         menuItem.setImg(request.getImg());
         menuItem.setCategory(category);
+        menuItem.setIsAvailable(true);
 
-        List<RemovableElementResponse> removableElementResponses = null;
-
-        if (request.getRemovableElements() != null) {
-            removableElementResponses = new ArrayList<>();
-            List<RemovableElement> savedElements = new ArrayList<>();
-
-            for (RemovableElement element : request.getRemovableElements()) {
-                element.setMenuItem(menuItem);
-                RemovableElement savedElement = removableElementRepository.save(element);
-                removableElementResponses.add(new RemovableElementResponse(savedElement.getId(), savedElement.getName()));
-                savedElements.add(savedElement);
+        if (request.getRemovableElements() != null && !request.getRemovableElements().equals("")) {
+            for (String element : request.getRemovableElements().split(",")) {
+                RemovableElement removableElement = new RemovableElement();
+                removableElement.setName(element);
+                removableElement.setMenuItem(menuItem);
+                removableElementRepository.save(removableElement);
             }
-
-            menuItem.setRemovableElements(savedElements);
         }
-
 
         menuItemRepository.save(menuItem);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(new MenuItemResponse(menuItem, removableElementResponses));
+        return ResponseEntity.status(HttpStatus.CREATED).body("Menu item created successfully.");
     }
 
     @Override
@@ -237,5 +231,30 @@ public class MenuManagementServiceImpl implements MenuManagementService {
 
         return ResponseEntity.ok("Removable element deleted successfully.");
 
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<?> addRemovableElement(@PathVariable Long itemId,
+                                                 @RequestBody RemovableElementRequest request,
+                                                 @AuthenticationPrincipal String email) {
+        Optional<Restaurant> restaurantOpt = restaurantRepository.findByEmail(email);
+        if (restaurantOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Restaurant not found");
+        }
+
+        Optional<MenuItem> menuItemOpt = menuItemRepository.findById(itemId);
+        if (menuItemOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Menu item not found");
+        }
+
+        MenuItem menuItem = menuItemOpt.get();
+
+        RemovableElement removableElement = new RemovableElement();
+        removableElement.setName(request.getName());
+        removableElement.setMenuItem(menuItem);
+        removableElementRepository.save(removableElement);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body("Removable element added successfully");
     }
 }

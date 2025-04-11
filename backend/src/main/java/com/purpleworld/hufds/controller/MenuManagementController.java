@@ -2,6 +2,7 @@ package com.purpleworld.hufds.controller;
 
 import com.purpleworld.hufds.dto.request.CategoryRequest;
 import com.purpleworld.hufds.dto.request.MenuItemRequest;
+import com.purpleworld.hufds.dto.request.RemovableElementRequest;
 import com.purpleworld.hufds.service.impl.MenuManagementServiceImpl;
 import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
@@ -62,4 +63,13 @@ public class MenuManagementController {
                                                     @AuthenticationPrincipal String email) {
         return menuManagementService.deleteRemovableElement(removableElementId, email);
     }
+
+    @Transactional
+    @PostMapping("/menu-items/{menuItemId}/removable-elements")
+    public ResponseEntity<?> addRemovableElement(@PathVariable Long menuItemId,
+                                                 @RequestBody RemovableElementRequest request,
+                                                 @AuthenticationPrincipal String email) {
+        return menuManagementService.addRemovableElement(menuItemId, request, email);
+    }
+
 }

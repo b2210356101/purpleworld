@@ -15,6 +15,6 @@ public class MenuItemRequest {
     private Integer price;
     private String description;
     private String img;
-    private List<RemovableElement> removableElements;
+    private String removableElements;
 
 }
