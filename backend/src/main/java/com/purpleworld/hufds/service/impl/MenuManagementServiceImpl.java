@@ -88,6 +88,7 @@ public class MenuManagementServiceImpl implements MenuManagementService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<?> createCategory(CategoryRequest request, String email) {
         Optional<Restaurant> restaurantOpt = restaurantRepository.findByEmail(email);
         if (restaurantOpt.isEmpty()) {
@@ -111,6 +112,7 @@ public class MenuManagementServiceImpl implements MenuManagementService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<?> deleteCategory(Long categoryId, String email) {
         Optional<Restaurant> restaurantOpt = restaurantRepository.findByEmail(email);
         if (restaurantOpt.isEmpty()) {

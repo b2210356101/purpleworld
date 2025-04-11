@@ -99,6 +99,21 @@ const MenuManagementPage: React.FC = () => {
         }
     };
 
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64 = reader.result as string;
+                setNewItem((prevItem) => ({
+                    ...prevItem,
+                    img: base64
+                }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     // Handler for removing element from the form
     const handleRemoveElement = (elementName: string) => {
         setNewItem({
@@ -538,25 +553,13 @@ const MenuManagementPage: React.FC = () => {
                             >
                                 {!newItem.img && <AddIcon />}
                             </Box>
-                            <Button
-                                variant="outlined"
-                                component="label"
-                                sx={{ height: 40 }}
-                            >
+                            <Button variant="outlined" component="label" sx={{ height: 40 }}>
                                 Upload Image
                                 <input
                                     type="file"
                                     hidden
                                     accept="image/*"
-                                    onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) {
-                                            setNewItem({
-                                                ...newItem,
-                                                img: '/api/placeholder/100/100'
-                                            });
-                                        }
-                                    }}
+                                    onChange={handleImageUpload}
                                 />
                             </Button>
                         </Box>
