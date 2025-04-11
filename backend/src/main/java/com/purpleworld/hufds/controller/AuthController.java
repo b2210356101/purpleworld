@@ -9,12 +9,10 @@ import com.purpleworld.hufds.repository.CustomerRepository;
 import com.purpleworld.hufds.repository.RestaurantRepository;
 import com.purpleworld.hufds.security.JwtService;
 import com.purpleworld.hufds.service.AuthService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import jakarta.transaction.Transactional;
 
 @RestController
 @RequestMapping("/auth")

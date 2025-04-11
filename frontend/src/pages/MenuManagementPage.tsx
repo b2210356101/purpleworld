@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Box,
     Typography,
@@ -14,12 +14,18 @@ import {
     DialogContent,
     DialogActions,
     TextField,
-    MenuItem,
     Chip,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import api from '../utils/api';
+
+// Define interface for removable element response
+interface RemovableElementResponse {
+    id: number;
+    name: string;
+}
 
 // Define interface for menu item
 interface MenuItem {
@@ -27,98 +33,173 @@ interface MenuItem {
     name: string;
     price: number;
     description: string;
-    image: string;
-    category: string;
-    removableElements?: string[];
+    img: string;
+    removableElements?: RemovableElementResponse[];
 }
 
-// Sample data for menu items
-const initialMenuItems: MenuItem[] = [
-    {
-        id: 1,
-        name: 'Chicken Burger',
-        price: 280,
-        description: '1 McChicken™, 1 Big Mac™, 1 Royal Cheeseburger, 3 medium',
-        image: 'https://picsum.photos/100/120',
-        category: 'Offers'
-    },
-    {
-        id: 2,
-        name: 'Cheese Burger',
-        price: 280,
-        description: '1 McChicken™, 1 Big Mac™, 1 Royal Cheeseburger, 3 medium',
-        image: 'https://picsum.photos/101/120',
-        category: 'Offers'
-    },
-    {
-        id: 3,
-        name: 'Chicken Burger',
-        price: 280,
-        description: '1 McChicken™, 1 Big Mac™, 1 Royal Cheeseburger, 3 medium',
-        image: 'https://picsum.photos/102/120',
-        category: 'Burgers'
-    },
-    {
-        id: 4,
-        name: 'Cheese Burger',
-        price: 280,
-        description: '1 McChicken™, 1 Big Mac™, 1 Royal Cheeseburger, 3 medium',
-        image: 'https://picsum.photos/105/120',
-        category: 'Burgers'
-    }
-];
+// Define interface for category
+interface Category {
+    id: number;
+    name: string;
+    menuItems: MenuItem[];
+}
+
+// Define menu response interface
+interface MenuResponse {
+    menuId: number;
+    restaurantName: string;
+    categories: Category[];
+}
 
 // Component for rendering menu items grouped by category
 const MenuManagementPage: React.FC = () => {
-    const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
+    const [categories, setCategories] = useState<Category[]>([]);
     const [openCategoryDialog, setOpenCategoryDialog] = useState(false);
     const [openItemDialog, setOpenItemDialog] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
     const [newCategory, setNewCategory] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState('');
+    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+    const [selectedCategoryName, setSelectedCategoryName] = useState<string>('');
+    const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
     const [newItem, setNewItem] = useState<Omit<MenuItem, 'id'>>({
         name: '',
         price: 0,
         description: '',
-        image: 'https://picsum.photos/101/105',
-        category: '',
-        removableElements: []
+        img: '',
+        removableElements: [] as RemovableElementResponse[]
     });
     const [newElement, setNewElement] = useState('');
+    const [itemRemovableElements, setItemRemovableElements] = useState<{ [itemId: number]: string }>({});
+
+    useEffect(() => {
+        fetchMenu();
+    }, []);
+
+    const fetchMenu = async () => {
+        try {
+            const response = await api.get('/restaurant/menu');
+            const menuData: MenuResponse = response.data;
+            setCategories(menuData.categories || []);
+        } catch (error) {
+            // error
+        }
+    };
 
     // Handler for adding a removable element
     const handleAddElement = () => {
         if (newElement.trim() !== '') {
             setNewItem({
                 ...newItem,
-                removableElements: [...(newItem.removableElements || []), newElement]
+                removableElements: [
+                    ...(Array.isArray(newItem.removableElements) ? newItem.removableElements : []),
+                    { id: -1, name: newElement.trim() }
+                ]
             });
             setNewElement('');
         }
     };
 
-    // Handler for removing an element
-    const handleRemoveElement = (element: string) => {
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64 = reader.result as string;
+                setNewItem((prevItem) => ({
+                    ...prevItem,
+                    img: base64
+                }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    // Handler for removing element from the form
+    const handleRemoveElement = (elementName: string) => {
         setNewItem({
             ...newItem,
-            removableElements: newItem.removableElements?.filter(el => el !== element)
+            removableElements: (newItem.removableElements || []).filter(
+                element => element.name !== elementName
+            )
         });
     };
 
-    // Group menu items by category
-    const groupedItems = menuItems.reduce<Record<string, MenuItem[]>>((acc, item) => {
-        if (!acc[item.category]) {
-            acc[item.category] = [];
-        }
-        acc[item.category].push(item);
-        return acc;
-    }, {});
+    // Handler for adding or updating an item
+    const handleSaveItem = async () => {
+        if (newItem.name.trim() !== '' && newItem.price > 0 && selectedCategoryId !== null) {
+            try {
+                const itemToSend = {
+                    name: newItem.name,
+                    price: newItem.price,
+                    description: newItem.description || '',
+                    img: newItem.img || '',
+                    removableElements: (newItem.removableElements || []).map(el => el.name).join(',')
+                };
 
-    // Get all categories
-    const categories = Object.keys(groupedItems);
+                if (isEditing && selectedItem) {
+                    await api.put(`/restaurant/menu/items/${selectedItem.id}`, itemToSend);
+                } else {
+                    await api.post(`/restaurant/menu/categories/${selectedCategoryId}/items`, itemToSend);
+                }
+
+                // Fetch fresh data instead of trying to update state manually
+                await fetchMenu();
+                handleCloseItemDialog();
+            } catch (error) {
+                console.error(isEditing ? 'Failed to update item:' : 'Failed to add item:', error);
+            }
+        } else {
+            alert('Please fill in all required fields (Name and Price)');
+        }
+    };
+
+    // Handler for adding a new category
+    const handleAddCategory = async () => {
+        if (newCategory.trim() !== '') {
+            try {
+                await api.post('/restaurant/menu/categories', { name: newCategory });
+                // Fetch fresh data instead of trying to update state manually
+                await fetchMenu();
+                handleCloseCategoryDialog();
+            } catch (error) {
+                console.error('Failed to add category:', error);
+                alert('Failed to add category. Please try again.');
+            }
+        }
+    };
 
     // Handler for deleting a menu item
-    const handleDelete = (id: number) => {
-        setMenuItems(menuItems.filter(item => item.id !== id));
+    const handleDeleteItem = async (itemId: number) => {
+        try {
+            await api.delete(`/restaurant/menu/items/${itemId}`);
+            // Fetch fresh data instead of trying to update state manually
+            await fetchMenu();
+        } catch (error) {
+            console.error('Failed to delete item:', error);
+            alert('Failed to delete item. Please try again.');
+        }
+    };
+
+    // Handler for deleting a removable element
+    const handleDeleteRemovableItem = async (itemId: number) => {
+        try {
+            await api.delete(`/restaurant/menu/removable-elements/${itemId}`);
+            await fetchMenu();
+        } catch (error) {
+            console.error('Failed to delete item:', error);
+            alert('Failed to delete item. Please try again.');
+        }
+    };
+
+    // Handler for deleting a category
+    const handleDeleteCategory = async (categoryId: number) => {
+        try {
+            await api.delete(`/restaurant/menu/categories/${categoryId}`);
+            await fetchMenu();
+        } catch (error) {
+            console.error('Failed to delete category:', error);
+            alert('Failed to delete category. Please try again.');
+        }
     };
 
     // Handlers for category dialog
@@ -128,43 +209,50 @@ const MenuManagementPage: React.FC = () => {
         setNewCategory('');
     };
 
-    // Handler for adding a new category
-    const handleAddCategory = () => {
-        if (newCategory.trim() !== '') {
-            // Since we don't have a real API call, we're just closing the dialog
-            // In a real app, you would make an API call to add the category
-            handleCloseCategoryDialog();
-        }
+    // Handlers for item dialog
+    const handleOpenItemDialog = (categoryId: number, categoryName: string) => {
+        setSelectedCategoryId(categoryId);
+        setSelectedCategoryName(categoryName);
+        setIsEditing(false);
+        setSelectedItem(null);
+        setNewItem({
+            name: '',
+            price: 0,
+            description: '',
+            img: '', // Made optional
+            removableElements: [] as RemovableElementResponse[]
+        });
+        setOpenItemDialog(true);
     };
 
-    // Handlers for item dialog
-    const handleOpenItemDialog = (category: string) => {
-        setSelectedCategory(category);
-        setNewItem({ ...newItem, category });
+    // Handler for opening edit dialog
+    const handleOpenEditDialog = (categoryId: number, categoryName: string, item: MenuItem) => {
+        setSelectedCategoryId(categoryId);
+        setSelectedCategoryName(categoryName);
+        setIsEditing(true);
+        setSelectedItem(item);
+        setNewItem({
+            name: item.name,
+            price: item.price,
+            description: item.description,
+            img: item.img,
+            removableElements: item.removableElements || []
+        });
         setOpenItemDialog(true);
     };
 
     const handleCloseItemDialog = () => {
         setOpenItemDialog(false);
+        setIsEditing(false);
+        setSelectedItem(null);
         setNewItem({
             name: '',
             price: 0,
             description: '',
-            image: 'https://picsum.photos/101/105',
-            category: '',
+            img: 'https://picsum.photos/101/105',
             removableElements: []
         });
         setNewElement('');
-    };
-
-    // Handler for adding a new item
-    const handleAddItem = () => {
-        if (newItem.name.trim() !== '' && newItem.price > 0) {
-            const newId = Math.max(...menuItems.map(item => item.id), 0) + 1;
-            const itemToAdd = { ...newItem, id: newId, category: selectedCategory };
-            setMenuItems([...menuItems, itemToAdd]);
-            handleCloseItemDialog();
-        }
     };
 
     // Handler for form changes
@@ -174,6 +262,36 @@ const MenuManagementPage: React.FC = () => {
             ...newItem,
             [name]: name === 'price' ? parseFloat(value) : value
         });
+    };
+
+    const handleAddElementToItem = async (itemId: number) => {
+        const elementText = itemRemovableElements[itemId];
+        if (elementText && elementText.trim() !== '') {
+            try {
+                await api.post(`/restaurant/menu/menu-items/${itemId}/removable-elements`, {
+                    name: elementText.trim()
+                });
+
+                // Clear the input for this specific item
+                setItemRemovableElements(prev => ({
+                    ...prev,
+                    [itemId]: ''
+                }));
+
+                // Refresh menu data to show the new element
+                await fetchMenu();
+            } catch (error) {
+                console.error('Failed to add removable element:', error);
+                alert('Failed to add removable element. Please try again.');
+            }
+        }
+    };
+
+    const handleItemElementChange = (itemId: number, value: string) => {
+        setItemRemovableElements(prev => ({
+            ...prev,
+            [itemId]: value
+        }));
     };
 
     return (
@@ -194,8 +312,8 @@ const MenuManagementPage: React.FC = () => {
             <Divider sx={{ mb: 3 }} />
 
             {/* Menu categories and items */}
-            {Object.entries(groupedItems).map(([category, items]) => (
-                <Box key={category} sx={{ mb: 4 }}>
+            {categories?.map(category => (
+                <Box key={category.id} sx={{ mb: 4 }}>
                     <Box sx={{
                         display: 'flex',
                         justifyContent: 'space-between',
@@ -203,17 +321,25 @@ const MenuManagementPage: React.FC = () => {
                         gap: { xs: 2, sm: 0 },
                         mb: 2
                     }}>
-                        <Typography variant="h6" component="h2" sx={{ fontWeight: 'bold' }}>
-                            {category}
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="h6" component="h2" sx={{ fontWeight: 'bold' }}>
+                                {category.name}
+                            </Typography>
+                            <IconButton
+                                size="small"
+                                color="error"
+                                onClick={() => handleDeleteCategory(category.id)}
+                                aria-label="Delete category"
+                            >
+                                <DeleteIcon />
+                            </IconButton>
+                        </Box>
                         <Button
                             variant="contained"
                             size="small"
                             startIcon={<AddIcon />}
-                            onClick={() => handleOpenItemDialog(category)}
+                            onClick={() => handleOpenItemDialog(category.id, category.name)}
                             sx={{
-                                bgcolor: '#8d68c5',
-                                '&:hover': { bgcolor: '#7b5aae' },
                                 alignSelf: { xs: 'flex-start', sm: 'auto' }
                             }}
                         >
@@ -223,7 +349,7 @@ const MenuManagementPage: React.FC = () => {
 
                     {/* Menu items */}
                     <Box>
-                        {items.map(item => (
+                        {(category.menuItems || []).map(item => (
                             <Card
                                 key={item.id}
                                 sx={{
@@ -249,7 +375,7 @@ const MenuManagementPage: React.FC = () => {
                                             m: 2,
                                             borderRadius: 2
                                         }}
-                                        image={item.image}
+                                        image={item.img}
                                         alt={item.name}
                                     />
                                     <CardContent sx={{ width: { xs: '100%', sm: 'auto' } }}>
@@ -259,6 +385,41 @@ const MenuManagementPage: React.FC = () => {
                                         <Typography variant="body2" color="text.secondary">
                                             {item.description}
                                         </Typography>
+
+                                        {item.removableElements && item.removableElements.length > 0 && (
+                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                                                {item.removableElements.map(removableElement => (
+                                                    <Chip
+                                                        key={removableElement.id}
+                                                        label={removableElement.name}
+                                                        sx={{ bgcolor: 'white' }}
+                                                        onDelete={() => handleDeleteRemovableItem(removableElement.id)}
+                                                    />
+                                                ))}
+                                            </Box>
+                                        )}
+
+                                        {/* Add removable element section on page */}
+                                        <Box sx={{ display: "flex", alignItems: 'center', gap: 2, mt: 1.2 }}>
+                                            <TextField
+                                                placeholder="Add removable element"
+                                                variant="outlined"
+                                                size="small"
+                                                value={itemRemovableElements[item.id] || ''}  
+                                                onChange={(e) => handleItemElementChange(item.id, e.target.value)}
+                                            />
+                                            <Button
+                                                variant="contained"
+                                                size='small'
+                                                startIcon={<AddIcon />}
+                                                onClick={() => handleAddElementToItem(item.id)}
+                                                sx={{
+                                                    whiteSpace: 'nowrap'
+                                                }}
+                                            >
+                                                Add New
+                                            </Button>
+                                        </Box>
                                     </CardContent>
                                 </Box>
 
@@ -274,10 +435,20 @@ const MenuManagementPage: React.FC = () => {
                                         {item.price}₺
                                     </Typography>
                                     <CardActions>
-                                        <IconButton size="small" color="primary">
+                                        <IconButton
+                                            size="small"
+                                            color="primary"
+                                            onClick={() => handleOpenEditDialog(category.id, category.name, item)}
+                                            aria-label="Edit item"
+                                        >
                                             <EditIcon />
                                         </IconButton>
-                                        <IconButton size="small" color="error" onClick={() => handleDelete(item.id)}>
+                                        <IconButton
+                                            size="small"
+                                            color="error"
+                                            onClick={() => handleDeleteItem(item.id)}
+                                            aria-label="Delete item"
+                                        >
                                             <DeleteIcon />
                                         </IconButton>
                                     </CardActions>
@@ -315,9 +486,11 @@ const MenuManagementPage: React.FC = () => {
                 </DialogActions>
             </Dialog>
 
-            {/* Add Item Dialog */}
+            {/* Add/Edit Item Dialog */}
             <Dialog fullWidth maxWidth="sm" open={openItemDialog} onClose={handleCloseItemDialog}>
-                <DialogTitle>Add New Item to {selectedCategory}</DialogTitle>
+                <DialogTitle>
+                    {isEditing ? 'Edit Item' : `Add New Item to ${selectedCategoryName}`}
+                </DialogTitle>
                 <DialogContent>
                     <TextField
                         autoFocus
@@ -359,7 +532,7 @@ const MenuManagementPage: React.FC = () => {
                     />
 
                     {/* Image Upload Section */}
-                    <Box sx={{ mb: 2 }}>
+                    <Box sx={{ mb: 2, mt: 2 }}>
                         <Typography variant="subtitle1" gutterBottom>
                             Product Image
                         </Typography>
@@ -373,96 +546,76 @@ const MenuManagementPage: React.FC = () => {
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    backgroundImage: newItem.image ? `url(${newItem.image})` : 'none',
+                                    backgroundImage: newItem.img ? `url(${newItem.img})` : 'none',
                                     backgroundSize: 'cover',
                                     backgroundPosition: 'center',
                                 }}
                             >
-                                {!newItem.image && <Typography color="text.secondary">No Image</Typography>}
+                                {!newItem.img && <AddIcon />}
                             </Box>
-                            <Button
-                                variant="outlined"
-                                component="label"
-                                sx={{ height: 40 }}
-                            >
+                            <Button variant="outlined" component="label" sx={{ height: 40 }}>
                                 Upload Image
                                 <input
                                     type="file"
                                     hidden
                                     accept="image/*"
-                                    onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) {
-                                            // In a real app, you would upload this file to a server
-                                            // and get back a URL. Here we're just using a placeholder.
-                                            setNewItem({
-                                                ...newItem,
-                                                image: '/api/placeholder/100/100'
-                                            });
-                                        }
-                                    }}
+                                    onChange={handleImageUpload}
                                 />
                             </Button>
                         </Box>
                     </Box>
 
                     {/* Removable Elements Section */}
-                    <Box sx={{ mb: 2 }}>
-                        <Typography variant="subtitle1" gutterBottom>
-                            Removable Elements:
-                        </Typography>
+                    {!isEditing &&
+                        <Box sx={{ mb: 2, mt: 3 }}>
+                            <Typography variant="subtitle1" gutterBottom>
+                                Removable Elements:
+                            </Typography>
 
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                            {newItem.removableElements?.map((element, index) => (
-                                <Chip
-                                    key={index}
-                                    label={element}
-                                    onDelete={() => handleRemoveElement(element)}
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                                {(newItem.removableElements || []).map((element, index) => (
+                                    <Chip
+                                        key={index}
+                                        label={element.name}
+                                        onDelete={() => handleRemoveElement(element.name)}
+                                        sx={{
+                                            bgcolor: 'primary.light',
+                                        }}
+                                    />
+                                ))}
+                            </Box>
+
+                            <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+                                <TextField
+                                    placeholder="Enter new removable element"
+                                    variant="outlined"
+                                    size="small"
+                                    value={newElement}
+                                    onChange={(e) => setNewElement(e.target.value)}
                                     sx={{
-                                        bgcolor: 'primary.light',
-                                        borderRadius: 4,
+                                        flexGrow: 1,
                                     }}
                                 />
-                            ))}
-                        </Box>
-
-                        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-                            <TextField
-                                placeholder="Enter new removable element"
-                                variant="outlined"
-                                size="small"
-                                value={newElement}
-                                onChange={(e) => setNewElement(e.target.value)}
-                                onKeyPress={(e) => {
-                                    if (e.key === 'Enter') {
-                                        e.preventDefault();
-                                        handleAddElement();
-                                    }
-                                }}
-                                sx={{
-                                    flexGrow: 1,
-                                }}
-                            />
-                            <Button
-                                variant="contained"
-                                startIcon={<AddIcon />}
-                                onClick={handleAddElement}
-                                sx={{
-                                    whiteSpace: 'nowrap'
-                                }}
-                            >
-                                Add New
-                            </Button>
-                        </Box>
-                    </Box>
+                                <Button
+                                    variant="contained"
+                                    startIcon={<AddIcon />}
+                                    onClick={handleAddElement}
+                                    sx={{
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                >
+                                    Add Element
+                                </Button>
+                            </Box>
+                        </Box>}
                 </DialogContent>
                 <DialogActions sx={{ p: 3 }}>
                     <Button onClick={handleCloseItemDialog}>Cancel</Button>
                     <Button
-                        onClick={handleAddItem}
+                        onClick={handleSaveItem}
                         variant="contained"
                     >
-                        Add
+                        {isEditing ? 'Save Changes' : 'Add Item'}
                     </Button>
                 </DialogActions>
             </Dialog>
