@@ -121,6 +121,8 @@ public class AuthServiceImpl implements AuthService {
         restaurantRepository.save(restaurant);
         addressRepository.save(address);
 
+        address.setRestaurant(restaurant);
+
         return new RegisterResponse("Restaurant registered successfully!", true);
     }
 
