@@ -40,7 +40,8 @@ const initialMenuItems: MenuItem[] = [
         price: 280,
         description: '1 McChicken™, 1 Big Mac™, 1 Royal Cheeseburger, 3 medium',
         image: 'https://picsum.photos/100/120',
-        category: 'Offers'
+        category: 'Offers',
+        removableElements: ['domates', "soğan"]
     },
     {
         id: 2,
@@ -48,7 +49,8 @@ const initialMenuItems: MenuItem[] = [
         price: 280,
         description: '1 McChicken™, 1 Big Mac™, 1 Royal Cheeseburger, 3 medium',
         image: 'https://picsum.photos/101/120',
-        category: 'Offers'
+        category: 'Offers',
+        removableElements: ['zeytin', "sucuk", "mısır"]
     },
     {
         id: 3,
@@ -259,6 +261,47 @@ const MenuManagementPage: React.FC = () => {
                                         <Typography variant="body2" color="text.secondary">
                                             {item.description}
                                         </Typography>
+
+                                        {item.removableElements ?
+                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                                                {item.removableElements.map(removableElement => (
+                                                    <Chip
+                                                        label={removableElement}
+                                                        onDelete={() => console.log(removableElement)}
+                                                        sx={{
+                                                            bgcolor: 'white',
+                                                        }}
+                                                    />
+                                                ))}
+                                            </Box>
+                                            : <></>}
+
+                                        <Box sx={{ display: "flex", alignItems: 'center', gap: 2, mt: 1 }}>
+                                            <TextField
+                                                placeholder="Add removable element"
+                                                variant="outlined"
+                                                size="small"
+                                                value={newElement}
+                                                onChange={(e) => setNewElement(e.target.value)}
+                                                onKeyPress={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        e.preventDefault();
+                                                        handleAddElement();
+                                                    }
+                                                }}
+                                            />
+                                            <Button
+                                                variant="contained"
+                                                size='small'
+                                                startIcon={<AddIcon />}
+                                                onClick={handleAddElement}
+                                                sx={{
+                                                    whiteSpace: 'nowrap'
+                                                }}
+                                            >
+                                                Add New
+                                            </Button>
+                                        </Box>
                                     </CardContent>
                                 </Box>
 
@@ -420,7 +463,6 @@ const MenuManagementPage: React.FC = () => {
                                     onDelete={() => handleRemoveElement(element)}
                                     sx={{
                                         bgcolor: 'primary.light',
-                                        borderRadius: 4,
                                     }}
                                 />
                             ))}
