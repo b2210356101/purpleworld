@@ -45,24 +45,13 @@ public class AuthServiceImpl implements AuthService {
         customer.setPassword(passwordEncoder.encode(request.getPassword()));
         customer.setRole(Role.CUSTOMER);
         customer.setBanned(false);
+
+        Customer savedCustomer = customerRepository.save(customer);
+
         Cart newCart = new Cart ();
-        newCart.setCustomer(customer);
+        newCart.setCustomer(savedCustomer);
         cartRepository.save(newCart);
 
-        Cart cart = new Cart();
-        cart.setCustomer(customer);
-        cartRepository.save(cart);
-
-//        Address address = googleMapsService.getAddressFromCoordinates(request.getLatitude(), request.getLongitude());
-//        address.setBuildingNumber(request.getBuildingNumber());
-//        address.setApartmentNumber(request.getApartmentNumber());
-//        address.setCustomer(customer);
-//
-//        customerRepository.save(customer);
-//        addressRepository.save(address);
-//
-//        customer.setCurrentAddressId(address.getId().intValue());
-        customerRepository.save(customer);
         return new RegisterResponse("Customer registered successfully with address!", true);
     }
 
@@ -111,6 +100,8 @@ public class AuthServiceImpl implements AuthService {
         restaurant.setPassword(passwordEncoder.encode(request.getPassword()));
         restaurant.setRole(Role.RESTAURANT);
 
+        restaurantRepository.save(restaurant);
+
         Address address = googleMapsService.getAddressFromCoordinates(request.getLatitude(), request.getLongitude());
         address.setName(request.getName());
         address.setBuildingNumber(request.getBuildingNumber());
@@ -119,15 +110,15 @@ public class AuthServiceImpl implements AuthService {
         address.setPhoneNumber(request.getPhone_Number());
         address.setFullAddress(request.getAddress());
         address.setFloor("1");
-        address.setRestaurant(restaurant);
+
+        addressRepository.save(address);
 
         Menu defaultMenu = new Menu();
         defaultMenu.setRestaurant(restaurant);
         menuRepository.save(defaultMenu);
 
 
-        restaurantRepository.save(restaurant);
-        addressRepository.save(address);
+
 
         return new RegisterResponse("Restaurant registered successfully!", true);
     }
