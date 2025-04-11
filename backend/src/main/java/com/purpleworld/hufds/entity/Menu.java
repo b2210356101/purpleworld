@@ -18,7 +18,7 @@ public class Menu {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "RestaurantID", insertable = false, updatable = false)
+    @JoinColumn(name = "RestaurantID")
     private Restaurant restaurant;
 
     @OneToMany(mappedBy = "menu", cascade = CascadeType.ALL, orphanRemoval = true)
