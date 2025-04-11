@@ -1,6 +1,7 @@
 package com.purpleworld.hufds.service.impl;
 
 import com.purpleworld.hufds.dto.request.AddToCartRequest;
+import com.purpleworld.hufds.dto.request.UpdateCartItemRequest;
 import com.purpleworld.hufds.dto.response.AddToCartResponse;
 import com.purpleworld.hufds.dto.response.CartGroupResponse;
 import com.purpleworld.hufds.dto.response.CartItemResponse;
@@ -183,8 +184,49 @@ public class CartServiceImpl implements CartService {
             throw new RuntimeException("Unauthorized: This item does not belong to your cart.");
         }
         System.out.println("CartItem with ID " + item.getId() + " deleted.");
-
-        cartItemRepository.deleteById(item.getId());
+        CartGroup group = item.getCartGroup();
+        group.getCartItems().remove(item);
+        cartItemRepository.delete(item);
 
     }
+
+    @Override
+    @Transactional
+    public void updateCartItemQuantity(UpdateCartItemRequest request, String email) {
+        Customer customer = customerRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        Cart cart = cartRepository.findByCustomerId(customer.getId())
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+
+        CartItem item = cartItemRepository.findById(request.getItemId())
+                .orElseThrow(() -> new RuntimeException("CartItem not found"));
+
+        //double check
+        boolean belongsToCustomer = cart.getCartGroups().stream()
+                .flatMap(group -> group.getCartItems().stream())
+                .anyMatch(ci -> ci.getId().equals(item.getId()));
+
+        if (!belongsToCustomer) {
+            throw new RuntimeException("Unauthorized: This item does not belong to your cart.");
+        }
+
+        // Quantity güncelleme
+        int quantity = item.getQuantity();
+        String operation = request.getOperation();
+
+
+        if ("+".equals(operation)) {
+            item.setQuantity(quantity + 1);
+            cartItemRepository.save(item);
+        } else if ("-".equals(operation)) {
+            if (quantity > 1) {
+                item.setQuantity(quantity - 1);
+                cartItemRepository.save(item);
+            }
+        } else {
+            throw new RuntimeException("Invalid operation: must be '+' or '-'.");
+        }
+    }
+
 }

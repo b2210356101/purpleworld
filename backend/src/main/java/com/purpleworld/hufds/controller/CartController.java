@@ -1,6 +1,7 @@
 package com.purpleworld.hufds.controller;
 
 import com.purpleworld.hufds.dto.request.AddToCartRequest;
+import com.purpleworld.hufds.dto.request.UpdateCartItemRequest;
 import com.purpleworld.hufds.dto.response.AddToCartResponse;
 import com.purpleworld.hufds.service.CartService;
 import lombok.RequiredArgsConstructor;
@@ -33,5 +34,12 @@ public class CartController {
                                              @AuthenticationPrincipal String email) {
         cartService.removeItemFromCart(itemId, email);
         return ResponseEntity.ok("Item removed from cart successfully");
+    }
+
+    @PutMapping("/item")
+    public ResponseEntity<String> updateItemQuantity(@RequestBody UpdateCartItemRequest request,
+                                                     @AuthenticationPrincipal String email) {
+        cartService.updateCartItemQuantity(request, email);
+        return ResponseEntity.ok("Quantity updated successfully");
     }
 }
