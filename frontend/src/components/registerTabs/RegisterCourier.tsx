@@ -16,17 +16,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { registerCourier } from "../../utils/api";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
-import { useAppDispatch } from "../../store/hooks";
-import { registerSuccess } from "../../store/slices/authSlice";
 
 const RegisterCourier = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
 
   const [showPassword, setShowPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const [generalError, setGeneralError] = useState(""); 
+  const [generalError, setGeneralError] = useState("");
 
   // Individual error states for each field
   const [firstNameError, setFirstNameError] = useState(false);
@@ -51,20 +48,20 @@ const RegisterCourier = () => {
 
   const validateInputs = (): boolean => {
     const firstName =
-      (document.getElementById("firstName") as HTMLInputElement)?.value || "";
+        (document.getElementById("firstName") as HTMLInputElement)?.value || "";
     const lastName =
-      (document.getElementById("lastName") as HTMLInputElement)?.value || "";
+        (document.getElementById("lastName") as HTMLInputElement)?.value || "";
     const phone =
-      (document.getElementById("phone") as HTMLInputElement)?.value || "";
+        (document.getElementById("phone") as HTMLInputElement)?.value || "";
     const ssn =
-      (document.getElementById("ssn") as HTMLInputElement)?.value || "";
+        (document.getElementById("ssn") as HTMLInputElement)?.value || "";
     const email =
-      (document.getElementById("email") as HTMLInputElement)?.value || "";
+        (document.getElementById("email") as HTMLInputElement)?.value || "";
     const password =
-      (document.getElementById("password") as HTMLInputElement)?.value || "";
+        (document.getElementById("password") as HTMLInputElement)?.value || "";
     const confirmPassword =
-      (document.getElementById("confirmPassword") as HTMLInputElement)?.value ||
-      "";
+        (document.getElementById("confirmPassword") as HTMLInputElement)?.value ||
+        "";
 
     let isValid = true;
 
@@ -114,11 +111,11 @@ const RegisterCourier = () => {
     }
 
     const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*_])[A-Za-z\d!@#$%^&*_]{8,}$/;
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*_])[A-Za-z\d!@#$%^&*_]{8,}$/;
     if (!password || !passwordRegex.test(password)) {
       setPasswordError(true);
       setPasswordErrorMsg(
-        "Password must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one number, and one special character (e.g., !@#$%^&*_)."
+          "Password must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one number, and one special character (e.g., !@#$%^&*_)."
       );
       isValid = false;
     } else {
@@ -147,7 +144,7 @@ const RegisterCourier = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setGeneralError(""); 
+    setGeneralError("");
 
     if (validateInputs()) {
       const data = new FormData(event.currentTarget);
@@ -164,17 +161,7 @@ const RegisterCourier = () => {
       try {
         const response = await registerCourier(formData);
         console.log("Courier registered:", response);
-        dispatch(
-          registerSuccess({
-            token: response.token,
-            roleType: "COURIER",
-            userInfo: {
-              email: formData.email,
-              name: `${formData.first_Name} ${formData.last_Name}`,
-            },
-          })
-        );
-        navigate("/");
+        navigate("/login");
       } catch (err: any) {
         console.error("Registration failed:", err);
         if (err.response && err.response.data && err.response.data.message) {
@@ -187,7 +174,7 @@ const RegisterCourier = () => {
           }
         } else {
           setGeneralError(
-            "An error occurred during registration. Please try again."
+              "An error occurred during registration. Please try again."
           );
         }
       }
@@ -195,209 +182,214 @@ const RegisterCourier = () => {
   };
 
   return (
-    <Box
-      component="form"
-      noValidate
-      onSubmit={handleSubmit}
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 3,
-        p: 4,
-        borderRadius: 2,
-      }}
-    >
-      <Typography
-        variant="h4"
-        fontWeight={600}
-        textAlign="center"
-        color="primary"
+      <Box
+          component="form"
+          noValidate
+          onSubmit={handleSubmit}
+          sx={{
+            maxWidth: 500, // Prevents the form from being too wide
+            mx: "auto", // Centers horizontally
+            px: { xs: 2, sm: 4 }, // Padding left/right based on screen size
+            py: 4,
+            display: "flex",
+            flexDirection: "column",
+            gap: 3,
+            borderRadius: 2,
+            width: "100%", // Allows responsive shrinking
+            boxSizing: "border-box",
+          }}
       >
-        Register as a Courier
-      </Typography>
-
-      {generalError && (
-        <Typography color="error" variant="body2" textAlign="center">
-          {generalError}
+        <Typography
+            variant="h4"
+            fontWeight={600}
+            textAlign="center"
+            color="primary"
+        >
+          Register as a Courier
         </Typography>
-      )}
 
-      <FormControl>
-        <FormLabel htmlFor="firstName">First Name</FormLabel>
-        <TextField
-          id="firstName"
-          name="firstName"
-          variant="standard"
-          fullWidth
-          autoComplete="given-name"
-          error={firstNameError}
-          helperText={firstNameErrorMsg}
-        />
-      </FormControl>
-
-      <FormControl>
-        <FormLabel htmlFor="lastName">Last Name</FormLabel>
-        <TextField
-          id="lastName"
-          name="lastName"
-          variant="standard"
-          fullWidth
-          autoComplete="family-name"
-          error={lastNameError}
-          helperText={lastNameErrorMsg}
-        />
-      </FormControl>
-
-      <FormControl>
-        <FormLabel htmlFor="phone">Phone Number</FormLabel>
-        <TextField
-          id="phone"
-          name="phone"
-          variant="standard"
-          fullWidth
-          autoComplete="tel"
-          placeholder="e.g. 5551234567"
-          error={phoneError}
-          helperText={phoneErrorMsg}
-          inputProps={{ maxLength: 10 }}
-        />
-      </FormControl>
-
-      <FormControl>
-        <FormLabel htmlFor="ssn">SSN Number</FormLabel>
-        <TextField
-          id="ssn"
-          name="ssn"
-          variant="standard"
-          fullWidth
-          autoComplete="off"
-          placeholder="12345678901"
-          error={ssnError}
-          helperText={ssnErrorMsg}
-          inputProps={{ maxLength: 11 }}
-        />
-      </FormControl>
-
-      <FormControl>
-        <FormLabel htmlFor="email">Email</FormLabel>
-        <TextField
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          placeholder="e.g. mail@example.com"
-          variant="standard"
-          fullWidth
-          error={emailError}
-          helperText={emailErrorMsg}
-        />
-      </FormControl>
-
-      <FormControl>
-        <FormLabel htmlFor="password">Password</FormLabel>
-        <TextField
-          id="password"
-          name="password"
-          type={showPassword ? "text" : "password"}
-          variant="standard"
-          fullWidth
-          placeholder="••••••"
-          autoComplete="new-password"
-          error={passwordError}
-          helperText={passwordErrorMsg}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={handleClickShowPassword}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
-      </FormControl>
-
-      <FormControl>
-        <FormLabel htmlFor="confirmPassword">Confirm Password</FormLabel>
-        <TextField
-          id="confirmPassword"
-          name="passwordConfirmation"
-          type={showPassword ? "text" : "password"}
-          variant="standard"
-          fullWidth
-          placeholder="••••••"
-          autoComplete="new-password"
-          error={confirmPasswordError}
-          helperText={confirmPasswordErrorMsg}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={handleClickShowPassword}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
-      </FormControl>
-
-      <FormControl required error={acceptTermsError}>
-        <FormControlLabel
-          control={
-            <Checkbox
-              id="acceptTerms"
-              name="acceptTerms"
-              checked={acceptTerms}
-              onChange={(e) => setAcceptTerms(e.target.checked)}
-              sx={{ color: theme.palette.primary.main }}
-            />
-          }
-          label={
-            <Typography variant="body2" id="terms-label">
-              I accept the terms & conditions
+        {generalError && (
+            <Typography color="error" variant="body2" textAlign="center">
+              {generalError}
             </Typography>
-          }
-        />
-      </FormControl>
+        )}
 
-      <Button
-        type="submit"
-        fullWidth
-        variant="contained"
-        size="large"
-        sx={{
-          py: 2,
-          backgroundColor: theme.palette.primary.main,
-          color: "white",
-          borderRadius: "50px",
-          fontWeight: 600,
-          fontSize: "1rem",
-          "&:hover": {
-            backgroundColor: theme.palette.primary.dark,
-          },
-        }}
-      >
-        Register
-      </Button>
+        <FormControl>
+          <FormLabel htmlFor="firstName">First Name</FormLabel>
+          <TextField
+              id="firstName"
+              name="firstName"
+              variant="standard"
+              fullWidth
+              autoComplete="given-name"
+              error={firstNameError}
+              helperText={firstNameErrorMsg}
+          />
+        </FormControl>
 
-      <Typography
-        component={Link}
-        to="/login"
-        sx={{
-          alignSelf: "center",
-          textDecoration: "none",
-          color: theme.palette.text.primary,
-        }}
-      >
-        Already have an account? Login now.
-      </Typography>
-    </Box>
+        <FormControl>
+          <FormLabel htmlFor="lastName">Last Name</FormLabel>
+          <TextField
+              id="lastName"
+              name="lastName"
+              variant="standard"
+              fullWidth
+              autoComplete="family-name"
+              error={lastNameError}
+              helperText={lastNameErrorMsg}
+          />
+        </FormControl>
+
+        <FormControl>
+          <FormLabel htmlFor="phone">Phone Number</FormLabel>
+          <TextField
+              id="phone"
+              name="phone"
+              variant="standard"
+              fullWidth
+              autoComplete="tel"
+              placeholder="e.g. 5551234567"
+              error={phoneError}
+              helperText={phoneErrorMsg}
+              inputProps={{ maxLength: 10 }}
+          />
+        </FormControl>
+
+        <FormControl>
+          <FormLabel htmlFor="ssn">SSN Number</FormLabel>
+          <TextField
+              id="ssn"
+              name="ssn"
+              variant="standard"
+              fullWidth
+              autoComplete="off"
+              placeholder="12345678901"
+              error={ssnError}
+              helperText={ssnErrorMsg}
+              inputProps={{ maxLength: 11 }}
+          />
+        </FormControl>
+
+        <FormControl>
+          <FormLabel htmlFor="email">Email</FormLabel>
+          <TextField
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              placeholder="e.g. mail@example.com"
+              variant="standard"
+              fullWidth
+              error={emailError}
+              helperText={emailErrorMsg}
+          />
+        </FormControl>
+
+        <FormControl>
+          <FormLabel htmlFor="password">Password</FormLabel>
+          <TextField
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              variant="standard"
+              fullWidth
+              placeholder="••••••"
+              autoComplete="new-password"
+              error={passwordError}
+              helperText={passwordErrorMsg}
+              InputProps={{
+                endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                          onClick={handleClickShowPassword}
+                          aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                ),
+              }}
+          />
+        </FormControl>
+
+        <FormControl>
+          <FormLabel htmlFor="confirmPassword">Confirm Password</FormLabel>
+          <TextField
+              id="confirmPassword"
+              name="passwordConfirmation"
+              type={showPassword ? "text" : "password"}
+              variant="standard"
+              fullWidth
+              placeholder="••••••"
+              autoComplete="new-password"
+              error={confirmPasswordError}
+              helperText={confirmPasswordErrorMsg}
+              InputProps={{
+                endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                          onClick={handleClickShowPassword}
+                          aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                ),
+              }}
+          />
+        </FormControl>
+
+        <FormControl required error={acceptTermsError}>
+          <FormControlLabel
+              control={
+                <Checkbox
+                    id="acceptTerms"
+                    name="acceptTerms"
+                    checked={acceptTerms}
+                    onChange={(e) => setAcceptTerms(e.target.checked)}
+                    sx={{ color: theme.palette.primary.main }}
+                />
+              }
+              label={
+                <Typography variant="body2" id="terms-label">
+                  I accept the terms & conditions
+                </Typography>
+              }
+          />
+        </FormControl>
+
+        <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            size="large"
+            sx={{
+              py: 2,
+              backgroundColor: theme.palette.primary.main,
+              color: "white",
+              borderRadius: "50px",
+              fontWeight: 600,
+              fontSize: "1rem",
+              "&:hover": {
+                backgroundColor: theme.palette.primary.dark,
+              },
+            }}
+        >
+          Register
+        </Button>
+
+        <Typography
+            component={Link}
+            to="/login"
+            sx={{
+              alignSelf: "center",
+              textDecoration: "none",
+              color: theme.palette.text.primary,
+            }}
+        >
+          Already have an account? Login now.
+        </Typography>
+      </Box>
   );
 };
 

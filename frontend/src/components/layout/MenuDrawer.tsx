@@ -17,6 +17,7 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
 import { isAuthenticated } from '../../utils/auth';
+import { useAppSelector } from '../../store/hooks';
 
 interface MenuDrawerProps {
     onClose: () => void;
@@ -25,7 +26,7 @@ interface MenuDrawerProps {
 
 // User-specific menu items
 const getMenuItems = () => {
-    switch (localStorage.getItem('role')) {
+    switch (localStorage.getItem('roleType')) {
         case 'CUSTOMER':
             return [
                 { text: 'Home', icon: <HomeIcon />, path: '/' },
@@ -72,6 +73,7 @@ const getMenuItems = () => {
 const MenuDrawer = ({ onClose, onLogout }: MenuDrawerProps) => {
     const menuItems = getMenuItems();
     const isLoggedIn = isAuthenticated();
+    const { userType, userInfo } = useAppSelector(state => state.auth);
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100svh', bgcolor: 'background.default' }}>
@@ -116,14 +118,19 @@ const MenuDrawer = ({ onClose, onLogout }: MenuDrawerProps) => {
                 }}
             >
                 <Avatar
+                    src={userInfo?.profileImage || undefined}
+                    alt={userInfo?.username || 'User'}
                     sx={{
                         width: 80,
                         height: 80,
                         bgcolor: 'primary.main',
                         mb: 1,
+                        fontSize: 48,
                         border: '2px solid white'
                     }}
-                />
+                >
+                    {userInfo?.username?.charAt(0) || 'U'}
+                </Avatar>
 
                 {!isLoggedIn ? (
                     <>
@@ -206,18 +213,18 @@ const MenuDrawer = ({ onClose, onLogout }: MenuDrawerProps) => {
                 </List>
 
                 {isLoggedIn && (<Button
-                    variant='contained'
-                    onClick={onLogout}
-                    startIcon={<LogoutIcon />}
-                    sx={{
-                        bgcolor: 'secondary.main',
-                        width: '100%',
-                        borderRadius: 0,
-                        py: 1.5,
-                    }}
-                >
-                    Logout
-                </Button>
+                        variant='contained'
+                        onClick={onLogout}
+                        startIcon={<LogoutIcon />}
+                        sx={{
+                            bgcolor: 'secondary.main',
+                            width: '100%',
+                            borderRadius: 0,
+                            py: 1.5,
+                        }}
+                    >
+                        Logout
+                    </Button>
                 )}
             </Box>
         </Box >
