@@ -17,14 +17,4 @@ public class CategoryResponse {
     private String name;
     private List<MenuItemResponse> menuItems = new ArrayList<>();
 
-    public CategoryResponse (Category category) {
-        this.id = category.getId();
-        this.name = category.getName();
-
-        if (category.getMenuItems() != null) {
-            this.menuItems = category.getMenuItems().stream()
-                    .map(MenuItemResponse::new)
-                    .collect(Collectors.toList());
-        }
-    }
 }

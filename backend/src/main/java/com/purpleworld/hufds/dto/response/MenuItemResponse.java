@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -14,14 +16,16 @@ public class MenuItemResponse {
     private Integer price;
     private String description;
     private String img;
+    private List<RemovableElementResponse> removableElements;
 
 
-    public MenuItemResponse (MenuItem menuItem) {
+    public MenuItemResponse (MenuItem menuItem,List<RemovableElementResponse> removableElements) {
         this.id = menuItem.getId();
         this.name = menuItem.getName();
         this.price = menuItem.getPrice();
         this.description = menuItem.getDescription();
         this.img = menuItem.getImg();
+        this.removableElements = removableElements;
     }
 
 }

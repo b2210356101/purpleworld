@@ -5,10 +5,8 @@ import com.purpleworld.hufds.dto.request.MenuItemRequest;
 import com.purpleworld.hufds.dto.response.CategoryResponse;
 import com.purpleworld.hufds.dto.response.MenuItemResponse;
 import com.purpleworld.hufds.dto.response.MenuResponse;
-import com.purpleworld.hufds.entity.Category;
-import com.purpleworld.hufds.entity.Menu;
-import com.purpleworld.hufds.entity.MenuItem;
-import com.purpleworld.hufds.entity.Restaurant;
+import com.purpleworld.hufds.dto.response.RemovableElementResponse;
+import com.purpleworld.hufds.entity.*;
 import com.purpleworld.hufds.repository.*;
 import com.purpleworld.hufds.service.impl.MenuManagementServiceImpl;
 import jakarta.transaction.Transactional;
@@ -70,12 +68,19 @@ public class MenuManagementController {
             List<MenuItemResponse> itemResponses = new ArrayList<>();
 
             for (MenuItem item : category.getMenuItems()) {
+
+                List<RemovableElementResponse> removableElementsResponses = new ArrayList<>();
+                for (RemovableElement removableElement : item.getRemovableElements()){
+                    removableElementsResponses.add(new RemovableElementResponse(removableElement.getId(),
+                                                    removableElement.getName()));
+                }
                 itemResponses.add(new MenuItemResponse(
                         item.getId(),
                         item.getName(),
                         item.getPrice(),
                         item.getDescription(),
-                        item.getImg()
+                        item.getImg(),
+                        removableElementsResponses
                 ));
             }
 
@@ -171,9 +176,26 @@ public class MenuManagementController {
         menuItem.setImg(request.getImg());
         menuItem.setCategory(category);
 
+        List<RemovableElementResponse> removableElementResponses = null;
+
+        if (request.getRemovableElements() != null) {
+            removableElementResponses = new ArrayList<>();
+            List<RemovableElement> savedElements = new ArrayList<>();
+
+            for (RemovableElement element : request.getRemovableElements()) {
+                element.setMenuItem(menuItem);
+                RemovableElement savedElement = removableElementRepository.save(element);
+                removableElementResponses.add(new RemovableElementResponse(savedElement.getId(), savedElement.getName()));
+                savedElements.add(savedElement);
+            }
+
+            menuItem.setRemovableElements(savedElements);
+        }
+
+
         menuItemRepository.save(menuItem);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(new MenuItemResponse(menuItem));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new MenuItemResponse(menuItem, removableElementResponses));
     }
 
     // Update existing menu item.
@@ -201,7 +223,7 @@ public class MenuManagementController {
 
         menuItemRepository.save(menuItem);
 
-        return ResponseEntity.ok(new MenuItemResponse(menuItem));
+        return ResponseEntity.ok(new MenuItemResponse(menuItem,null));
     }
 
 
@@ -225,5 +247,26 @@ public class MenuManagementController {
         menuItemRepository.delete(menuItem);
 
         return ResponseEntity.ok("Menu item deleted successfully.");
+    }
+
+    @Transactional
+    @DeleteMapping("/removable-elements/{removableElementId}")
+    public ResponseEntity<?> deleteRemovableElement(@PathVariable Long removableElementId,
+                                                    @AuthenticationPrincipal String email) {
+        Optional<Restaurant> restaurantOpt = restaurantRepository.findByEmail(email);
+        if (restaurantOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Restaurant not found");
+        }
+
+        Optional<RemovableElement> removableElementOpt = removableElementRepository.findById(removableElementId);
+        if (removableElementOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Removable element not found");
+        }
+
+        RemovableElement removableElement = removableElementOpt.get();
+        removableElementRepository.delete(removableElement);
+
+        return ResponseEntity.ok("Removable element deleted successfully.");
+
     }
 }

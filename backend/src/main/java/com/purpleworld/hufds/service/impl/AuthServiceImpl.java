@@ -23,6 +23,7 @@ public class AuthServiceImpl implements AuthService {
     private final AddressRepository addressRepository;
     private final RestaurantRepository restaurantRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MenuRepository menuRepository;
 
     @Override
     public RegisterResponse registerCustomer(CustomerRegisterRequest request) {
@@ -107,6 +108,10 @@ public class AuthServiceImpl implements AuthService {
         address.setPhoneNumber(request.getPhone_Number());
         address.setFullAddress(request.getAddress());
         address.setFloor("1");
+
+        Menu defaultMenu = new Menu();
+        defaultMenu.setRestaurant(restaurant);
+        menuRepository.save(defaultMenu);
 
 
         restaurantRepository.save(restaurant);
