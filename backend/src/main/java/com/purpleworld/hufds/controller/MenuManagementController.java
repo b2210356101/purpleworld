@@ -223,7 +223,7 @@ public class MenuManagementController {
 
         menuItemRepository.save(menuItem);
 
-        return ResponseEntity.ok(new MenuItemResponse(menuItem,null));
+        return ResponseEntity.ok("Menu item updated successfully.");
     }
 
 
