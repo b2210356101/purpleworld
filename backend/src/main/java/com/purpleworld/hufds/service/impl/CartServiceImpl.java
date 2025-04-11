@@ -2,6 +2,9 @@ package com.purpleworld.hufds.service.impl;
 
 import com.purpleworld.hufds.dto.request.AddToCartRequest;
 import com.purpleworld.hufds.dto.response.AddToCartResponse;
+import com.purpleworld.hufds.dto.response.CartGroupResponse;
+import com.purpleworld.hufds.dto.response.CartItemResponse;
+import com.purpleworld.hufds.dto.response.ViewCartResponse;
 import com.purpleworld.hufds.entity.Cart;
 import com.purpleworld.hufds.entity.CartGroup;
 import com.purpleworld.hufds.entity.CartItem;
@@ -20,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -105,6 +109,54 @@ public class CartServiceImpl implements CartService {
                 cartTotal,
                 restaurant.getRestaurantName(),
                 groupCount
+        );
+    }
+
+    @Override
+    @Transactional
+    public ViewCartResponse viewCart(String email) {
+        Customer customer = customerRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+        Cart cart = cartRepository.findByCustomerId(customer.getId())
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+        List<CartGroupResponse> groupResponses = new ArrayList<>();
+        int totalQuantity = 0;
+        int cartTotal = 0;
+
+        for (CartGroup group : cart.getCartGroups()) {
+            Restaurant restaurant = group.getRestaurant();
+            List<CartItemResponse> itemResponses = new ArrayList<>();
+
+
+            for (CartItem item : group.getCartItems()) {
+                MenuItem menuItem = item.getMenuItem();
+                int quantity = item.getQuantity();
+                int price = menuItem.getPrice();
+
+                totalQuantity += quantity;
+                cartTotal += quantity * price;
+
+                itemResponses.add(new CartItemResponse(
+                        menuItem.getId(),
+                        menuItem.getName(),
+                        price,
+                        quantity,
+                        menuItem.getImg()
+                ));
+            }
+            groupResponses.add(new CartGroupResponse(
+                    restaurant.getId(),
+                    restaurant.getRestaurantName(),
+                    itemResponses
+            ));
+
+        }
+        return new ViewCartResponse(
+                cart.getId(),
+                totalQuantity,
+                cartTotal,
+                groupResponses.size(),
+                groupResponses
         );
     }
 }

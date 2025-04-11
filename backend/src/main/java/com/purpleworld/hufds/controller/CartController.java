@@ -7,10 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/customer/cart")
@@ -23,5 +20,11 @@ public class CartController {
                                                        @AuthenticationPrincipal String email) {
         AddToCartResponse response = cartService.addToCart(request, email);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/view")
+    public ResponseEntity<?> viewCart() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ResponseEntity.ok(cartService.viewCart(email));
     }
 }
