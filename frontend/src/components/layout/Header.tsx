@@ -109,7 +109,7 @@ const Header = ({ userType }: { userType: UserType }) => {
                     sx={{ display: 'flex' }}
                 >
                     <img
-                        src="/assets/logo.svg"                        
+                        src="/assets/logo.png"                        
                         alt="Logo"
                         height="30"
                         style={{
