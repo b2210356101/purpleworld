@@ -5,6 +5,22 @@ export interface UserInfo {
     profileImage?: string;
 }
 
+export interface Restaurant {
+    id: number;
+    restaurantName: string;
+    distanceInKm?: number;
+    profileImg?: string;
+    rating?: number;
+    reviews?: number;
+    items?: {
+        id: number;
+        name: string;
+        price: number;
+        quantity: number;
+        image: string;
+    }[];
+}
+
 export interface Address {
     addressId?: number;
     name: string;
@@ -15,7 +31,7 @@ export interface Address {
     apartmentNumber: string;
     city?: string;
     district?: string;
-    neighborhood?: string ;
+    neighborhood?: string;
     street?: string | null;
     deliveryNote?: string;
     latitude?: number;
@@ -27,23 +43,13 @@ export interface CurrentAddress {
     addressId: number;
 }
 
-export interface NearestRestaurant {
-    restaurantId: number;
-    restaurantName: string;
-    distanceInKm: number;
-    img: string;
-    rating:number;
-    reviews:number;
-}
-
 export interface MenuItem {
     id: number;
     name: string;
     price: number;
     description: string;
     img: string;
-    restaurantName: string;
-    restaurantId: number;
+    restaurant: Restaurant;
     removableElements: { id: number; name: string }[];
 
 }
@@ -56,7 +62,7 @@ export interface Ingredient {
 export interface AddToCartRequest {
     menuItemId: number;
     quantity: number;
-    removableElements: string;   // CSV: "ing1,ing2"
+    removableElements: string;
 }
 
 export interface AddToCartResponse {
@@ -70,29 +76,29 @@ export interface AddToCartResponse {
     cartTotal: number;
     restaurantName: string;
     groupCount: number;
-    removedElements: string[];   // ["ing1","ing2"]
+    removedElements: string[]; 
 }
 
 export interface CartItemResponse {
-    itemId: number; // must match the backend field
+    itemId: number; 
     itemName: string;
     itemPrice: number;
     quantity: number;
     itemImg: string;
     removable?: string[];
-  }
-  
+}
+
 
 export interface CartGroupResponse {
-restaurantId: number;
-restaurantName: string;
-items: CartItemResponse[];
+    restaurantId: number;
+    restaurantName: string;
+    items: CartItemResponse[];
 }
 
 export interface ViewCartResponse {
-cartId: number;
-totalQuantity: number;
-cartTotal: number;
-groupCount: number;
-groups: CartGroupResponse[];
+    cartId: number;
+    totalQuantity: number;
+    cartTotal: number;
+    groupCount: number;
+    groups: CartGroupResponse[];
 }
