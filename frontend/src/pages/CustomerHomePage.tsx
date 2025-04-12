@@ -142,7 +142,7 @@ const CustomerHomePage = () => {
                 <Grid size={{ xs: 12, md: 6 }} sx={{ textAlign: 'right' }}>
                     <Box
                         component="img"
-                        src="https://picsum.photos/500/350"
+                        src="https://i.hizliresim.com/1xcam90.jpeg"
                         alt="Food Delivery"
                         sx={{
                             maxWidth: '100%',
