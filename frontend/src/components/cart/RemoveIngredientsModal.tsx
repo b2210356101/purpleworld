@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
     Typography,
     Button,
@@ -19,6 +19,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import { Restaurant } from '../../types';
 
 // Type definitions
 interface Ingredient {
@@ -33,7 +34,7 @@ interface RemoveIngredientsDialogProps {
     foodName: string;
     foodImage?: string;
     ingredients?: Ingredient[] | undefined;
-    restaurant: string;
+    restaurant: Restaurant;
     foodDescription: string;
     quantity: number;
     setQuantity : (q:number) => void;
@@ -95,7 +96,7 @@ const RemoveIngredientsModal: React.FC<RemoveIngredientsDialogProps> = ({
                         />
                         <Box>
                             <Typography variant="h6" fontWeight="bold">
-                                {restaurant || 'Restaurant Name'}
+                                {restaurant.restaurantName || 'Restaurant Name'}
                             </Typography>
                             <Typography variant="subtitle1" fontWeight="medium">
                                 {foodName || 'Food Name'}

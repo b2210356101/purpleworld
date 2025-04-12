@@ -3,19 +3,7 @@ import { Box, Typography, IconButton, Paper, Divider } from '@mui/material';
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import DeleteIcon from "@mui/icons-material/Delete";
-
-export interface Restaurant {
-    id: number;
-    name: string;
-    logo?: string;
-    items: {
-        id: number;
-        name: string;
-        price: number;
-        quantity: number;
-        image: string;
-    }[];
-}
+import { Restaurant } from '../../types';
 
 interface RestaurantItemsProps {
     restaurant: Restaurant;
@@ -27,21 +15,21 @@ const RestaurantItems: React.FC<RestaurantItemsProps> = ({ restaurant, onQuantit
         <Paper sx={{ borderRadius: 2, overflow: 'hidden', boxShadow: 1 }}>
             {/* Restaurant Header */}
             <Box sx={{ p: 2, bgcolor: 'primary.main', color: 'white', display: 'flex', alignItems: 'center' }}>
-                {restaurant.logo && (
+                {restaurant.profileImg && (
                     <Box
                         component="img"
-                        src={restaurant.logo}
+                        src={restaurant.profileImg}
                         sx={{ width: 40, height: 40, borderRadius: '50%', mr: 2 }}
                     />
                 )}
                 <Typography variant="subtitle1" fontWeight={600}>
-                    {restaurant.name}
+                    {restaurant.restaurantName}
                 </Typography>
             </Box>
 
             {/* Restaurant Items */}
             <Box sx={{ p: 2 }}>
-                {restaurant.items.map((item, index) => (
+                {restaurant.items && restaurant.items.map((item, index) => (
                     <React.Fragment key={item.id}>
                         {index > 0 && <Divider sx={{ my: 1.5 }} />}
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>

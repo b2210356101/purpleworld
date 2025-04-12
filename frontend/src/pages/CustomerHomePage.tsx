@@ -1,4 +1,4 @@
-import { Box, Typography, Button, Avatar, Paper, Grid, Stack, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Radio, RadioGroup, TextField, Alert,MenuItem as ApiMenuItem } from '@mui/material';
+import { Box, Typography, Button, Avatar, Paper, Grid, Stack, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Radio, RadioGroup, Alert, MenuItem } from '@mui/material';
 import { ArrowForward, CircleRounded, Add } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import RestaurantCard from '../components/restaurant/RestaurantCart';
@@ -6,7 +6,7 @@ import PopularFoodCard from '../components/menu/PopularFoodCard';
 import FoodCategories from '../components/menu/FoodCategories';
 import { useState, useEffect } from 'react';
 import AddAddressModal from '../components/address/AddAddressModal';
-import {Address, MenuItem} from '../types';
+import { Address, Restaurant } from '../types';
 import {
     getCurrentAddress,
     getCustomerAddresses,
@@ -20,19 +20,9 @@ interface PopularFood {
     id: number;
     name: string;
     image: string;
-    restaurant: string;
-    restaurantId: number;
+    restaurant: Restaurant;
     price: string;
     description: string;
-}
-
-interface Restaurant {
-    id: number;
-    name: string;
-    image: string;
-    logo?: string;
-    rating: number;
-    reviews: number;
 }
 
 interface ApiAddress {
@@ -111,11 +101,11 @@ const CustomerHomePage = () => {
                 setNearbyRestaurants(
                     list.map(r => ({
                         id: r.restaurantId,
-                        name: r.restaurantName,
-                        image: r.img,
+                        restaurantName: r.restaurantName,
+                        profileImg: r.img,
                         rating: r.rating,
-                        reviews: r.reviews
-                    }))
+                        reviews: r.reviews,
+                    })) as unknown as Restaurant[]
                 );
             } catch (err) {
                 console.error('could not load nearby restaurants', err);
@@ -133,8 +123,7 @@ const CustomerHomePage = () => {
                         id: mi.id,
                         name: mi.name,
                         image: mi.img,
-                        restaurant: mi.restaurantName,
-                        restaurantId: mi.restaurantId,
+                        restaurant: mi.restaurant,
                         price: `${mi.price}₺`,
                         description: mi.description
                     }))

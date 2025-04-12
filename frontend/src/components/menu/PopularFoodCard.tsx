@@ -2,14 +2,14 @@ import { Box, Paper, Stack, Typography, Button } from "@mui/material";
 import LocationOn from "@mui/icons-material/LocationOn";
 import RemoveIngredientsModal from "../cart/RemoveIngredientsModal";
 import { useEffect, useState } from "react";
-import {addToCart, getIngredients} from "../../utils/api";
+import { addToCart, getIngredients } from "../../utils/api";
+import { Restaurant } from "../../types";
 
 interface Food {
     id: number;
     name: string;
     image: string;
-    restaurant: string;
-    restaurantId: number;
+    restaurant: Restaurant;
     price: string;
     description: string;
 }
@@ -94,7 +94,7 @@ const PopularFoodCard: React.FC<{ food: Food }> = ({ food }) => {
                     <Box sx={{ display: "flex", alignItems: "center" }}>
                         <LocationOn sx={{ color: "secondary.main", fontSize: 16, mr: 0.5 }} />
                         <Typography variant="body2" color="text.secondary" noWrap>
-                            {food.restaurant}
+                            {food.restaurant.restaurantName}
                         </Typography>
                     </Box>
 
@@ -108,23 +108,22 @@ const PopularFoodCard: React.FC<{ food: Food }> = ({ food }) => {
                 </Stack>
             </Paper>
 
-           {/* Only mount the modal when needed, and pass quantity handlers */}
-           {isModalOpen && (
-             <RemoveIngredientsModal
-               open={true}
-               onClose={() => setIsModalOpen(false)}
-               onAddToCart={handleAddToCart}
-               foodName={food.name}
-               foodImage={food.image}
-               ingredients={ingredients}
-               restaurant={food.restaurant}
-               foodDescription={food.description}
-               quantity={quantity}            // ← new prop
-               setQuantity={setQuantity}      // ← new prop
-               selectedIngredients={selectedIngredients}                // ← yeni prop
-               setSelectedIngredients={setSelectedIngredients}
-             />
-           )}
+            {isModalOpen && (
+                <RemoveIngredientsModal
+                    open={true}
+                    onClose={() => setIsModalOpen(false)}
+                    onAddToCart={handleAddToCart}
+                    foodName={food.name}
+                    foodImage={food.image}
+                    ingredients={ingredients}
+                    restaurant={food.restaurant}
+                    foodDescription={food.description}
+                    quantity={quantity}
+                    setQuantity={setQuantity}
+                    selectedIngredients={selectedIngredients}
+                    setSelectedIngredients={setSelectedIngredients}
+                />
+            )}
         </>
     );
 };
