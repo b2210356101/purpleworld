@@ -49,10 +49,12 @@ const ShoppingCartPage: React.FC = () => {
     try {
       setLoading(true);
       const data: ViewCartResponse = await viewCart();
-      
+
       // Filter out any restaurant groups that have no items
-      const nonEmptyGroups = data.groups.filter(group => group.items.length > 0);
-      
+      const nonEmptyGroups = data.groups.filter(
+        (group) => group.items.length > 0
+      );
+
       setCartItems(nonEmptyGroups);
       setItemTotal(`${data.cartTotal}₺`);
       setTotalAmount(`${data.cartTotal}₺`);
@@ -147,7 +149,7 @@ const ShoppingCartPage: React.FC = () => {
                   overflow: "hidden",
                   width: "100%",
                   maxWidth: 650,
-                  mx: "-8", 
+                  mx: "-8",
                 }}
               >
                 <Box
@@ -164,7 +166,7 @@ const ShoppingCartPage: React.FC = () => {
                 </Box>
 
                 <Box px={3} pt={2}>
-                  {group.items.map((item) => (
+                  {group.items.map((item: CartItemResponse) => (
                     <Box
                       key={item.itemId}
                       display="flex"
@@ -178,10 +180,26 @@ const ShoppingCartPage: React.FC = () => {
                       }}
                     >
                       <Box
-                        component="img"
-                        src={item.itemImg}
-                        sx={{ width: 64, height: 64, borderRadius: 2 }}
-                      />
+                        sx={{
+                          width: 64,
+                          height: 64,
+                          borderRadius: 2,
+                          overflow: "hidden",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Box
+                          component="img"
+                          src={item.itemImg}
+                          alt={item.itemName}
+                          sx={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            display: "block",
+                          }}
+                        />
+                      </Box>
 
                       <Box flex="1 1 200px">
                         <Typography fontWeight={600}>
@@ -205,14 +223,16 @@ const ShoppingCartPage: React.FC = () => {
                           sx={{
                             backgroundColor: theme.palette.primary.main,
                             borderRadius: "20px",
-                            px: 1.5,
+                            px: 1,
                             py: 0.5,
                             color: "white",
+                            minWidth: 100, // ensures static size
+                            justifyContent: "space-between",
                           }}
                         >
                           <IconButton
                             size="small"
-                            sx={{ color: "white" }}
+                            sx={{ color: "white", width: 32, height: 32 }}
                             onClick={() =>
                               handleQuantityChange(
                                 item.itemId,
@@ -227,12 +247,21 @@ const ShoppingCartPage: React.FC = () => {
                               <RemoveIcon fontSize="small" />
                             )}
                           </IconButton>
-                          <Typography fontWeight={600} fontSize={14} px={1}>
+
+                          <Box
+                            sx={{
+                              width: 24,
+                              textAlign: "center",
+                              fontWeight: 600,
+                              fontSize: 14,
+                            }}
+                          >
                             {item.quantity}
-                          </Typography>
+                          </Box>
+
                           <IconButton
                             size="small"
-                            sx={{ color: "white" }}
+                            sx={{ color: "white", width: 32, height: 32 }}
                             onClick={() =>
                               handleQuantityChange(
                                 item.itemId,
@@ -283,9 +312,7 @@ const ShoppingCartPage: React.FC = () => {
                         isError: false,
                       });
                       setDiscount("80₺");
-                      setTotalAmount(
-                        `${parseFloat(itemTotal) - 80}₺`
-                      );
+                      setTotalAmount(`${parseFloat(itemTotal) - 80}₺`);
                     } else {
                       setPromoCodeMessage({
                         text: "Invalid promo code",

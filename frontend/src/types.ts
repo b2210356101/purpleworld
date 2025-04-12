@@ -74,12 +74,14 @@ export interface AddToCartResponse {
 }
 
 export interface CartItemResponse {
-    itemId: number;
+    itemId: number; // must match the backend field
     itemName: string;
     itemPrice: number;
     quantity: number;
     itemImg: string;
+    removable?: string[];
   }
+  
 
 export interface CartGroupResponse {
 restaurantId: number;

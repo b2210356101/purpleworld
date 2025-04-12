@@ -20,6 +20,8 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import api from '../utils/api';
+import defaultFoodImg from "../assets/menuitem.png";
+
 
 // Define interface for removable element response
 interface RemovableElementResponse {
@@ -51,8 +53,6 @@ interface MenuResponse {
     categories: Category[];
 }
 
-// Default image URL to use when no image is provided
-const DEFAULT_IMAGE_URL = "https://www.kindpng.com/picc/m/255-2551804_hot-dish-dish-icon-png-transparent-png.png";
 
 // Component for rendering menu items grouped by category
 const MenuManagementPage: React.FC = () => {
@@ -130,7 +130,8 @@ const MenuManagementPage: React.FC = () => {
     // Helper function to get image URL
     const getImageUrl = (imgUrl: string) => {
         // If img is empty or undefined, return default image
-        return imgUrl && imgUrl.trim() !== '' ? imgUrl : DEFAULT_IMAGE_URL;
+        return imgUrl && imgUrl.trim() !== '' ? imgUrl : defaultFoodImg;
+
     };
 
     // Handler for adding or updating an item
@@ -141,7 +142,7 @@ const MenuManagementPage: React.FC = () => {
                     name: newItem.name,
                     price: newItem.price,
                     description: newItem.description || '',
-                    img: newItem.img ? newItem.img : DEFAULT_IMAGE_URL, // Use default image if none provided
+                    img: newItem.img || defaultFoodImg,  // Use default image if none provided
                     removableElements: (newItem.removableElements || []).map(el => el.name).join(',')
                 };
 
@@ -555,7 +556,7 @@ const MenuManagementPage: React.FC = () => {
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    backgroundImage: `url(${newItem.img ? newItem.img : DEFAULT_IMAGE_URL})`,
+                                    backgroundImage: `url(${newItem.img || defaultFoodImg})`,
                                     backgroundSize: 'cover',
                                     backgroundPosition: 'center',
                                 }}

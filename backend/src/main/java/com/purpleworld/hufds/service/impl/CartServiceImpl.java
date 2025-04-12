@@ -18,219 +18,216 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CartServiceImpl implements CartService {
 
-    private final CustomerRepository customerRepository;
-    private final MenuItemRepository menuItemRepository;
-    private final CartRepository cartRepository;
-    private final CartGroupRepository cartGroupRepository;
-    private final CartItemRepository cartItemRepository;
-    private final RestaurantRepository restaurantRepository;
-    private final RemovableElementRepository removableElementRepository;
+        private final CustomerRepository customerRepository;
+        private final MenuItemRepository menuItemRepository;
+        private final CartRepository cartRepository;
+        private final CartGroupRepository cartGroupRepository;
+        private final CartItemRepository cartItemRepository;
+        private final RestaurantRepository restaurantRepository;
+        private final RemovableElementRepository removableElementRepository;
 
-    @Override
-    @Transactional
-    public AddToCartResponse addToCart(AddToCartRequest request, String email) {
-        // 1) Load customer, menuItem, restaurant
-        Customer customer = customerRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+        @Override
+        @Transactional
+        public AddToCartResponse addToCart(AddToCartRequest request, String email) {
+                // 1) Load customer, menuItem, restaurant
+                Customer customer = customerRepository.findByEmail(email)
+                                .orElseThrow(() -> new RuntimeException("Customer not found"));
 
-        MenuItem menuItem = menuItemRepository.findById(request.getMenuItemId())
-                .orElseThrow(() -> new RuntimeException("MenuItem not found"));
+                MenuItem menuItem = menuItemRepository.findById(request.getMenuItemId())
+                                .orElseThrow(() -> new RuntimeException("MenuItem not found"));
 
+                Restaurant restaurant = menuItem.getCategory().getMenu().getRestaurant();
 
-        Restaurant restaurant = menuItem.getCategory().getMenu().getRestaurant();
+                // 2) Get or create the Cart
+                Cart cart = cartRepository.findByCustomerId(customer.getId())
+                                .orElseGet(() -> {
+                                        Cart newCart = new Cart();
+                                        newCart.setCustomer(customer);
+                                        return cartRepository.save(newCart);
+                                });
 
-        // 2) Get or create the Cart
-        Cart cart = cartRepository.findByCustomerId(customer.getId())
-                .orElseGet(() -> {
-                    Cart newCart = new Cart();
-                    newCart.setCustomer(customer);
-                    return cartRepository.save(newCart);
+                // 3) Get or create the CartGroup for this restaurant
+                CartGroup cartGroup = cart.getCartGroups().stream()
+                                .filter(cg -> cg.getRestaurant().equals(restaurant))
+                                .findFirst()
+                                .orElseGet(() -> {
+                                        CartGroup newGroup = new CartGroup();
+                                        newGroup.setCart(cart);
+                                        newGroup.setRestaurant(restaurant);
+                                        return cartGroupRepository.save(newGroup);
+                                });
+
+                // 4) Find existing CartItem for this menuItem, or make a new one
+                Optional<CartItem> existing = cartGroup.getCartItems().stream()
+                                .filter(ci -> ci.getMenuItem().equals(menuItem))
+                                .findFirst();
+
+                CartItem cartItem = existing.orElseGet(() -> {
+                        CartItem ci = new CartItem();
+                        ci.setCartGroup(cartGroup);
+                        ci.setMenuItem(menuItem);
+                        return ci;
                 });
 
-        // 3) Get or create the CartGroup for this restaurant
-        CartGroup cartGroup = cart.getCartGroups().stream()
-                .filter(cg -> cg.getRestaurant().equals(restaurant))
-                .findFirst()
-                .orElseGet(() -> {
-                    CartGroup newGroup = new CartGroup();
-                    newGroup.setCart(cart);
-                    newGroup.setRestaurant(restaurant);
-                    return cartGroupRepository.save(newGroup);
-                });
+                // 5) Update quantity
+                cartItem.setQuantity(cartItem.getQuantity() + request.getQuantity());
 
-        // 4) Find existing CartItem for this menuItem, or make a new one
-        Optional<CartItem> existing = cartGroup.getCartItems().stream()
-                .filter(ci -> ci.getMenuItem().equals(menuItem))
-                .findFirst();
+                cartItem.setRemovableElements(request.getRemovableElements());
 
-        CartItem cartItem = existing.orElseGet(() -> {
-            CartItem ci = new CartItem();
-            ci.setCartGroup(cartGroup);
-            ci.setMenuItem(menuItem);
-            return ci;
-        });
+                // 7) Persist the CartItem
+                cartItemRepository.save(cartItem);
 
-        // 5) Update quantity
-        cartItem.setQuantity(cartItem.getQuantity() + request.getQuantity());
+                // 8) Recompute totals
+                int totalQuantity = cart.getCartGroups().stream()
+                                .flatMap(g -> g.getCartItems().stream())
+                                .mapToInt(CartItem::getQuantity)
+                                .sum();
 
-        cartItem.setRemovableElements(request.getRemovableElements());
+                int cartTotal = cart.getCartGroups().stream()
+                                .flatMap(g -> g.getCartItems().stream())
+                                .mapToInt(ci -> ci.getMenuItem().getPrice() * ci.getQuantity())
+                                .sum();
 
-        // 7) Persist the CartItem
-        cartItemRepository.save(cartItem);
+                int groupCount = cart.getCartGroups().size();
 
-        // 8) Recompute totals
-        int totalQuantity = cart.getCartGroups().stream()
-                .flatMap(g -> g.getCartItems().stream())
-                .mapToInt(CartItem::getQuantity)
-                .sum();
+                List<String> removed = cartItem.getRemovables();
 
-        int cartTotal = cart.getCartGroups().stream()
-                .flatMap(g -> g.getCartItems().stream())
-                .mapToInt(ci -> ci.getMenuItem().getPrice() * ci.getQuantity())
-                .sum();
+                return new AddToCartResponse(
+                                "Item added to cart successfully",
+                                cart.getId(),
+                                cartGroup.getId(),
+                                cartItem.getId(),
+                                totalQuantity,
+                                menuItem.getName(),
+                                menuItem.getPrice(),
+                                cartTotal,
+                                restaurant.getRestaurantName(),
+                                groupCount,
+                                removed);
+        }
 
-        int groupCount = cart.getCartGroups().size();
+        @Override
+        @Transactional
+        public ViewCartResponse viewCart(String email) {
+                Customer customer = customerRepository.findByEmail(email)
+                                .orElseThrow(() -> new RuntimeException("Customer not found"));
 
-        List<String> removed = cartItem.getRemovables();
+                Cart cart = cartRepository.findByCustomerId(customer.getId())
+                                .orElseThrow(() -> new RuntimeException("Cart not found"));
 
+                List<CartGroupResponse> groupResponses = new ArrayList<>();
+                int totalQuantity = 0;
+                int cartTotal = 0;
 
-        return new AddToCartResponse(
-                "Item added to cart successfully",
-                cart.getId(),
-                cartGroup.getId(),
-                cartItem.getId(),
-                totalQuantity,
-                menuItem.getName(),
-                menuItem.getPrice(),
-                cartTotal,
-                restaurant.getRestaurantName(),
-                groupCount,
-                removed
-        );
-    }
+                for (CartGroup group : cart.getCartGroups()) {
+                        Restaurant restaurant = group.getRestaurant();
 
-    @Override
-    @Transactional
-    public ViewCartResponse viewCart(String email) {
-        Customer customer = customerRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
-        Cart cart = cartRepository.findByCustomerId(customer.getId())
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
-        List<CartGroupResponse> groupResponses = new ArrayList<>();
-        int totalQuantity = 0;
-        int cartTotal = 0;
+                        List<CartItem> sortedItems = new ArrayList<>(group.getCartItems());
+                        sortedItems.sort((a, b) -> a.getMenuItem().getName()
+                                        .compareToIgnoreCase(b.getMenuItem().getName())); // sort by name
 
-        for (CartGroup group : cart.getCartGroups()) {
-            Restaurant restaurant = group.getRestaurant();
-            List<CartItemResponse> itemResponses = new ArrayList<>();
+                        List<CartItemResponse> itemResponses = new ArrayList<>();
 
+                        for (CartItem item : sortedItems) {
+                                MenuItem menuItem = item.getMenuItem();
+                                int quantity = item.getQuantity();
+                                int price = menuItem.getPrice();
 
-            for (CartItem item : group.getCartItems()) {
-                MenuItem menuItem = item.getMenuItem();
+                                totalQuantity += quantity;
+                                cartTotal += quantity * price;
+
+                                itemResponses.add(new CartItemResponse(
+                                                item.getId(),
+                                                menuItem.getName(),
+                                                price,
+                                                quantity,
+                                                menuItem.getImg(),
+                                                item.getRemovables()));
+                        }
+
+                        groupResponses.add(new CartGroupResponse(
+                                        restaurant.getId(),
+                                        restaurant.getRestaurantName(),
+                                        itemResponses));
+                }
+
+                return new ViewCartResponse(
+                                cart.getId(),
+                                totalQuantity,
+                                cartTotal,
+                                groupResponses.size(),
+                                groupResponses);
+        }
+
+        @Override
+        @Transactional
+        public void removeItemFromCart(Long itemId, String email) {
+                Customer customer = customerRepository.findByEmail(email)
+                                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+                Cart cart = cartRepository.findByCustomerId(customer.getId())
+                                .orElseThrow(() -> new RuntimeException("Cart not found"));
+
+                CartItem item = cartItemRepository.findById(itemId)
+                                .orElseThrow(() -> new RuntimeException("CartItem not found"));
+
+                // double check for manuel testing
+                boolean belongsToCustomer = cart.getCartGroups().stream()
+                                .flatMap(group -> group.getCartItems().stream())
+                                .anyMatch(ci -> ci.equals(item));
+
+                if (!belongsToCustomer) {
+                        throw new RuntimeException("Unauthorized: This item does not belong to your cart.");
+                }
+                System.out.println("CartItem with ID " + item.getId() + " deleted.");
+                CartGroup group = item.getCartGroup();
+                group.getCartItems().remove(item);
+                cartItemRepository.delete(item);
+
+                if (group.getCartItems().isEmpty()) {
+                        cart.getCartGroups().remove(group);
+                        cartGroupRepository.delete(group);
+                        System.out.println("Cart group deleted.");
+                }
+
+        }
+
+        @Override
+        @Transactional
+        public void updateCartItemQuantity(UpdateCartItemRequest request, String email) {
+                Customer customer = customerRepository.findByEmail(email)
+                                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+                Cart cart = cartRepository.findByCustomerId(customer.getId())
+                                .orElseThrow(() -> new RuntimeException("Cart not found"));
+
+                CartItem item = cartItemRepository.findById(request.getItemId())
+                                .orElseThrow(() -> new RuntimeException("CartItem not found"));
+
+                // double check
+                boolean belongsToCustomer = cart.getCartGroups().stream()
+                                .flatMap(group -> group.getCartItems().stream())
+                                .anyMatch(ci -> ci.getId().equals(item.getId()));
+
+                if (!belongsToCustomer) {
+                        throw new RuntimeException("Unauthorized: This item does not belong to your cart.");
+                }
+
+                // Quantity güncelleme
                 int quantity = item.getQuantity();
-                int price = menuItem.getPrice();
+                String operation = request.getOperation();
 
-                totalQuantity += quantity;
-                cartTotal += quantity * price;
-
-                itemResponses.add(new CartItemResponse(
-                        menuItem.getId(),
-                        menuItem.getName(),
-                        price,
-                        quantity,
-                        menuItem.getImg(),
-                        item.getRemovables()
-                ));
-            }
-            groupResponses.add(new CartGroupResponse(
-                    restaurant.getId(),
-                    restaurant.getRestaurantName(),
-                    itemResponses
-            ));
-
+                if ("+".equals(operation)) {
+                        item.setQuantity(quantity + 1);
+                        cartItemRepository.save(item);
+                } else if ("-".equals(operation)) {
+                        if (quantity > 1) {
+                                item.setQuantity(quantity - 1);
+                                cartItemRepository.save(item);
+                        }
+                } else {
+                        throw new RuntimeException("Invalid operation: must be '+' or '-'.");
+                }
         }
-        return new ViewCartResponse(
-                cart.getId(),
-                totalQuantity,
-                cartTotal,
-                groupResponses.size(),
-                groupResponses
-        );
-    }
-
-
-    @Override
-    @Transactional
-    public void removeItemFromCart(Long itemId, String email) {
-        Customer customer = customerRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
-
-        Cart cart = cartRepository.findByCustomerId(customer.getId())
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
-
-        CartItem item = cartItemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("CartItem not found"));
-
-        // double check for manuel testing
-        boolean belongsToCustomer = cart.getCartGroups().stream()
-                .flatMap(group -> group.getCartItems().stream())
-                .anyMatch(ci -> ci.equals(item));
-
-        if (!belongsToCustomer) {
-            throw new RuntimeException("Unauthorized: This item does not belong to your cart.");
-        }
-        System.out.println("CartItem with ID " + item.getId() + " deleted.");
-        CartGroup group = item.getCartGroup();
-        group.getCartItems().remove(item);
-        cartItemRepository.delete(item);
-
-        if (group.getCartItems().isEmpty()) {
-            cart.getCartGroups().remove(group);
-            cartGroupRepository.delete(group);
-            System.out.println("Cart group deleted.");
-        }
-
-
-
-    }
-
-    @Override
-    @Transactional
-    public void updateCartItemQuantity(UpdateCartItemRequest request, String email) {
-        Customer customer = customerRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
-
-        Cart cart = cartRepository.findByCustomerId(customer.getId())
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
-
-        CartItem item = cartItemRepository.findById(request.getItemId())
-                .orElseThrow(() -> new RuntimeException("CartItem not found"));
-
-        //double check
-        boolean belongsToCustomer = cart.getCartGroups().stream()
-                .flatMap(group -> group.getCartItems().stream())
-                .anyMatch(ci -> ci.getId().equals(item.getId()));
-
-        if (!belongsToCustomer) {
-            throw new RuntimeException("Unauthorized: This item does not belong to your cart.");
-        }
-
-        // Quantity güncelleme
-        int quantity = item.getQuantity();
-        String operation = request.getOperation();
-
-
-        if ("+".equals(operation)) {
-            item.setQuantity(quantity + 1);
-            cartItemRepository.save(item);
-        } else if ("-".equals(operation)) {
-            if (quantity > 1) {
-                item.setQuantity(quantity - 1);
-                cartItemRepository.save(item);
-            }
-        } else {
-            throw new RuntimeException("Invalid operation: must be '+' or '-'.");
-        }
-    }
 
 }
