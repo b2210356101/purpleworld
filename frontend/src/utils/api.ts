@@ -1,4 +1,4 @@
-import axios, {AxiosError} from 'axios';
+import axios, { AxiosError } from 'axios';
 import { getToken, logout } from './auth';
 import {
     Address,
@@ -6,7 +6,8 @@ import {
     AddToCartResponse,
     CurrentAddress,
     Ingredient,
-    MenuItem, Restaurant
+    MenuItem,
+    Restaurant,
 } from '../types';
 
 const API_URL = '/api';
@@ -176,6 +177,48 @@ export const setCurrentAddress = async (addressId: number) => {
     }
 };
 
+export const updateAddress = async (
+    address: Address,
+    location: { lat: number, lng: number } | null
+): Promise<void> => {
+    try {
+        const token = localStorage.getItem('token');
+
+        // Prepare request body
+        const requestBody = {
+            addressId: address.addressId,
+            name: address.name,
+            city: address.city,
+            district: address.district,
+            neighborhood: address.neighborhood,
+            street: address.street || null,
+            buildingNumber: address.buildingNumber,
+            floor: address.floor,
+            apartmentNumber: address.apartmentNumber,
+            phoneNumber: address.phoneNumber,
+            location: location || null
+        };
+
+        // Make the API call
+        const response = await fetch(`${API_URL}/customer/addresses/${address.addressId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to update address');
+        }
+    } catch (error) {
+        console.error('Error updating address:', error);
+        throw error;
+    }
+};
+
 interface BackendErrorResponse {
     error: string;
     message: string;
@@ -218,15 +261,16 @@ export async function getIngredients(menuItemId: number): Promise<Ingredient[]> 
     return data;
 }
 
-export async function addToCart(request: AddToCartRequest): Promise<AddToCartResponse> {
+export async function addToCart(req: AddToCartRequest): Promise<AddToCartResponse> {
+    const token = localStorage.getItem('token');
 
     const { data } = await api.post<AddToCartResponse>(
         '/customer/cart/add',
-        request,
+        req,
         {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                'Authorization': `Bearer ${token}`
             }
         }
     );
@@ -276,8 +320,4 @@ export const removeItemFromCart = async (itemId: number) => {
     const response = await api.delete(`/customer/cart/item/${itemId}`);
     return response.data;
 };
-
-
-
-
 export default api;

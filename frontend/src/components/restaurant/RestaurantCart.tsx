@@ -42,11 +42,15 @@ const RestaurantCard: React.FC<{ restaurant: Restaurant }> = ({ restaurant }) =>
                     {restaurant.restaurantName}
                 </Typography>
 
-                <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                    {restaurant.rating && renderRatingStars(restaurant.rating)}
-                    <Typography variant="body2" sx={{ ml: 1 }}>
-                        {restaurant.reviews}
-                    </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 1, justifyContent:'space-between' }}>
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                        {restaurant.rating && renderRatingStars(restaurant.rating)}
+                        <Typography variant="body2" sx={{ ml: 1 }}>
+                            {restaurant.reviews}
+                        </Typography>
+                    </Box>
+
+                    {restaurant.distanceInKm && restaurant.distanceInKm.toFixed(1)} km
                 </Box>
 
                 <Button fullWidth variant="outlined" sx={{ py: 1 }}>
