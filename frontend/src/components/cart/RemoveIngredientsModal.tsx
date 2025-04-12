@@ -19,13 +19,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
-import { Restaurant } from '../../types';
-
-// Type definitions
-interface Ingredient {
-    id: string;
-    name: string;
-}
+import { Ingredient, Restaurant } from '../../types';
 
 interface RemoveIngredientsDialogProps {
     open: boolean;
@@ -37,33 +31,32 @@ interface RemoveIngredientsDialogProps {
     restaurant: Restaurant;
     foodDescription: string;
     quantity: number;
-    setQuantity : (q:number) => void;
-    selectedIngredients: string[];
-    setSelectedIngredients: (ids: string[]) => void;
+    setQuantity: (q: number) => void;
+    selectedIngredients: Ingredient[];
+    setSelectedIngredients: (ingredients: Ingredient[]) => void;
 }
 
 const RemoveIngredientsModal: React.FC<RemoveIngredientsDialogProps> = ({
-    open,
-    onClose,
-    onAddToCart,
-    foodName,
-    foodImage,
-    ingredients,
-    restaurant,
-    foodDescription,
-    quantity,
-    setQuantity,
-    selectedIngredients,
-    setSelectedIngredients
-}) => {
-    // State to track selected ingredients to remove
-
+                                                                            open,
+                                                                            onClose,
+                                                                            onAddToCart,
+                                                                            foodName,
+                                                                            foodImage,
+                                                                            ingredients,
+                                                                            restaurant,
+                                                                            foodDescription,
+                                                                            quantity,
+                                                                            setQuantity,
+                                                                            selectedIngredients,
+                                                                            setSelectedIngredients
+                                                                        }) => {
     // Toggle ingredient selection
-    const handleIngredientToggle = (ingredientId: string) => {
-        if (selectedIngredients.includes(ingredientId)) {
-            setSelectedIngredients(selectedIngredients.filter(id => id !== ingredientId));
+    const handleIngredientToggle = (ingredient: Ingredient) => {
+        const isSelected = selectedIngredients.some(item => item.id === ingredient.id);
+        if (isSelected) {
+            setSelectedIngredients(selectedIngredients.filter(item => item.id !== ingredient.id));
         } else {
-            setSelectedIngredients([...selectedIngredients, ingredientId]);
+            setSelectedIngredients([...selectedIngredients, ingredient]);
         }
     };
 
@@ -87,7 +80,7 @@ const RemoveIngredientsModal: React.FC<RemoveIngredientsDialogProps> = ({
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <Avatar
-                            src={foodImage || undefined} // will be'placeholder image
+                            src={foodImage || undefined}
                             sx={{
                                 width: 60,
                                 height: 60,
@@ -118,17 +111,17 @@ const RemoveIngredientsModal: React.FC<RemoveIngredientsDialogProps> = ({
             <Divider />
 
             <DialogContent sx={{ p: 3 }}>
-               {/* Quantity selector */}
-               <Box sx={{ mb: 2 }}>
-                 <TextField
-                   type="number"
-                   label="Quantity"
-                   value={quantity}
-                   onChange={e => setQuantity(Number(e.target.value))}
-                   inputProps={{ min: 1 }}
-                   fullWidth
-                 />
-               </Box>
+                {/* Quantity selector */}
+                <Box sx={{ mb: 2 }}>
+                    <TextField
+                        type="number"
+                        label="Quantity"
+                        value={quantity}
+                        onChange={e => setQuantity(Number(e.target.value))}
+                        inputProps={{ min: 1 }}
+                        fullWidth
+                    />
+                </Box>
                 {/* Ingredients Selection Header */}
                 <Box
                     sx={{
@@ -165,12 +158,12 @@ const RemoveIngredientsModal: React.FC<RemoveIngredientsDialogProps> = ({
                 {/* Ingredients Grid */}
                 <Grid container spacing={2}>
                     {ingredients && ingredients.map((ingredient) => (
-                        <Grid key={ingredient.id} size={{ xs: 12, sm: 4 }}>
+                        <Grid key={ingredient.id} size={{xs:12,sm:4}} >
                             <FormControlLabel
                                 control={
                                     <Checkbox
-                                        checked={selectedIngredients.includes(ingredient.id)}
-                                        onChange={() => handleIngredientToggle(ingredient.id)}
+                                        checked={selectedIngredients.some(item => item.id === ingredient.id)}
+                                        onChange={() => handleIngredientToggle(ingredient)}
                                         icon={<RadioButtonUncheckedIcon />}
                                         checkedIcon={<CloseIcon sx={{ color: 'secondary.main' }} />}
                                     />

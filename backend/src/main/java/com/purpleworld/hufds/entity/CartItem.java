@@ -3,7 +3,9 @@ package com.purpleworld.hufds.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "CartItem")
@@ -26,8 +28,8 @@ public class CartItem {
     @Column(name = "quantity", nullable = false)
     private int quantity;
 
-    @OneToMany(mappedBy = "cartItem", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RemovableElement> removables = new ArrayList<>();
+    @Column(name = "removable_elements")
+    private String removableElements;
 
 
 }

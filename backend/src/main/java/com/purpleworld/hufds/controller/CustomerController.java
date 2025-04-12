@@ -37,6 +37,13 @@ public class CustomerController {
         return customerService.deleteAddress(addressId,email);
     }
 
+    @PutMapping("/address")
+    public ResponseEntity<?> updateAddress(@RequestParam Long addressId,
+                                           @RequestBody AddressRequest request,
+                                           @AuthenticationPrincipal String email) {
+        return customerService.updateAddress(addressId, request, email);
+    }
+
     @PostMapping("/set-current-address")
     public ResponseEntity<?> setCurrentAddress(@RequestParam Long addressId,
                                                @AuthenticationPrincipal String email) {
@@ -47,6 +54,7 @@ public class CustomerController {
     public ResponseEntity<?> getCurrentAddress(@AuthenticationPrincipal String email) {
         return customerService.getCurrentAddress(email);
     }
+
 
     @GetMapping("/nearest-restaurants")
     public ResponseEntity<?> getNearestRestaurants(@AuthenticationPrincipal String email) {

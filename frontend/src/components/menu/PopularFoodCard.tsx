@@ -1,9 +1,9 @@
 import { Box, Paper, Stack, Typography, Button } from "@mui/material";
 import LocationOn from "@mui/icons-material/LocationOn";
 import RemoveIngredientsModal from "../cart/RemoveIngredientsModal";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { addToCart, getIngredients } from "../../utils/api";
-import { Restaurant } from "../../types";
+import { Ingredient, Restaurant, RemovableElementDTO } from "../../types";
 
 interface Food {
     id: number;
@@ -14,16 +14,12 @@ interface Food {
     description: string;
 }
 
-interface Ingredient {
-    id: string;
-    name: string;
-}
-
 const PopularFoodCard: React.FC<{ food: Food }> = ({ food }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [ingredients, setIngredients] = useState<Ingredient[]>([]);
     const [quantity, setQuantity] = useState<number>(1);
-    const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
+    const [selectedIngredients, setSelectedIngredients] = useState<Ingredient[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
 
     const fetchIngredients = async (menuItemId: number) => {
         try {
@@ -37,31 +33,50 @@ const PopularFoodCard: React.FC<{ food: Food }> = ({ food }) => {
     };
 
     const handleOpenModal = async () => {
-        // 3) fetch first...
-        await fetchIngredients(food.id);
-        // 4) ...then open
-        console.log("[PopularFoodCard] opening modal");
-        setIsModalOpen(true);
+        setIsLoading(true);
+        try {
+            // Fetch ingredients first
+            await fetchIngredients(food.id);
+            // Then open modal
+            console.log("[PopularFoodCard] opening modal");
+            setIsModalOpen(true);
+        } catch (error) {
+            console.error("[PopularFoodCard] Error opening modal:", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     // Handler for adding to cart
     const handleAddToCart = async () => {
-        const csv = selectedIngredients.join(',');
-
+        setIsLoading(true);
         try {
+            // Convert selected ingredients to the expected DTO format
+            const removableElements: RemovableElementDTO[] = selectedIngredients.map(ingredient => ({
+                id: ingredient.id,
+                name: ingredient.name
+            }));
+
+            console.log("[PopularFoodCard] Adding to cart with removable elements:", removableElements);
+
             const res = await addToCart({
                 menuItemId: food.id,
                 quantity,
-                removableElements: csv,
+                removableElements: removableElements // Now sending array of objects
             });
 
             console.log("Added to cart:", res);
             setIsModalOpen(false);
+
+            // Reset state after successful add
+            setSelectedIngredients([]);
+            setQuantity(1);
         } catch (err) {
             console.error("Failed to add to cart", err);
+        } finally {
+            setIsLoading(false);
         }
     };
-
 
     return (
         <>
@@ -102,8 +117,13 @@ const PopularFoodCard: React.FC<{ food: Food }> = ({ food }) => {
                         {food.price}
                     </Typography>
 
-                    <Button fullWidth variant="contained" onClick={handleOpenModal}>
-                        Add to Cart
+                    <Button
+                        fullWidth
+                        variant="contained"
+                        onClick={handleOpenModal}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? 'Loading...' : 'Add to Cart'}
                     </Button>
                 </Stack>
             </Paper>

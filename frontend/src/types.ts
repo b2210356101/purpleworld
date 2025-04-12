@@ -55,14 +55,8 @@ export interface MenuItem {
 }
 
 export interface Ingredient {
-    id: string;
+    id: number;
     name: string;
-}
-
-export interface AddToCartRequest {
-    menuItemId: number;
-    quantity: number;
-    removableElements: string;
 }
 
 export interface AddToCartResponse {
@@ -103,4 +97,16 @@ export interface ViewCartResponse {
     cartTotal: number;
     groupCount: number;
     groups: CartGroupResponse[];
+}
+
+export interface RemovableElementDTO {
+    id: number;
+    name: string;
+}
+
+
+export interface AddToCartRequest {
+    menuItemId: number;
+    quantity: number;
+    removableElements: RemovableElementDTO[]; // Now expects an array of objects with id and name
 }

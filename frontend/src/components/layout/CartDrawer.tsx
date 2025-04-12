@@ -184,7 +184,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
               <RestaurantItems
                 restaurant={{
                   id: group.restaurantId,
-                  name: group.restaurantName,
+                  restaurantName: group.restaurantName,
                   items: group.items.map((item) => ({
                     id: item.itemId,
                     name: item.itemName,

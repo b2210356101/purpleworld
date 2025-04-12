@@ -15,4 +15,5 @@ import java.util.List;
 public class AddToCartRequest {
     private Long menuItemId;
     private int quantity;
-    private List<RemovableElementDTO> removableElements;}
+    private List<RemovableElementDTO> removableElements;
+}

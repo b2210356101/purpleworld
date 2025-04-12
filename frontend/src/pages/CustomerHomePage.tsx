@@ -100,9 +100,9 @@ const CustomerHomePage = () => {
                 const list = await getNearestRestaurants();
                 setNearbyRestaurants(
                     list.map(r => ({
-                        id: r.restaurantId,
+                        id: r.id,
                         restaurantName: r.restaurantName,
-                        profileImg: r.img,
+                        profileImg: r.profileImg,
                         rating: r.rating,
                         reviews: r.reviews,
                     })) as unknown as Restaurant[]

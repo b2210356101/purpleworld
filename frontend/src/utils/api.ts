@@ -6,8 +6,7 @@ import {
     AddToCartResponse,
     CurrentAddress,
     Ingredient,
-    MenuItem,
-    NearestRestaurant
+    MenuItem, Restaurant
 } from '../types';
 
 const API_URL = '/api';
@@ -204,8 +203,8 @@ export const getCurrentAddress = async (): Promise<CurrentAddress | null> => {
 };
 
 
-export async function getNearestRestaurants(): Promise<NearestRestaurant[]> {
-    const { data } = await api.get<NearestRestaurant[]>('/customer/nearest-restaurants');
+export async function getNearestRestaurants(): Promise<Restaurant[]> {
+    const { data } = await api.get<Restaurant[]>('/customer/nearest-restaurants');
     return data;
 }
 
@@ -219,16 +218,15 @@ export async function getIngredients(menuItemId: number): Promise<Ingredient[]> 
     return data;
 }
 
-export async function addToCart(req: AddToCartRequest): Promise<AddToCartResponse> {
-    const token = localStorage.getItem('token');
+export async function addToCart(request: AddToCartRequest): Promise<AddToCartResponse> {
 
     const { data } = await api.post<AddToCartResponse>(
         '/customer/cart/add',
-        req,
+        request,
         {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
         }
     );

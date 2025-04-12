@@ -148,6 +148,86 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional
+    public ResponseEntity<?> deleteAddress(Long addressId, String email) {
+        try {
+            if (email == null || email.isBlank()) {
+                return ResponseEntity.status(401).body("Unauthorized: Invalid or missing token");
+            }
+
+            Customer customer = customerRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+            Address address = addressRepository.findById(addressId)
+                    .orElseThrow(() -> new RuntimeException("Address not found"));
+
+            if (!address.getCustomer().getId().equals(customer.getId())) {
+                return ResponseEntity.status(403).body("Forbidden: You can only delete your own addresses");
+            }
+
+            if (Objects.equals(customer.getCurrentAddressId(), addressId)) {
+                customer.setCurrentAddressId(null);
+                customerRepository.save(customer);
+            }
+
+            addressRepository.delete(address);
+            return ResponseEntity.ok("Address deleted successfully");
+
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(400).body("Error: " + ex.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Something went wrong: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<?> updateAddress(Long addressId, AddressRequest request, String email) {
+        try {
+            if (email == null || email.isBlank()) {
+                return ResponseEntity.status(401).body("Unauthorized: Invalid or missing token");
+            }
+
+            Customer customer = customerRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+            Address address = addressRepository.findById(addressId)
+                    .orElseThrow(() -> new RuntimeException("Address not found"));
+
+            if (!address.getCustomer().getId().equals(customer.getId())) {
+                return ResponseEntity.status(403).body("Forbidden: You can only update your own address");
+            }
+
+            Address updatedFromGoogle = googleMapsService.getAddressFromCoordinates(
+                    request.getLatitude(), request.getLongitude());
+
+            address.setLatitude(request.getLatitude());
+            address.setLongitude(request.getLongitude());
+            address.setName(request.getName());
+            address.setFullAddress(request.getFullAddress());
+            address.setBuildingNumber(request.getBuildingNumber());
+            address.setApartmentNumber(request.getApartmentNumber());
+            address.setFloor(request.getFloor());
+            address.setPhoneNumber(request.getPhoneNumber());
+            address.setDeliveryNote(request.getDeliveryNote());
+
+            address.setCity(updatedFromGoogle.getCity());
+            address.setDistrict(updatedFromGoogle.getDistrict());
+            address.setNeighborhood(updatedFromGoogle.getNeighborhood());
+            address.setStreet(updatedFromGoogle.getStreet());
+
+            addressRepository.save(address);
+
+            return ResponseEntity.ok("Address updated successfully");
+
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(400).body("Error: " + ex.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Something went wrong: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
     public ResponseEntity<?> getNearestRestaurants(String email) {
         Customer customer = customerRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
@@ -291,10 +371,6 @@ public class CustomerServiceImpl implements CustomerService {
         return ResponseEntity.ok(removableElementResponses);
     }
 
-    @Override
-    public ResponseEntity<?> deleteAddress(Long addressId, String email) {
-        return null;
-    }
 
 
 

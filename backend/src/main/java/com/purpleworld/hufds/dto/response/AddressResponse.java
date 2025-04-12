@@ -19,6 +19,8 @@ public class AddressResponse {
     private String phoneNumber;
     private String deliveryNote;
     private Long addressId;
+    private Double latitude;
+    private Double longitude;
 
     public AddressResponse(Address address) {
         this.name = address.getName();
@@ -33,5 +35,7 @@ public class AddressResponse {
         this.phoneNumber = address.getPhoneNumber();
         this.deliveryNote = address.getDeliveryNote();
         this.addressId = address.getId();
+        this.latitude = address.getLatitude();
+        this.longitude = address.getLongitude();
     }
 }
