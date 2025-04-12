@@ -1,5 +1,5 @@
 import { Box, Typography, Button, Avatar, Paper, Grid, Stack, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Radio, RadioGroup, Alert, MenuItem } from '@mui/material';
-import { ArrowForward, CircleRounded, Add } from '@mui/icons-material';
+import { ArrowForward, CircleRounded, Add, LocationOn } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import RestaurantCard from '../components/restaurant/RestaurantCart';
 import PopularFoodCard from '../components/menu/PopularFoodCard';
@@ -94,45 +94,53 @@ const CustomerHomePage = () => {
 
     const [nearbyRestaurants, setNearbyRestaurants] = useState<Restaurant[]>([]);
 
+    // Only fetch restaurants when an address is selected
     useEffect(() => {
-        (async () => {
-            try {
-                const list = await getNearestRestaurants();
-                setNearbyRestaurants(
-                    list.map(r => ({
-                        id: r.restaurantId,
-                        restaurantName: r.restaurantName,
-                        profileImg: r.img,
-                        rating: r.rating,
-                        reviews: r.reviews,
-                    })) as unknown as Restaurant[]
-                );
-            } catch (err) {
-                console.error('could not load nearby restaurants', err);
-            }
-        })();
-    }, []);
+        if (selectedAddress) {
+            (async () => {
+                try {
+                    const list = await getNearestRestaurants();
+                    setNearbyRestaurants(
+                        list.map(r => ({
+                            id: r.restaurantId,
+                            restaurantName: r.restaurantName,
+                            distanceInKm: r.distanceInKm,
+                            profileImg: r.img,
+                            rating: r.rating,
+                            reviews: r.reviews,
+                        })) as unknown as Restaurant[]
+                    );
+                } catch (err) {
+                    console.error('could not load nearby restaurants', err);
+                }
+            })();
+        }
+    }, [selectedAddress]);
 
     const [popularMenuItems, setPopularMenuItems] = useState<PopularFood[]>([]);
+
+    // Only fetch popular menu items when an address is selected
     useEffect(() => {
-        (async () => {
-            try {
-                const items = await getPopularMenuItems();
-                setPopularMenuItems(
-                    items.map(mi => ({
-                        id: mi.id,
-                        name: mi.name,
-                        image: mi.img,
-                        restaurant: mi.restaurant,
-                        price: `${mi.price}₺`,
-                        description: mi.description
-                    }))
-                );
-            } catch (err) {
-                console.error('Failed to load popular menu items', err);
-            }
-        })();
-    }, []);
+        if (selectedAddress) {
+            (async () => {
+                try {
+                    const items = await getPopularMenuItems();
+                    setPopularMenuItems(
+                        items.map(mi => ({
+                            id: mi.id,
+                            name: mi.name,
+                            image: mi.img,
+                            restaurant: mi.restaurant,
+                            price: `${mi.price}₺`,
+                            description: mi.description
+                        }))
+                    );
+                } catch (err) {
+                    console.error('Failed to load popular menu items', err);
+                }
+            })();
+        }
+    }, [selectedAddress]);
 
     const handleDialogOpen = () => {
         setIsAddressDialogOpen(true);
@@ -168,6 +176,35 @@ const CustomerHomePage = () => {
         try {
             await setCurrentAddress(selectedAddress);
 
+            // Refetch nearby restaurants and popular menu items
+            try {
+                const list = await getNearestRestaurants();
+                setNearbyRestaurants(
+                    list.map(r => ({
+                        id: r.restaurantId,
+                        restaurantName: r.restaurantName,
+                        distanceInKm: r.distanceInKm,
+                        profileImg: r.img,
+                        rating: r.rating,
+                        reviews: r.reviews,
+                    })) as unknown as Restaurant[]
+                );
+
+                const items = await getPopularMenuItems();
+                setPopularMenuItems(
+                    items.map(mi => ({
+                        id: mi.id,
+                        name: mi.name,
+                        image: mi.img,
+                        restaurant: mi.restaurant,
+                        price: `${mi.price}₺`,
+                        description: mi.description
+                    }))
+                );
+            } catch (err) {
+                console.error('Failed to refresh data after address change:', err);
+            }
+
             handleDialogClose();
         } catch (error) {
             setError('Failed to set current address. Please try again.');
@@ -189,8 +226,6 @@ const CustomerHomePage = () => {
         items: 2,
         distance: "1.2 km"
     };
-
-
 
     // Order status steps
     const orderSteps = [
@@ -377,53 +412,78 @@ const CustomerHomePage = () => {
                 <FoodCategories />
             </Box>
 
-            {/* Featured Restaurants */}
-            <Box sx={{ py: 6 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                    <Typography variant="h5" fontWeight="bold">
-                        Nearest Restaurants
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Typography
-                            variant="body2"
-                            component={Link}
-                            to="/restaurants"
-                            sx={{
-                                color: 'primary.main',
-                                textDecoration: 'none',
-                                display: 'flex',
-                                alignItems: 'center'
-                            }}
-                        >
-                            View All
-                            <ArrowForward sx={{ fontSize: 16, ml: 1 }} />
-                        </Typography>
+            {/* Conditional rendering for restaurant and food sections */}
+            {selectedAddress ? (
+                <>
+                    {/* Featured Restaurants */}
+                    <Box sx={{ py: 6 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                            <Typography variant="h5" fontWeight="bold">
+                                Nearest Restaurants
+                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Typography
+                                    variant="body2"
+                                    component={Link}
+                                    to="/restaurants"
+                                    sx={{
+                                        color: 'primary.main',
+                                        textDecoration: 'none',
+                                        display: 'flex',
+                                        alignItems: 'center'
+                                    }}
+                                >
+                                    View All
+                                    <ArrowForward sx={{ fontSize: 16, ml: 1 }} />
+                                </Typography>
+                            </Box>
+                        </Box>
+
+                        <Grid container spacing={3}>
+                            {nearbyRestaurants.map((restaurant) => (
+                                <Grid size={{ xs: 12, sm: 6, md: 3 }} key={restaurant.id}>
+                                    <RestaurantCard restaurant={restaurant} />
+                                </Grid>
+                            ))}
+                        </Grid>
                     </Box>
+
+                    {/* Popular Foods */}
+                    <Box sx={{ py: 6 }}>
+                        <Typography variant="h5" fontWeight="bold" sx={{ mb: 3 }}>
+                            Popular Foods
+                        </Typography>
+
+                        <Grid container spacing={2}>
+                            {popularMenuItems.map((food) => (
+                                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }} key={food.id}>
+                                    <PopularFoodCard food={food} />
+                                </Grid>
+                            ))}
+                        </Grid>
+                    </Box>
+                </>
+            ) : (
+                // Message prompting user to select an address when none is selected
+                <Box sx={{ py: 6, textAlign: 'center' }}>
+                    <Paper elevation={3} sx={{ p: 5, borderRadius: 4, maxWidth: 600, mx: 'auto' }}>
+                        <Typography variant="h5" color="primary" gutterBottom>
+                            Please Select an Address
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+                            To view restaurants and foods near you, please select a delivery address.
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            onClick={handleDialogOpen}
+                            startIcon={<LocationOn />}
+                            size="large"
+                        >
+                            Select Address
+                        </Button>
+                    </Paper>
                 </Box>
-
-                <Grid container spacing={3}>
-                    {nearbyRestaurants.map((restaurant) => (
-                        <Grid size={{ xs: 12, sm: 6, md: 3 }} key={restaurant.id}>
-                            <RestaurantCard restaurant={restaurant} />
-                        </Grid>
-                    ))}
-                </Grid>
-            </Box>
-
-            {/* Popular Foods */}
-            <Box sx={{ py: 6 }}>
-                <Typography variant="h5" fontWeight="bold" sx={{ mb: 3 }}>
-                    Popular Foods
-                </Typography>
-
-                <Grid container spacing={2}>
-                    {popularMenuItems.map((food) => (
-                        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }} key={food.id}>
-                            <PopularFoodCard food={food} />
-                        </Grid>
-                    ))}
-                </Grid>
-            </Box>
+            )}
 
             {/* Address Selection Dialog */}
             <Dialog open={isAddressDialogOpen} onClose={handleDialogClose} fullWidth maxWidth="md">
@@ -510,4 +570,4 @@ const CustomerHomePage = () => {
     );
 };
 
-export default CustomerHomePage;
+export default CustomerHomePage;    

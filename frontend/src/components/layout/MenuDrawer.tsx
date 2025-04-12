@@ -129,7 +129,7 @@ const MenuDrawer = ({ onClose, onLogout }: MenuDrawerProps) => {
                         border: '2px solid white'
                     }}
                 >
-                    {userInfo?.username?.charAt(0) || 'U'}
+                    {userInfo?.username?.charAt(0) || undefined}
                 </Avatar>
 
                 {!isLoggedIn ? (
