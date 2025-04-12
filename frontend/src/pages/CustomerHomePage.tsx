@@ -1,5 +1,5 @@
-import { Box, Typography, Button, Avatar, Paper, Grid, Stack, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Radio, RadioGroup, Alert, MenuItem } from '@mui/material';
-import { ArrowForward, CircleRounded, Add, LocationOn } from '@mui/icons-material';
+import { Box, Typography, Button, Avatar, Paper, Grid, Stack, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Radio, RadioGroup, Alert, MenuItem, IconButton } from '@mui/material';
+import { ArrowForward, CircleRounded, Add, LocationOn, Edit } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import RestaurantCard from '../components/restaurant/RestaurantCart';
 import PopularFoodCard from '../components/menu/PopularFoodCard';
@@ -11,6 +11,7 @@ import {
     getCurrentAddress,
     getCustomerAddresses,
     saveAddress,
+    updateAddress,
     setCurrentAddress,
     getNearestRestaurants,
     getPopularMenuItems
@@ -44,6 +45,8 @@ const CustomerHomePage = () => {
     const [addresses, setAddresses] = useState<Address[]>([]);
     const [selectedAddress, setSelectedAddress] = useState<number | null>(null);
     const [isNewAddressDialogOpen, setIsNewAddressDialogOpen] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [addressToEdit, setAddressToEdit] = useState<Address | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     const fetchAddresses = async () => {
@@ -64,6 +67,9 @@ const CustomerHomePage = () => {
                     buildingNumber: addr.buildingNumber,
                     floor: addr.floor,
                     apartmentNumber: addr.apartmentNumber,
+                    city: addr.city,
+                    district: addr.district,
+                    street: addr.street || '',
                 }));
             }
 
@@ -83,7 +89,6 @@ const CustomerHomePage = () => {
         } catch (err) {
             console.error('Error fetching addresses:', err);
             setError('Failed to load addresses. Please try again later.');
-
         }
     };
 
@@ -102,10 +107,10 @@ const CustomerHomePage = () => {
                     const list = await getNearestRestaurants();
                     setNearbyRestaurants(
                         list.map(r => ({
-                            id: r.restaurantId,
+                            id: r.id,
                             restaurantName: r.restaurantName,
                             distanceInKm: r.distanceInKm,
-                            profileImg: r.img,
+                            profileImg: r.profileImg,
                             rating: r.rating,
                             reviews: r.reviews,
                         })) as unknown as Restaurant[]
@@ -151,6 +156,14 @@ const CustomerHomePage = () => {
     };
 
     const handleAddNewAddress = () => {
+        setIsEditMode(false);
+        setAddressToEdit(null);
+        setIsNewAddressDialogOpen(true);
+    };
+
+    const handleEditAddress = (address: Address) => {
+        setIsEditMode(true);
+        setAddressToEdit(address);
         setIsNewAddressDialogOpen(true);
     };
 
@@ -164,8 +177,29 @@ const CustomerHomePage = () => {
             setIsNewAddressDialogOpen(false);
         } catch (error) {
             // Handle errors
+            console.error('Error saving address:', error);
         }
-    }
+    };
+
+    const handleUpdateAddress = async (address: Address, location: { lat: number, lng: number } | null) => {
+        try {
+            // Call the API to update the address
+            await updateAddress(address, location);
+
+            // Reload all addresses
+            await fetchAddresses();
+
+            // Close the modal
+            setIsNewAddressDialogOpen(false);
+            
+            // Reset edit state
+            setIsEditMode(false);
+            setAddressToEdit(null);
+        } catch (error) {
+            console.error('Error updating address:', error);
+            // Handle error - you might want to show an error message to the user
+        }
+    };
 
     const handleSaveAddresses = async () => {
         if (!selectedAddress) {
@@ -181,10 +215,10 @@ const CustomerHomePage = () => {
                 const list = await getNearestRestaurants();
                 setNearbyRestaurants(
                     list.map(r => ({
-                        id: r.restaurantId,
+                        id: r.id,
                         restaurantName: r.restaurantName,
                         distanceInKm: r.distanceInKm,
-                        profileImg: r.img,
+                        profileImg: r.profileImg,
                         rating: r.rating,
                         reviews: r.reviews,
                     })) as unknown as Restaurant[]
@@ -505,18 +539,27 @@ const CustomerHomePage = () => {
                                 onChange={handleAddressChange}
                             >
                                 {addresses.map((address, index) => (
-                                    <FormControlLabel
-                                        key={index}
-                                        value={address.addressId}
-                                        control={<Radio />}
-                                        label={
-                                            <Box sx={{ mb: 1 }}>
-                                                <Typography variant="body1">{address.name}</Typography>
-                                                <Typography variant="body2" color="text.secondary">{address.fullAddress}</Typography>
-                                                <Typography variant="body2" color="text.secondary">{address.phoneNumber}</Typography>
-                                            </Box>
-                                        }
-                                    />
+                                    <Box key={index} sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
+                                        <FormControlLabel
+                                            value={address.addressId}
+                                            control={<Radio />}
+                                            label={
+                                                <Box sx={{ mb: 1 }}>
+                                                    <Typography variant="body1">{address.name}</Typography>
+                                                    <Typography variant="body2" color="text.secondary">{address.fullAddress}</Typography>
+                                                    <Typography variant="body2" color="text.secondary">{address.phoneNumber}</Typography>
+                                                </Box>
+                                            }
+                                            sx={{ flexGrow: 1 }}
+                                        />
+                                        <IconButton
+                                            color="primary"
+                                            onClick={() => handleEditAddress(address)}
+                                            sx={{ mt: 1 }}
+                                        >
+                                            <Edit />
+                                        </IconButton>
+                                    </Box>
                                 ))}
                             </RadioGroup>
                         </Box>
@@ -563,11 +606,17 @@ const CustomerHomePage = () => {
 
             <AddAddressModal
                 open={isNewAddressDialogOpen}
-                onClose={() => setIsNewAddressDialogOpen(false)}
-                onSave={handleSaveNewAddress}
+                onClose={() => {
+                    setIsNewAddressDialogOpen(false);
+                    setIsEditMode(false);
+                    setAddressToEdit(null);
+                }}
+                onSave={isEditMode ? handleUpdateAddress : handleSaveNewAddress}
+                isEditMode={isEditMode}
+                addressData={addressToEdit}
             />
         </Box>
     );
 };
 
-export default CustomerHomePage;    
+export default CustomerHomePage;

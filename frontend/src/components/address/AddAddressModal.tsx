@@ -20,10 +20,18 @@ declare global {
 interface AddAddressModalProps {
     open: boolean;
     onClose: () => void;
-    onSave: (address: Omit<Address, 'id'>, location: { lat: number; lng: number } | null) => void;
+    onSave: (address: Address, location: { lat: number, lng: number } | null) => void;
+    isEditMode?: boolean;
+    addressData?: Address | null;
 }
 
-const AddAddressModal = ({ open, onClose, onSave }: AddAddressModalProps) => {
+const AddAddressModal: React.FC<AddAddressModalProps> = ({ 
+    open, 
+    onClose, 
+    onSave,
+    isEditMode = false,
+    addressData = null
+}) => {
     const mapRef = useRef<HTMLDivElement>(null);
     const [mapObject, setMapObject] = useState<google.maps.Map | null>(null);
     const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -32,7 +40,7 @@ const AddAddressModal = ({ open, onClose, onSave }: AddAddressModalProps) => {
     const [locating, setLocating] = useState(false);
     // Flag to track if the modal has been opened at least once
 
-    const [address, setAddress] = useState<Omit<Address, 'id'>>({
+    const [address, setAddress] = useState<Address>({
         name: '',
         fullAddress: '',
         phoneNumber: '',
@@ -41,6 +49,23 @@ const AddAddressModal = ({ open, onClose, onSave }: AddAddressModalProps) => {
         buildingNumber: '',
         deliveryNote: '',
     });
+
+    // Fill form with address data when in edit mode
+    useEffect(() => {
+        if (isEditMode && addressData) {
+            setAddress({
+                ...addressData
+            });
+
+            // If we have location data for this address
+            if (addressData.latitude && addressData.longitude) {
+                setLocation({
+                    lat: addressData.latitude,
+                    lng: addressData.longitude
+                });
+            }
+        }
+    }, [isEditMode, addressData, open]);
 
     const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -163,300 +188,300 @@ const AddAddressModal = ({ open, onClose, onSave }: AddAddressModalProps) => {
         const loadGoogleMapsScript = () => {
             const script = document.createElement("script");
             script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&callback=initMap`;
-    script.async = true;
-script.defer = true;
-document.head.appendChild(script);
-};
+            script.async = true;
+            script.defer = true;
+            document.head.appendChild(script);
+        };
 
-loadGoogleMapsScript();
+        loadGoogleMapsScript();
 
-return () => {
-    if (window.initMap) {
-        window.initMap = () => { };
-    }
-};
-}, []);
+        return () => {
+            if (window.initMap) {
+                window.initMap = () => { };
+            }
+        };
+    }, []);
 
-// Initialize map when modal is open
-useEffect(() => {
-    if (open) {
-        // Reset map object when reopening to force reinitialization
-        if (!mapObject) {
-            // Use a small delay to ensure the modal is fully rendered
-            const timer = setTimeout(() => {
-                initializeMap();
-            }, 300);
+    // Initialize map when modal is open
+    useEffect(() => {
+        if (open) {
+            // Reset map object when reopening to force reinitialization
+            if (!mapObject) {
+                // Use a small delay to ensure the modal is fully rendered
+                const timer = setTimeout(() => {
+                    initializeMap();
+                }, 300);
 
-            return () => clearTimeout(timer);
+                return () => clearTimeout(timer);
+            } else {
+                // If map already exists, just trigger resize
+                const timer = setTimeout(() => {
+                    window.google?.maps.event.trigger(mapObject, 'resize');
+
+                    // Center the map again after resize
+                    if (location) {
+                        mapObject.setCenter(location);
+                    } else {
+                        mapObject.setCenter({ lat: 39.92077, lng: 32.85411 });
+                    }
+                }, 100);
+
+                return () => clearTimeout(timer);
+            }
         } else {
-            // If map already exists, just trigger resize
-            const timer = setTimeout(() => {
-                window.google?.maps.event.trigger(mapObject, 'resize');
+            // Clear map object when modal closes to ensure it reinitializes on next open
+            setMapObject(null);
+        }
+    }, [open, mapObject, location]);
 
-                // Center the map again after resize
-                if (location) {
-                    mapObject.setCenter(location);
-                } else {
-                    mapObject.setCenter({ lat: 39.92077, lng: 32.85411 });
+    const initializeMap = () => {
+        if (!mapRef.current || !window.google || mapObject) return;
+
+        try {
+            const map = new window.google.maps.Map(mapRef.current, {
+                center: { lat: 39.92077, lng: 32.85411 },
+                zoom: 6,
+            });
+            setMapObject(map);
+
+            let marker: google.maps.Marker | null = null;
+
+            map.addListener("click", (event: google.maps.MapMouseEvent) => {
+                if (event.latLng) {
+                    if (marker) marker.setMap(null);
+                    marker = new window.google.maps.Marker({
+                        position: event.latLng,
+                        map: map,
+                    });
+                    setLocation({ lat: event.latLng.lat(), lng: event.latLng.lng() });
+                    setLocationError(false);
+                    setLocationErrorMsg("");
                 }
-            }, 100);
-
-            return () => clearTimeout(timer);
+            });
+        } catch (error) {
+            console.error("Error initializing Google Maps:", error);
         }
-    } else {
-        // Clear map object when modal closes to ensure it reinitializes on next open
-        setMapObject(null);
-    }
-}, [open, mapObject, location]);
+    };
 
-const initializeMap = () => {
-    if (!mapRef.current || !window.google || mapObject) return;
-
-    try {
-        const map = new window.google.maps.Map(mapRef.current, {
-            center: { lat: 39.92077, lng: 32.85411 },
-            zoom: 6,
-        });
-        setMapObject(map);
-
-        let marker: google.maps.Marker | null = null;
-
-        map.addListener("click", (event: google.maps.MapMouseEvent) => {
-            if (event.latLng) {
-                if (marker) marker.setMap(null);
-                marker = new window.google.maps.Marker({
-                    position: event.latLng,
-                    map: map,
-                });
-                setLocation({ lat: event.latLng.lat(), lng: event.latLng.lng() });
-                setLocationError(false);
-                setLocationErrorMsg("");
-            }
-        });
-    } catch (error) {
-        console.error("Error initializing Google Maps:", error);
-    }
-};
-
-const getCurrentLocation = () => {
-    if (!navigator.geolocation) {
-        alert("Geolocation is not supported by your browser");
-        return;
-    }
-
-    setLocating(true);
-
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            const userLocation = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude
-            };
-
-            if (mapObject) {
-                mapObject.setCenter(userLocation);
-                mapObject.setZoom(17);
-            }
-
-            setLocating(false);
-        },
-        (error) => {
-            console.error("Error getting location:", error);
-            alert("Could not get your location. Please check your location permissions.");
-            setLocating(false);
-        },
-        {
-            enableHighAccuracy: true,
-            timeout: 10000
+    const getCurrentLocation = () => {
+        if (!navigator.geolocation) {
+            alert("Geolocation is not supported by your browser");
+            return;
         }
-    );
-};
-// ai-gen end
 
-return (
-    <Dialog
-        open={open}
-        onClose={handleClose}
-        fullWidth
-        maxWidth="md"
-        slotProps={{
-            transition: {
-                onEntered: () => {
-                    if (mapObject) {
-                        window.google?.maps.event.trigger(mapObject, 'resize');
+        setLocating(true);
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+
+                if (mapObject) {
+                    mapObject.setCenter(userLocation);
+                    mapObject.setZoom(17);
+                }
+
+                setLocating(false);
+            },
+            (error) => {
+                console.error("Error getting location:", error);
+                alert("Could not get your location. Please check your location permissions.");
+                setLocating(false);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000
+            }
+        );
+    };
+    // ai-gen end
+
+    return (
+        <Dialog
+            open={open}
+            onClose={handleClose}
+            fullWidth
+            maxWidth="md"
+            slotProps={{
+                transition: {
+                    onEntered: () => {
+                        if (mapObject) {
+                            window.google?.maps.event.trigger(mapObject, 'resize');
+                        }
                     }
                 }
-            }
-        }}
-    >
-        <DialogTitle>Add New Address</DialogTitle>
-        <DialogContent>
-            <Box sx={{ mb: 3, mt: 1 }}>
-                <TextField
-                    fullWidth
-                    name="name"
-                    label="Address Title"
-                    placeholder="e.g. My Home, Office"
-                    variant="outlined"
-                    value={address.name}
-                    onChange={handleChange}
-                    required
-                    margin="normal"
-                    error={!!errors.name}
-                    helperText={errors.name}
-                />
+            }}
+        >
+            <DialogTitle>Add New Address</DialogTitle>
+            <DialogContent>
+                <Box sx={{ mb: 3, mt: 1 }}>
+                    <TextField
+                        fullWidth
+                        name="name"
+                        label="Address Title"
+                        placeholder="e.g. My Home, Office"
+                        variant="outlined"
+                        value={address.name}
+                        onChange={handleChange}
+                        required
+                        margin="normal"
+                        error={!!errors.name}
+                        helperText={errors.name}
+                    />
 
-                {/* Google Maps Container */}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="subtitle1" gutterBottom>
-                        Select Location on Map
-                    </Typography>
-
-                    <Button
-                        startIcon={locating ? <CircularProgress size={16} color="inherit" /> : <MyLocation />}
-                        onClick={getCurrentLocation}
-                        size="small"
-                        disabled={locating}
-                    >
-                        {locating ? 'Getting location...' : 'Get My location'}
-                    </Button>
-                </Box>
-
-                <Box
-                    ref={mapRef}
-                    sx={{
-                        height: 400,
-                        width: "100%",
-                        borderRadius: 2,
-                        position: "relative",
-                        overflow: "hidden",
-                    }}
-                />
-
-                {location ? (
-                    <Typography fontSize={14} color="text.secondary">
-                        Selected Location: {location.lat.toFixed(5)},{" "}
-                        {location.lng.toFixed(5)}
-                    </Typography>
-                ) : (
-                    locationError && (
-                        <Typography fontSize={14} color="error">
-                            {locationErrorMsg}
+                    {/* Google Maps Container */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="subtitle1" gutterBottom>
+                            Select Location on Map
                         </Typography>
-                    )
-                )}
 
-                <TextField
-                    fullWidth
-                    name="fullAddress"
-                    label="Full Address"
-                    placeholder="Street name, neighborhood, etc."
-                    variant="outlined"
-                    multiline
-                    rows={2}
-                    value={address.fullAddress}
-                    onChange={handleChange}
-                    required
-                    margin="normal"
-                    error={!!errors.fullAddress}
-                    helperText={errors.fullAddress}
-                />
+                        <Button
+                            startIcon={locating ? <CircularProgress size={16} color="inherit" /> : <MyLocation />}
+                            onClick={getCurrentLocation}
+                            size="small"
+                            disabled={locating}
+                        >
+                            {locating ? 'Getting location...' : 'Get My location'}
+                        </Button>
+                    </Box>
 
-                <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
-                    Building Details
-                </Typography>
+                    <Box
+                        ref={mapRef}
+                        sx={{
+                            height: 400,
+                            width: "100%",
+                            borderRadius: 2,
+                            position: "relative",
+                            overflow: "hidden",
+                        }}
+                    />
 
-                <Grid container spacing={2}>
-                    <Grid size={{ xs: 12, sm: 4 }}>
-                        <TextField
-                            fullWidth
-                            name="apartmentNumber"
-                            label="Apartment/Building Name"
-                            placeholder="e.g. Asistan Evleri"
-                            variant="outlined"
-                            value={address.apartmentNumber}
-                            onChange={handleChange}
-                            required
-                            margin="normal"
-                            error={!!errors.apartmentNumber}
-                            helperText={errors.apartmentNumber}
-                        />
+                    {location ? (
+                        <Typography fontSize={14} color="text.secondary">
+                            Selected Location: {location.lat.toFixed(5)},{" "}
+                            {location.lng.toFixed(5)}
+                        </Typography>
+                    ) : (
+                        locationError && (
+                            <Typography fontSize={14} color="error">
+                                {locationErrorMsg}
+                            </Typography>
+                        )
+                    )}
+
+                    <TextField
+                        fullWidth
+                        name="fullAddress"
+                        label="Full Address"
+                        placeholder="Street name, neighborhood, etc."
+                        variant="outlined"
+                        multiline
+                        rows={2}
+                        value={address.fullAddress}
+                        onChange={handleChange}
+                        required
+                        margin="normal"
+                        error={!!errors.fullAddress}
+                        helperText={errors.fullAddress}
+                    />
+
+                    <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
+                        Building Details
+                    </Typography>
+
+                    <Grid container spacing={2}>
+                        <Grid size={{ xs: 12, sm: 4 }}>
+                            <TextField
+                                fullWidth
+                                name="apartmentNumber"
+                                label="Apartment/Building Name"
+                                placeholder="e.g. Asistan Evleri"
+                                variant="outlined"
+                                value={address.apartmentNumber}
+                                onChange={handleChange}
+                                required
+                                margin="normal"
+                                error={!!errors.apartmentNumber}
+                                helperText={errors.apartmentNumber}
+                            />
+                        </Grid>
+                        <Grid size={{ xs: 12, sm: 4 }}>
+                            <TextField
+                                fullWidth
+                                name="floor"
+                                label="Floor"
+                                placeholder="e.g. 3"
+                                variant="outlined"
+                                value={address.floor}
+                                onChange={handleChange}
+                                required
+                                margin="normal"
+                                error={!!errors.floor}
+                                helperText={errors.floor}
+                            />
+                        </Grid>
+                        <Grid size={{ xs: 12, sm: 4 }}>
+                            <TextField
+                                fullWidth
+                                name="buildingNumber"
+                                label="Door Number"
+                                placeholder="e.g. 7"
+                                variant="outlined"
+                                value={address.buildingNumber}
+                                onChange={handleChange}
+                                required
+                                margin="normal"
+                                error={!!errors.buildingNumber}
+                                helperText={errors.buildingNumber}
+                            />
+                        </Grid>
                     </Grid>
-                    <Grid size={{ xs: 12, sm: 4 }}>
-                        <TextField
-                            fullWidth
-                            name="floor"
-                            label="Floor"
-                            placeholder="e.g. 3"
-                            variant="outlined"
-                            value={address.floor}
-                            onChange={handleChange}
-                            required
-                            margin="normal"
-                            error={!!errors.floor}
-                            helperText={errors.floor}
-                        />
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 4 }}>
-                        <TextField
-                            fullWidth
-                            name="buildingNumber"
-                            label="Door Number"
-                            placeholder="e.g. 7"
-                            variant="outlined"
-                            value={address.buildingNumber}
-                            onChange={handleChange}
-                            required
-                            margin="normal"
-                            error={!!errors.buildingNumber}
-                            helperText={errors.buildingNumber}
-                        />
-                    </Grid>
-                </Grid>
 
-                <TextField
-                    fullWidth
-                    name="phoneNumber"
-                    label="Phone Number"
-                    placeholder="e.g. 5551234567"
-                    variant="outlined"
-                    value={address.phoneNumber}
-                    onChange={handleChange}
-                    required
-                    margin="normal"
-                    error={!!errors.phoneNumber}
-                    helperText={errors.phoneNumber || "Format: 5XXXXXXXXX"}
-                />
+                    <TextField
+                        fullWidth
+                        name="phoneNumber"
+                        label="Phone Number"
+                        placeholder="e.g. 5551234567"
+                        variant="outlined"
+                        value={address.phoneNumber}
+                        onChange={handleChange}
+                        required
+                        margin="normal"
+                        error={!!errors.phoneNumber}
+                        helperText={errors.phoneNumber || "Format: 5XXXXXXXXX"}
+                    />
 
-                <TextField
-                    fullWidth
-                    name="deliveryNote"
-                    label="Delivery Instructions (optional)"
-                    placeholder="Special instructions for courier"
-                    variant="outlined"
-                    multiline
-                    rows={2}
-                    value={address.deliveryNote}
-                    onChange={handleChange}
-                    margin="normal"
-                />
-            </Box>
-        </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-            <Button onClick={handleClose} color="secondary">
-                Cancel
-            </Button>
-            <Button
-                onClick={handleSubmit}
-                disabled={!address.name || !address.fullAddress}
-                variant="contained"
-                color="primary"
-            >
-                Add Address
-            </Button>
-        </DialogActions>
-    </Dialog>
-);
+                    <TextField
+                        fullWidth
+                        name="deliveryNote"
+                        label="Delivery Instructions (optional)"
+                        placeholder="Special instructions for courier"
+                        variant="outlined"
+                        multiline
+                        rows={2}
+                        value={address.deliveryNote}
+                        onChange={handleChange}
+                        margin="normal"
+                    />
+                </Box>
+            </DialogContent>
+            <DialogActions sx={{ p: 3 }}>
+                <Button onClick={handleClose} color="secondary">
+                    Cancel
+                </Button>
+                <Button
+                    onClick={handleSubmit}
+                    disabled={!address.name || !address.fullAddress}
+                    variant="contained"
+                    color="primary"
+                >
+                    Add Address
+                </Button>
+            </DialogActions>
+        </Dialog>
+    );
 };
 
 export default AddAddressModal;

@@ -1,4 +1,4 @@
-import axios, {AxiosError} from 'axios';
+import axios, { AxiosError } from 'axios';
 import { getToken, logout } from './auth';
 import {
     Address,
@@ -7,7 +7,7 @@ import {
     CurrentAddress,
     Ingredient,
     MenuItem,
-    NearestRestaurant
+    Restaurant,
 } from '../types';
 
 const API_URL = '/api';
@@ -177,6 +177,48 @@ export const setCurrentAddress = async (addressId: number) => {
     }
 };
 
+export const updateAddress = async (
+    address: Address,
+    location: { lat: number, lng: number } | null
+): Promise<void> => {
+    try {
+        const token = localStorage.getItem('token');
+
+        // Prepare request body
+        const requestBody = {
+            addressId: address.addressId,
+            name: address.name,
+            city: address.city,
+            district: address.district,
+            neighborhood: address.neighborhood,
+            street: address.street || null,
+            buildingNumber: address.buildingNumber,
+            floor: address.floor,
+            apartmentNumber: address.apartmentNumber,
+            phoneNumber: address.phoneNumber,
+            location: location || null
+        };
+
+        // Make the API call
+        const response = await fetch(`${API_URL}/customer/addresses/${address.addressId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to update address');
+        }
+    } catch (error) {
+        console.error('Error updating address:', error);
+        throw error;
+    }
+};
+
 interface BackendErrorResponse {
     error: string;
     message: string;
@@ -204,8 +246,8 @@ export const getCurrentAddress = async (): Promise<CurrentAddress | null> => {
 };
 
 
-export async function getNearestRestaurants(): Promise<NearestRestaurant[]> {
-    const { data } = await api.get<NearestRestaurant[]>('/customer/nearest-restaurants');
+export async function getNearestRestaurants(): Promise<Restaurant[]> {
+    const { data } = await api.get<Restaurant[]>('/customer/nearest-restaurants');
     return data;
 }
 
