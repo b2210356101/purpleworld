@@ -18,10 +18,9 @@ public class CartController {
     private final CartService cartService;
 
     @PostMapping("/add")
-    public ResponseEntity<AddToCartResponse> addToCart(@RequestBody AddToCartRequest request,
+    public ResponseEntity<?> addToCart(@RequestBody AddToCartRequest request,
                                                        @AuthenticationPrincipal String email) {
-        AddToCartResponse response = cartService.addToCart(request, email);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok("Item added successfully.");
     }
 
     @GetMapping("/view")

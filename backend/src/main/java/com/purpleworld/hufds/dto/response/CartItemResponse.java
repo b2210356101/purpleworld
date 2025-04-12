@@ -1,5 +1,7 @@
 package com.purpleworld.hufds.dto.response;
 
+import com.purpleworld.hufds.dto.RemovableElementDTO;
+import com.purpleworld.hufds.entity.RemovableElement;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,6 +17,6 @@ public class CartItemResponse {
     private int itemPrice;
     private int quantity;
     private String itemImg;
-    private List<String> removable;
+    private List<RemovableElement> removable;
 
 }

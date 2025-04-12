@@ -14,5 +14,5 @@ public class MenuItemCustomerResponse {
     private Integer price;
     private String description;
     private String img;
-    private Restaurant restaurant;
+    private RestaurantResponse restaurant;
 }

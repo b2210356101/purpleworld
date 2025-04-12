@@ -1,7 +1,9 @@
 package com.purpleworld.hufds.service.impl;
 
+import com.purpleworld.hufds.dto.RemovableElementDTO;
 import com.purpleworld.hufds.dto.request.AddToCartRequest;
 import com.purpleworld.hufds.dto.request.CartGroupNoteRequest;
+import com.purpleworld.hufds.dto.request.RemovableElementRequest;
 import com.purpleworld.hufds.dto.request.UpdateCartItemRequest;
 import com.purpleworld.hufds.dto.response.*;
 import com.purpleworld.hufds.entity.*;
@@ -29,7 +31,7 @@ public class CartServiceImpl implements CartService {
 
         @Override
         @Transactional
-        public AddToCartResponse addToCart(AddToCartRequest request, String email) {
+        public void addToCart(AddToCartRequest request, String email) {
                 // 1) Load customer, menuItem, restaurant
                 Customer customer = customerRepository.findByEmail(email)
                                 .orElseThrow(() -> new RuntimeException("Customer not found"));
@@ -73,38 +75,19 @@ public class CartServiceImpl implements CartService {
                 // 5) Update quantity
                 cartItem.setQuantity(cartItem.getQuantity() + request.getQuantity());
 
-                cartItem.setRemovableElements(request.getRemovableElements());
 
                 // 7) Persist the CartItem
                 cartItemRepository.save(cartItem);
 
-                // 8) Recompute totals
-                int totalQuantity = cart.getCartGroups().stream()
-                                .flatMap(g -> g.getCartItems().stream())
-                                .mapToInt(CartItem::getQuantity)
-                                .sum();
 
-                int cartTotal = cart.getCartGroups().stream()
-                                .flatMap(g -> g.getCartItems().stream())
-                                .mapToInt(ci -> ci.getMenuItem().getPrice() * ci.getQuantity())
-                                .sum();
+                List<RemovableElement> removableElements = new ArrayList<>();
 
-                int groupCount = cart.getCartGroups().size();
+                for (RemovableElementDTO removableElement : request.getRemovableElements()) {
+                        Optional<RemovableElement> removableElement1 = removableElementRepository.findById(removableElement.getId());
+                        removableElements.add(removableElement1.get());
+                }
+                cartItem.setRemovables(removableElements);
 
-                List<String> removed = cartItem.getRemovables();
-
-                return new AddToCartResponse(
-                                "Item added to cart successfully",
-                                cart.getId(),
-                                cartGroup.getId(),
-                                cartItem.getId(),
-                                totalQuantity,
-                                menuItem.getName(),
-                                menuItem.getPrice(),
-                                cartTotal,
-                                restaurant.getRestaurantName(),
-                                groupCount,
-                                removed);
         }
 
         @Override

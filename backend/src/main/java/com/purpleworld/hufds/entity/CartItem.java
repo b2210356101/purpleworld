@@ -26,17 +26,9 @@ public class CartItem {
     @Column(name = "quantity", nullable = false)
     private int quantity;
 
-    @Column(name = "removable_elements")
-    private String removableElements;
+    @OneToMany(mappedBy = "cartItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RemovableElement> removables = new ArrayList<>();
 
 
-    public List<String> getRemovables() {
-        if (this.removableElements == null || this.removableElements.isBlank()) {
-            return List.of();
-        }
-        return Arrays.stream(this.removableElements.split(","))
-                .map(String::trim)
-                .toList();
-    }
 }
 

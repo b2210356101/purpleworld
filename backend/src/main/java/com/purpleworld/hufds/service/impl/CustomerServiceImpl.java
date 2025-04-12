@@ -168,7 +168,7 @@ public class CustomerServiceImpl implements CustomerService {
 
         List<Restaurant> restaurants = restaurantRepository.findAll();
 
-        List<NearestRestaurant> nearestRestaurants = new ArrayList<>();
+        List<RestaurantResponse> nearestRestaurants = new ArrayList<>();
         for (Restaurant restaurant : restaurants) {
 
             Optional<Address> restaurantAddress = addressRepository.findByRestaurant(restaurant);
@@ -178,18 +178,19 @@ public class CustomerServiceImpl implements CustomerService {
 
             double distance = calculateHaversine(customerLat, customerLng, restLat, restLng);
             if (distance <= 15.0) {
-                NearestRestaurant nearestRestaurant = new NearestRestaurant();
-                nearestRestaurant.setRestaurantId(restaurant.getId());
+                RestaurantResponse nearestRestaurant = new RestaurantResponse();
+                nearestRestaurant.setId(restaurant.getId());
                 nearestRestaurant.setRestaurantName(restaurant.getRestaurantName());
-                nearestRestaurant.setImg(restaurant.getProfileImg());
+                nearestRestaurant.setProfileImg(restaurant.getProfileImg());
                 nearestRestaurant.setRating(4.5);
                 nearestRestaurant.setReviews(345);
                 nearestRestaurant.setDistanceInKm(distance);
                 nearestRestaurants.add(nearestRestaurant);
+                nearestRestaurant.setMenu(null);
             }
         }
 
-        nearestRestaurants.sort(Comparator.comparingDouble(NearestRestaurant::getDistanceInKm));
+        nearestRestaurants.sort(Comparator.comparingDouble(RestaurantResponse::getDistanceInKm));
 
         return ResponseEntity.ok(nearestRestaurants);
     }
@@ -243,13 +244,7 @@ public class CustomerServiceImpl implements CustomerService {
                     for (Category category : restaurantMenu.getCategories()){
                         List<MenuItem> categoryFoods = category.getMenuItems();
                         for (MenuItem menuItem : categoryFoods){
-                            MenuItemCustomerResponse itemResponse = new MenuItemCustomerResponse();
-                            itemResponse.setId(menuItem.getId());
-                            itemResponse.setName(menuItem.getName());
-                            itemResponse.setPrice(menuItem.getPrice());
-                            itemResponse.setDescription(menuItem.getDescription());
-                            itemResponse.setImg(menuItem.getImg());
-                            itemResponse.setRestaurant(restaurant);
+                            MenuItemCustomerResponse itemResponse = getMenuItemCustomerResponse(restaurant, menuItem);
                             result.add(itemResponse);
 
                         }
@@ -267,6 +262,17 @@ public class CustomerServiceImpl implements CustomerService {
             response.put("error", "Something went wrong: " + e.getMessage());
             return ResponseEntity.status(500).body(response);
         }
+    }
+
+    private static MenuItemCustomerResponse getMenuItemCustomerResponse(Restaurant restaurant, MenuItem menuItem) {
+        MenuItemCustomerResponse itemResponse = new MenuItemCustomerResponse();
+        itemResponse.setId(menuItem.getId());
+        itemResponse.setName(menuItem.getName());
+        itemResponse.setPrice(menuItem.getPrice());
+        itemResponse.setDescription(menuItem.getDescription());
+        itemResponse.setImg(menuItem.getImg());
+        itemResponse.setRestaurant(new RestaurantResponse(restaurant.getId(),restaurant.getRestaurantName(),null,0,0,0,null));
+        return itemResponse;
     }
 
     @Override
