@@ -204,7 +204,6 @@ export const getCurrentAddress = async (): Promise<CurrentAddress | null> => {
 };
 
 
-
 export async function getNearestRestaurants(): Promise<NearestRestaurant[]> {
     const { data } = await api.get<NearestRestaurant[]>('/customer/nearest-restaurants');
     return data;
@@ -236,4 +235,34 @@ export async function addToCart(req: AddToCartRequest): Promise<AddToCartRespons
 
     return data;
 }
+
+// View cart
+export const viewCart = async () => {
+    const response = await api.get("/customer/cart/view");
+    return response.data;
+};
+
+// Update item quantity
+
+export const updateItemQuantity = async (itemId: number, operation: string) => {
+    console.log(
+        `API call: updateItemQuantity - itemId: ${itemId}, operation: ${operation}`
+    );
+
+    const response = await api.put("/customer/cart/item", {
+        operation,
+        itemId,
+    });
+
+    console.log("API response:", response.data);
+    return response.data;
+};
+
+// Remove item
+export const removeItemFromCart = async (itemId: number) => {
+    const token = getToken();
+    console.log(`Token available: ${!!token}`);
+    const response = await api.delete(`/customer/cart/item/${itemId}`);
+    return response.data;
+};
 export default api;

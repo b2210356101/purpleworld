@@ -51,6 +51,9 @@ interface MenuResponse {
     categories: Category[];
 }
 
+// Default image URL to use when no image is provided
+const DEFAULT_IMAGE_URL = "https://www.kindpng.com/picc/m/255-2551804_hot-dish-dish-icon-png-transparent-png.png";
+
 // Component for rendering menu items grouped by category
 const MenuManagementPage: React.FC = () => {
     const [categories, setCategories] = useState<Category[]>([]);
@@ -124,6 +127,12 @@ const MenuManagementPage: React.FC = () => {
         });
     };
 
+    // Helper function to get image URL
+    const getImageUrl = (imgUrl: string) => {
+        // If img is empty or undefined, return default image
+        return imgUrl && imgUrl.trim() !== '' ? imgUrl : DEFAULT_IMAGE_URL;
+    };
+
     // Handler for adding or updating an item
     const handleSaveItem = async () => {
         if (newItem.name.trim() !== '' && newItem.price > 0 && selectedCategoryId !== null) {
@@ -132,7 +141,7 @@ const MenuManagementPage: React.FC = () => {
                     name: newItem.name,
                     price: newItem.price,
                     description: newItem.description || '',
-                    img: newItem.img || '',
+                    img: newItem.img ? newItem.img : DEFAULT_IMAGE_URL, // Use default image if none provided
                     removableElements: (newItem.removableElements || []).map(el => el.name).join(',')
                 };
 
@@ -219,7 +228,7 @@ const MenuManagementPage: React.FC = () => {
             name: '',
             price: 0,
             description: '',
-            img: '', // Made optional
+            img: '', // Default empty, will use DEFAULT_IMAGE_URL when saving
             removableElements: [] as RemovableElementResponse[]
         });
         setOpenItemDialog(true);
@@ -249,7 +258,7 @@ const MenuManagementPage: React.FC = () => {
             name: '',
             price: 0,
             description: '',
-            img: 'https://picsum.photos/101/105',
+            img: '',
             removableElements: []
         });
         setNewElement('');
@@ -375,7 +384,7 @@ const MenuManagementPage: React.FC = () => {
                                             m: 2,
                                             borderRadius: 2
                                         }}
-                                        image={item.img}
+                                        image={getImageUrl(item.img)}
                                         alt={item.name}
                                     />
                                     <CardContent sx={{ width: { xs: '100%', sm: 'auto' } }}>
@@ -546,12 +555,12 @@ const MenuManagementPage: React.FC = () => {
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    backgroundImage: newItem.img ? `url(${newItem.img})` : 'none',
+                                    backgroundImage: `url(${newItem.img ? newItem.img : DEFAULT_IMAGE_URL})`,
                                     backgroundSize: 'cover',
                                     backgroundPosition: 'center',
                                 }}
                             >
-                                {!newItem.img && <AddIcon />}
+                                {!newItem.img && !isEditing && <AddIcon />}
                             </Box>
                             <Button variant="outlined" component="label" sx={{ height: 40 }}>
                                 Upload Image

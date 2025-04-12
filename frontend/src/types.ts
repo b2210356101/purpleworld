@@ -72,3 +72,25 @@ export interface AddToCartResponse {
     groupCount: number;
     removedElements: string[];   // ["ing1","ing2"]
 }
+
+export interface CartItemResponse {
+    itemId: number;
+    itemName: string;
+    itemPrice: number;
+    quantity: number;
+    itemImg: string;
+  }
+
+export interface CartGroupResponse {
+restaurantId: number;
+restaurantName: string;
+items: CartItemResponse[];
+}
+
+export interface ViewCartResponse {
+cartId: number;
+totalQuantity: number;
+cartTotal: number;
+groupCount: number;
+groups: CartGroupResponse[];
+}
