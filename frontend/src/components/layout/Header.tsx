@@ -109,7 +109,7 @@ const Header = ({ userType }: { userType: UserType }) => {
                     sx={{ display: 'flex' }}
                 >
                     <img
-                        src="/assets/logo.png"                        
+                        src="https://i.hizliresim.com/qkl6ett.png"                        
                         alt="Logo"
                         height="30"
                         style={{
