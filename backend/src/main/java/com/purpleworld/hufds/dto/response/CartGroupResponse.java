@@ -12,5 +12,7 @@ import java.util.List;
 public class CartGroupResponse {
     private Long restaurantId;
     private String restaurantName;
+    private String note;
+    private Long groupId;
     private List<CartItemResponse> items;
 }

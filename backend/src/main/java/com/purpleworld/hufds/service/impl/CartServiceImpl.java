@@ -1,6 +1,7 @@
 package com.purpleworld.hufds.service.impl;
 
 import com.purpleworld.hufds.dto.request.AddToCartRequest;
+import com.purpleworld.hufds.dto.request.CartGroupNoteRequest;
 import com.purpleworld.hufds.dto.request.UpdateCartItemRequest;
 import com.purpleworld.hufds.dto.response.*;
 import com.purpleworld.hufds.entity.*;
@@ -119,7 +120,11 @@ public class CartServiceImpl implements CartService {
                 int totalQuantity = 0;
                 int cartTotal = 0;
 
-                for (CartGroup group : cart.getCartGroups()) {
+                List<CartGroup> sortedGroups = new ArrayList<>(cart.getCartGroups());
+                sortedGroups.sort((a, b) -> a.getRestaurant().getRestaurantName()
+                        .compareToIgnoreCase(b.getRestaurant().getRestaurantName())); // sort by name
+
+                for (CartGroup group : sortedGroups) {
                         Restaurant restaurant = group.getRestaurant();
 
                         List<CartItem> sortedItems = new ArrayList<>(group.getCartItems());
@@ -148,6 +153,8 @@ public class CartServiceImpl implements CartService {
                         groupResponses.add(new CartGroupResponse(
                                         restaurant.getId(),
                                         restaurant.getRestaurantName(),
+                                        group.getNote(),
+                                        group.getId(),
                                         itemResponses));
                 }
 
@@ -228,6 +235,26 @@ public class CartServiceImpl implements CartService {
                 } else {
                         throw new RuntimeException("Invalid operation: must be '+' or '-'.");
                 }
+        }
+
+        @Override
+        @Transactional
+        public void updateCartGroupNote(CartGroupNoteRequest request,Long groupId, String email) {
+
+                Customer customer = customerRepository.findByEmail(email)
+                        .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+                CartGroup cartGroup = cartGroupRepository.findById(groupId)
+                        .orElseThrow(() -> new RuntimeException("Cart Group not found"));
+
+                if (!cartGroup.getCart().getCustomer().getId().equals(customer.getId())) {
+                        throw new RuntimeException("Unauthorized: This cart does not belong to your cart.");
+                }
+
+                cartGroup.setNote(request.getNote());
+                cartGroupRepository.save(cartGroup);
+
+
         }
 
 }

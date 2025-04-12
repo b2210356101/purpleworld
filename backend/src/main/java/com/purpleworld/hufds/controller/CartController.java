@@ -1,6 +1,7 @@
 package com.purpleworld.hufds.controller;
 
 import com.purpleworld.hufds.dto.request.AddToCartRequest;
+import com.purpleworld.hufds.dto.request.CartGroupNoteRequest;
 import com.purpleworld.hufds.dto.request.UpdateCartItemRequest;
 import com.purpleworld.hufds.dto.response.AddToCartResponse;
 import com.purpleworld.hufds.service.CartService;
@@ -42,4 +43,17 @@ public class CartController {
         cartService.updateCartItemQuantity(request, email);
         return ResponseEntity.ok("Quantity updated successfully");
     }
+
+    @PutMapping("/group/{groupId}/note")
+    public ResponseEntity<String> updateGroupNote(@RequestBody CartGroupNoteRequest request,
+                                                  @PathVariable Long groupId,
+                                                  @AuthenticationPrincipal String email) {
+        cartService.updateCartGroupNote(request,groupId,email);
+        return ResponseEntity.ok("Note updated successfully");
+
+    }
+
+
+
+
 }

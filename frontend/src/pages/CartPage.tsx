@@ -17,7 +17,7 @@ import RemoveIcon from "@mui/icons-material/Remove";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import { useNavigate } from "react-router-dom";
-import { viewCart, updateItemQuantity, removeItemFromCart } from "../utils/api";
+import {viewCart, updateItemQuantity, removeItemFromCart, updateCartGroupNote} from "../utils/api";
 import {
   ViewCartResponse,
   CartGroupResponse,
@@ -40,7 +40,8 @@ const ShoppingCartPage: React.FC = () => {
   const [discount, setDiscount] = useState<string>("0₺");
   const [totalAmount, setTotalAmount] = useState<string>("0₺");
   const [itemTotal, setItemTotal] = useState<string>("0₺");
-
+  const [editingGroupId, setEditingGroupId] = useState<number | null>(null);
+  const [editedNote, setEditedNote] = useState<string>("");
   useEffect(() => {
     fetchCart();
   }, []);
@@ -85,6 +86,26 @@ const ShoppingCartPage: React.FC = () => {
 
   const handleProceedToCheckout = () => {
     navigate("/checkout");
+  };
+
+  const handleNoteChange = async (groupId: number, note: string) => {
+    try {
+      await updateCartGroupNote(groupId, note);
+      setCartItems(prev =>
+          prev.map(group =>
+              group.groupId === groupId ? { ...group, note } : group
+          )
+      );
+    } catch (err) {
+      console.error("Failed to update note", err);
+    }
+  };
+
+  const handleSaveNote = async () => {
+    if (editingGroupId !== null) {
+      await handleNoteChange(editingGroupId, editedNote);
+      setEditingGroupId(null);
+    }
   };
 
   if (loading) {
@@ -276,6 +297,43 @@ const ShoppingCartPage: React.FC = () => {
                       </Box>
                     </Box>
                   ))}
+                  <Box px={3} pb={2}>
+                    {editingGroupId === group.groupId ? (
+                        <Box display="flex" flexDirection="column" gap={1}>
+                          <TextField
+                              fullWidth
+                              size="small"
+                              label="Note for restaurant"
+                              value={editedNote}
+                              onChange={(e) => setEditedNote(e.target.value)}
+                              placeholder="E.g. No onions, extra spicy..."
+                          />
+                          <Box display="flex" justifyContent="flex-end" gap={1}>
+                            <Button variant="outlined" size="small" onClick={() => setEditingGroupId(null)}>
+                              Cancel
+                            </Button>
+                            <Button variant="contained" size="small" onClick={handleSaveNote}>
+                              Save
+                            </Button>
+                          </Box>
+                        </Box>
+                    ) : (
+                        <Box display="flex" alignItems="center" justifyContent="space-between">
+                          <Typography fontSize={14} color="text.secondary">
+                            {group.note || "No note added"}
+                          </Typography>
+                          <IconButton
+                              size="small"
+                              onClick={() => {
+                                setEditedNote(group.note || "");
+                                setEditingGroupId(group.groupId);
+                              }}
+                          >
+                            <EditNoteIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                    )}
+                  </Box>
                 </Box>
               </Paper>
             ))}

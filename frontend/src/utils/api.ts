@@ -242,6 +242,19 @@ export const viewCart = async () => {
     return response.data;
 };
 
+
+// Update cart group note
+export const updateCartGroupNote = async (groupId: number, note: string) => {
+    console.log(`API call: updateCartGroupNote - groupId: ${groupId}, note: ${note}`);
+
+    const response = await api.put(`/customer/cart/group/${groupId}/note`, {
+        note,
+    });
+
+    console.log("API response:", response.data);
+    return response.data;
+};
+
 // Update item quantity
 
 export const updateItemQuantity = async (itemId: number, operation: string) => {
@@ -265,4 +278,8 @@ export const removeItemFromCart = async (itemId: number) => {
     const response = await api.delete(`/customer/cart/item/${itemId}`);
     return response.data;
 };
+
+
+
+
 export default api;

@@ -24,6 +24,9 @@ public class CartGroup {
     @JoinColumn(name = "restaurant_id")
     private Restaurant restaurant;
 
+    @Column(name = "note")
+    private String note;
+
     @OneToMany(mappedBy = "cartGroup", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> cartItems = new ArrayList<>();
 }

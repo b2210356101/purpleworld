@@ -86,6 +86,8 @@ export interface CartItemResponse {
 export interface CartGroupResponse {
 restaurantId: number;
 restaurantName: string;
+groupId: number;
+note?: string;
 items: CartItemResponse[];
 }
 
