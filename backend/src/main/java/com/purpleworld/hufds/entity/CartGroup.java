@@ -2,6 +2,8 @@ package com.purpleworld.hufds.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -23,5 +25,5 @@ public class CartGroup {
     private Restaurant restaurant;
 
     @OneToMany(mappedBy = "cartGroup", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CartItem> cartItems;
+    private List<CartItem> cartItems = new ArrayList<>();
 }

@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/customer")
 @RequiredArgsConstructor
@@ -50,5 +52,15 @@ public class CustomerController {
     public ResponseEntity<?> getNearestRestaurants(@AuthenticationPrincipal String email) {
         return customerService.getNearestRestaurants(email);
 
+    }
+
+    @GetMapping("/popular-foods")
+    public ResponseEntity<?> getPopularFoods(@AuthenticationPrincipal String email) {
+        return customerService.getNearestRestaurantFood(email);
+    }
+
+    @GetMapping("/{menuItemId}/ingredients")
+    public ResponseEntity<?> getIngredients(@AuthenticationPrincipal String email, @PathVariable Long menuItemId) {
+        return customerService.getIngredients(menuItemId,email);
     }
 }

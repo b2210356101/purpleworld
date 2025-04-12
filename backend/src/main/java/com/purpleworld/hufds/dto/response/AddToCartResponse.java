@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -18,5 +20,8 @@ public class AddToCartResponse {
     private int cartTotal;
     private String restaurantName;
     private int groupCount;
+
+    private List<String> removedElements;
+
 }
 

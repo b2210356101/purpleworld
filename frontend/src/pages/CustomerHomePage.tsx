@@ -1,4 +1,4 @@
-import { Box, Typography, Button, Avatar, Paper, Grid, Stack, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Radio, RadioGroup, TextField, Alert } from '@mui/material';
+import { Box, Typography, Button, Avatar, Paper, Grid, Stack, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Radio, RadioGroup, TextField, Alert,MenuItem as ApiMenuItem } from '@mui/material';
 import { ArrowForward, CircleRounded, Add } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import RestaurantCard from '../components/restaurant/RestaurantCart';
@@ -6,14 +6,22 @@ import PopularFoodCard from '../components/menu/PopularFoodCard';
 import FoodCategories from '../components/menu/FoodCategories';
 import { useState, useEffect } from 'react';
 import AddAddressModal from '../components/address/AddAddressModal';
-import { Address } from '../types';
-import { getCurrentAddress, getCustomerAddresses, saveAddress, setCurrentAddress } from '../utils/api';
+import {Address, MenuItem} from '../types';
+import {
+    getCurrentAddress,
+    getCustomerAddresses,
+    saveAddress,
+    setCurrentAddress,
+    getNearestRestaurants,
+    getPopularMenuItems
+} from '../utils/api';
 
 interface PopularFood {
     id: number;
     name: string;
     image: string;
     restaurant: string;
+    restaurantId: number;
     price: string;
     description: string;
 }
@@ -94,6 +102,49 @@ const CustomerHomePage = () => {
         fetchAddresses();
     }, []);
 
+    const [nearbyRestaurants, setNearbyRestaurants] = useState<Restaurant[]>([]);
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const list = await getNearestRestaurants();
+                setNearbyRestaurants(
+                    list.map(r => ({
+                        id: r.restaurantId,
+                        name: r.restaurantName,
+                        image: r.img,
+                        rating: r.rating,
+                        reviews: r.reviews
+                    }))
+                );
+            } catch (err) {
+                console.error('could not load nearby restaurants', err);
+            }
+        })();
+    }, []);
+
+    const [popularMenuItems, setPopularMenuItems] = useState<PopularFood[]>([]);
+    useEffect(() => {
+        (async () => {
+            try {
+                const items = await getPopularMenuItems();
+                setPopularMenuItems(
+                    items.map(mi => ({
+                        id: mi.id,
+                        name: mi.name,
+                        image: mi.img,
+                        restaurant: mi.restaurantName,
+                        restaurantId: mi.restaurantId,
+                        price: `${mi.price}₺`,
+                        description: mi.description
+                    }))
+                );
+            } catch (err) {
+                console.error('Failed to load popular menu items', err);
+            }
+        })();
+    }, []);
+
     const handleDialogOpen = () => {
         setIsAddressDialogOpen(true);
     };
@@ -150,85 +201,7 @@ const CustomerHomePage = () => {
         distance: "1.2 km"
     };
 
-    // Popular foods
-    const popularFoods: PopularFood[] = [
-        {
-            id: 1,
-            name: 'Cheese Burger',
-            image: 'https://picsum.photos/300/230',
-            restaurant: 'Burger Arena',
-            price: '320₺',
-            description: 'blabla'
-        },
-        {
-            id: 2,
-            name: 'Toffe\'s Cake',
-            image: 'https://picsum.photos/300/220',
-            restaurant: 'Top Sticks',
-            price: '280₺',
-            description: 'blabla'
-        },
-        {
-            id: 3,
-            name: 'Dancake',
-            image: 'https://picsum.photos/320/200',
-            restaurant: 'Donuts hut',
-            price: '235₺',
-            description: 'blabla'
-        },
-        {
-            id: 4,
-            name: 'Crispy Sandwich',
-            image: 'https://picsum.photos/310/200',
-            restaurant: 'Fastfood Dine',
-            price: '320₺',
-            description: 'blabla'
-        },
-        {
-            id: 5,
-            name: 'Thai Soup',
-            image: 'https://picsum.photos/300/210',
-            restaurant: 'Foody man',
-            price: '620₺',
-            description: 'blabla'
-        }
-    ];
 
-    // Featured restaurants
-    const featuredRestaurants: Restaurant[] = [
-        {
-            id: 1,
-            name: "Foodworld",
-            image: "https://picsum.photos/400/250",
-            logo: "https://picsum.photos/61/60",
-            rating: 4.8,
-            reviews: 325,
-        },
-        {
-            id: 2,
-            name: "McBurgers",
-            image: "https://picsum.photos/400/250",
-            logo: "https://picsum.photos/60/50",
-            rating: 4.9,
-            reviews: 1360,
-        },
-        {
-            id: 3,
-            name: "Donuts hut",
-            image: "https://picsum.photos/400/250",
-            logo: "https://picsum.photos/50/60",
-            rating: 4.7,
-            reviews: 534,
-        },
-        {
-            id: 4,
-            name: "Domitoz Pizza",
-            image: "https://picsum.photos/400/250",
-            logo: "https://picsum.photos/40/60",
-            rating: 4.6,
-            reviews: 635,
-        }
-    ];
 
     // Order status steps
     const orderSteps = [
@@ -419,7 +392,7 @@ const CustomerHomePage = () => {
             <Box sx={{ py: 6 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                     <Typography variant="h5" fontWeight="bold">
-                        Featured Restaurants
+                        Nearest Restaurants
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <Typography
@@ -440,7 +413,7 @@ const CustomerHomePage = () => {
                 </Box>
 
                 <Grid container spacing={3}>
-                    {featuredRestaurants.map((restaurant) => (
+                    {nearbyRestaurants.map((restaurant) => (
                         <Grid size={{ xs: 12, sm: 6, md: 3 }} key={restaurant.id}>
                             <RestaurantCard restaurant={restaurant} />
                         </Grid>
@@ -455,7 +428,7 @@ const CustomerHomePage = () => {
                 </Typography>
 
                 <Grid container spacing={2}>
-                    {popularFoods.map((food) => (
+                    {popularMenuItems.map((food) => (
                         <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }} key={food.id}>
                             <PopularFoodCard food={food} />
                         </Grid>

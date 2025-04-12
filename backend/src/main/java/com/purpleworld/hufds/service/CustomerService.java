@@ -12,4 +12,7 @@ public interface CustomerService {
     ResponseEntity<?> getNearestRestaurants(String email);
 
     ResponseEntity<?> deleteAddress(Long addressId, String email);
+
+    ResponseEntity<?> getNearestRestaurantFood(String email);
+    ResponseEntity<?> getIngredients(Long menuItemId, String email);
 }

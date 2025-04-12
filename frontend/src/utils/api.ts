@@ -1,6 +1,14 @@
 import axios, {AxiosError} from 'axios';
 import { getToken, logout } from './auth';
-import { Address, CurrentAddress } from '../types';
+import {
+    Address,
+    AddToCartRequest,
+    AddToCartResponse,
+    CurrentAddress,
+    Ingredient,
+    MenuItem,
+    NearestRestaurant
+} from '../types';
 
 const API_URL = '/api';
 
@@ -195,4 +203,37 @@ export const getCurrentAddress = async (): Promise<CurrentAddress | null> => {
     }
 };
 
+
+
+export async function getNearestRestaurants(): Promise<NearestRestaurant[]> {
+    const { data } = await api.get<NearestRestaurant[]>('/customer/nearest-restaurants');
+    return data;
+}
+
+export async function getPopularMenuItems(): Promise<MenuItem[]> {
+    const { data } = await api.get<MenuItem[]>('/customer/popular-foods');
+    return data;
+}
+
+export async function getIngredients(menuItemId: number): Promise<Ingredient[]> {
+    const { data } = await api.get<Ingredient[]>(`/customer/${menuItemId}/ingredients`);
+    return data;
+}
+
+export async function addToCart(req: AddToCartRequest): Promise<AddToCartResponse> {
+    const token = localStorage.getItem('token');
+
+    const { data } = await api.post<AddToCartResponse>(
+        '/customer/cart/add',
+        req,
+        {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        }
+    );
+
+    return data;
+}
 export default api;

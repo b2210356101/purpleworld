@@ -11,7 +11,8 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
-    Box
+    Box,
+    TextField
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
@@ -34,6 +35,10 @@ interface RemoveIngredientsDialogProps {
     ingredients?: Ingredient[] | undefined;
     restaurant: string;
     foodDescription: string;
+    quantity: number;
+    setQuantity : (q:number) => void;
+    selectedIngredients: string[];
+    setSelectedIngredients: (ids: string[]) => void;
 }
 
 const RemoveIngredientsModal: React.FC<RemoveIngredientsDialogProps> = ({
@@ -44,18 +49,21 @@ const RemoveIngredientsModal: React.FC<RemoveIngredientsDialogProps> = ({
     foodImage,
     ingredients,
     restaurant,
-    foodDescription
+    foodDescription,
+    quantity,
+    setQuantity,
+    selectedIngredients,
+    setSelectedIngredients
 }) => {
     // State to track selected ingredients to remove
-    const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
 
     // Toggle ingredient selection
     const handleIngredientToggle = (ingredientId: string) => {
-        setSelectedIngredients(prev =>
-            prev.includes(ingredientId)
-                ? prev.filter(id => id !== ingredientId)
-                : [...prev, ingredientId]
-        );
+        if (selectedIngredients.includes(ingredientId)) {
+            setSelectedIngredients(selectedIngredients.filter(id => id !== ingredientId));
+        } else {
+            setSelectedIngredients([...selectedIngredients, ingredientId]);
+        }
     };
 
     const handleClose = () => {
@@ -109,6 +117,17 @@ const RemoveIngredientsModal: React.FC<RemoveIngredientsDialogProps> = ({
             <Divider />
 
             <DialogContent sx={{ p: 3 }}>
+               {/* Quantity selector */}
+               <Box sx={{ mb: 2 }}>
+                 <TextField
+                   type="number"
+                   label="Quantity"
+                   value={quantity}
+                   onChange={e => setQuantity(Number(e.target.value))}
+                   inputProps={{ min: 1 }}
+                   fullWidth
+                 />
+               </Box>
                 {/* Ingredients Selection Header */}
                 <Box
                     sx={{

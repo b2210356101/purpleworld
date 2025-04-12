@@ -1,20 +1,17 @@
 package com.purpleworld.hufds.service.impl;
 
 import com.purpleworld.hufds.dto.request.AddressRequest;
-import com.purpleworld.hufds.dto.response.AddressResponse;
-import com.purpleworld.hufds.dto.response.NearestRestaurant;
-import com.purpleworld.hufds.entity.Address;
-import com.purpleworld.hufds.entity.Customer;
-import com.purpleworld.hufds.entity.Restaurant;
-import com.purpleworld.hufds.repository.AddressRepository;
-import com.purpleworld.hufds.repository.CustomerRepository;
-import com.purpleworld.hufds.repository.RestaurantRepository;
+import com.purpleworld.hufds.dto.response.*;
+import com.purpleworld.hufds.entity.*;
+import com.purpleworld.hufds.repository.*;
 import com.purpleworld.hufds.service.CustomerService;
 import com.purpleworld.hufds.service.GoogleMapsService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 
@@ -26,6 +23,9 @@ public class CustomerServiceImpl implements CustomerService {
     private final AddressRepository addressRepository;
     private final GoogleMapsService googleMapsService;
     private final RestaurantRepository restaurantRepository;
+    private final MenuItemRepository menuItemRepository;
+    private final MenuRepository menuRepository;
+    private final RemovableElementRepository removableElementRepository;
 
     @Override
     public ResponseEntity<String> dashboard() {
@@ -181,8 +181,10 @@ public class CustomerServiceImpl implements CustomerService {
                 NearestRestaurant nearestRestaurant = new NearestRestaurant();
                 nearestRestaurant.setRestaurantId(restaurant.getId());
                 nearestRestaurant.setRestaurantName(restaurant.getRestaurantName());
-                nearestRestaurant.setDistanceInKm(distance);
                 nearestRestaurant.setImg(restaurant.getProfileImg());
+                nearestRestaurant.setRating(4.5);
+                nearestRestaurant.setReviews(345);
+                nearestRestaurant.setDistanceInKm(distance);
                 nearestRestaurants.add(nearestRestaurant);
             }
         }
@@ -193,9 +195,102 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    @Transactional
+    public ResponseEntity<?> getNearestRestaurantFood(String email) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            if (email == null || email.isBlank()) {
+                response.put("error", "Unauthorized: Invalid or missing token");
+                return ResponseEntity.status(401).body(response);
+            }
+
+            Customer customer = customerRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+            Long customerCurrentAddressId = customer.getCurrentAddressId();
+            if (customerCurrentAddressId == null) {
+                response.put("error", "No current address set for customer");
+                return ResponseEntity.status(400).body(response);
+            }
+            Address currentAddress = addressRepository.findById(customerCurrentAddressId)
+                    .orElseThrow(() -> new RuntimeException("Current address not found"));
+
+            double customerLat = currentAddress.getLatitude();
+            double customerLng = currentAddress.getLongitude();
+
+            // Get all restaurants from the repository
+            List<Restaurant> restaurants = restaurantRepository.findAll();
+
+            List<MenuItemCustomerResponse> result = new ArrayList<>();
+
+            for (Restaurant restaurant : restaurants) {
+
+                Optional<Address> restaurantAddressOpt = addressRepository.findByRestaurant(restaurant);
+                if (restaurantAddressOpt.isEmpty()) {
+                    continue;
+                }
+                Address restaurantAddress = restaurantAddressOpt.get();
+                double restLat = restaurantAddress.getLatitude();
+                double restLng = restaurantAddress.getLongitude();
+
+                double distance = calculateHaversine(customerLat, customerLng, restLat, restLng);
+                if (distance <= 15.0) { // Only include restaurants within 15 km.
+
+
+                    Optional<Menu> menu = menuRepository.findById(restaurant.getId());
+                    Menu restaurantMenu = menu.get();
+
+                    for (Category category : restaurantMenu.getCategories()){
+                        List<MenuItem> categoryFoods = category.getMenuItems();
+                        for (MenuItem menuItem : categoryFoods){
+                            MenuItemCustomerResponse itemResponse = new MenuItemCustomerResponse();
+                            itemResponse.setId(menuItem.getId());
+                            itemResponse.setName(menuItem.getName());
+                            itemResponse.setPrice(menuItem.getPrice());
+                            itemResponse.setDescription(menuItem.getDescription());
+                            itemResponse.setImg(menuItem.getImg());
+                            itemResponse.setRestaurant(restaurant);
+                            result.add(itemResponse);
+
+                        }
+                    }
+
+
+                }
+            }
+
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException ex) {
+            response.put("error", "Error: " + ex.getMessage());
+            return ResponseEntity.status(400).body(response);
+        } catch (Exception e) {
+            response.put("error", "Something went wrong: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> getIngredients(Long menuItemId, String email) {
+
+        MenuItem item = menuItemRepository.findById(menuItemId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Menu item not found"));
+
+        List<RemovableElementResponse> removableElementResponses = new ArrayList<>();
+
+        for (RemovableElement removableElement : item.getRemovableElements()) {
+            RemovableElementResponse response = new RemovableElementResponse(removableElement.getId(), removableElement.getName());
+            removableElementResponses.add(response);
+        }
+        return ResponseEntity.ok(removableElementResponses);
+    }
+
+    @Override
     public ResponseEntity<?> deleteAddress(Long addressId, String email) {
         return null;
     }
+
+
 
 
     private double calculateHaversine(double lat1, double lon1, double lat2, double lon2) {

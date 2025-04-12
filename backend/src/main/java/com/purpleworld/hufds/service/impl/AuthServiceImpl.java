@@ -30,11 +30,19 @@ public class AuthServiceImpl implements AuthService {
     private final MenuRepository menuRepository;
     private final CartRepository cartRepository;
 
+
+    private boolean checkEmailUniqueness(String email) {
+        return customerRepository.findByEmail(email).isPresent() ||
+                courierRepository.findByEmail(email).isPresent() ||
+                restaurantRepository.findByEmail(email).isPresent() ||
+                adminRepository.findByEmail(email).isPresent();
+    }
     @Override
     public RegisterResponse registerCustomer(CustomerRegisterRequest request) {
 
-        if (customerRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RegistrationException("A customer with this email already exists");
+
+        if(checkEmailUniqueness(request.getEmail())){
+            throw new RegistrationException( "A customer with this email already exists");
         }
 
         Customer customer = new Customer();
@@ -57,8 +65,10 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public RegisterResponse registerCourier(CourierRegisterRequest request) {
-        if (courierRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RegistrationException("A courier with this email already exists");
+
+
+        if(checkEmailUniqueness(request.getEmail())){
+            throw new RegistrationException( "A courier with this email already exists");
         }
 
         if (courierRepository.findBySsn(request.getSsn()).isPresent()) {
@@ -81,8 +91,10 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public RegisterResponse registerRestaurant(RestaurantRegisterRequest request) {
-        if (restaurantRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RegistrationException("A restaurant with this email already exists");
+
+
+        if(checkEmailUniqueness(request.getEmail())){
+            throw new RegistrationException( "A restaurant with this email already exists");
         }
 
         if (restaurantRepository.findByTaxId(request.getTax_Id()).isPresent()) {

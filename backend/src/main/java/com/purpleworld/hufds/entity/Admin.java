@@ -24,7 +24,7 @@ public class Admin {
     @Column(name = "PhoneNumber", nullable = false, length = 10)
     private String phoneNumber;
 
-    @Column(name = "Email", nullable = false, length = 255)
+    @Column(name = "Email", nullable = false, length = 255,unique = true)
     private String email;
 
     @Column(name = "Password", nullable = false, length = 255)

@@ -19,6 +19,7 @@ public class AddressResponse {
     private String phoneNumber;
     private String deliveryNote;
     private Long addressId;
+
     public AddressResponse(Address address) {
         this.name = address.getName();
         this.city = address.getCity();

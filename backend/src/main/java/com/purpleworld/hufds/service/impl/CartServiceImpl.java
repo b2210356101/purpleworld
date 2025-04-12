@@ -2,22 +2,9 @@ package com.purpleworld.hufds.service.impl;
 
 import com.purpleworld.hufds.dto.request.AddToCartRequest;
 import com.purpleworld.hufds.dto.request.UpdateCartItemRequest;
-import com.purpleworld.hufds.dto.response.AddToCartResponse;
-import com.purpleworld.hufds.dto.response.CartGroupResponse;
-import com.purpleworld.hufds.dto.response.CartItemResponse;
-import com.purpleworld.hufds.dto.response.ViewCartResponse;
-import com.purpleworld.hufds.entity.Cart;
-import com.purpleworld.hufds.entity.CartGroup;
-import com.purpleworld.hufds.entity.CartItem;
-import com.purpleworld.hufds.entity.Customer;
-import com.purpleworld.hufds.entity.MenuItem;
-import com.purpleworld.hufds.entity.Restaurant;
-import com.purpleworld.hufds.repository.CartGroupRepository;
-import com.purpleworld.hufds.repository.CartItemRepository;
-import com.purpleworld.hufds.repository.CartRepository;
-import com.purpleworld.hufds.repository.CustomerRepository;
-import com.purpleworld.hufds.repository.MenuItemRepository;
-import com.purpleworld.hufds.repository.RestaurantRepository;
+import com.purpleworld.hufds.dto.response.*;
+import com.purpleworld.hufds.entity.*;
+import com.purpleworld.hufds.repository.*;
 import com.purpleworld.hufds.service.CartService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -37,68 +24,75 @@ public class CartServiceImpl implements CartService {
     private final CartGroupRepository cartGroupRepository;
     private final CartItemRepository cartItemRepository;
     private final RestaurantRepository restaurantRepository;
+    private final RemovableElementRepository removableElementRepository;
 
     @Override
     @Transactional
     public AddToCartResponse addToCart(AddToCartRequest request, String email) {
-
+        // 1) Load customer, menuItem, restaurant
         Customer customer = customerRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
 
         MenuItem menuItem = menuItemRepository.findById(request.getMenuItemId())
                 .orElseThrow(() -> new RuntimeException("MenuItem not found"));
 
-        Restaurant restaurant = restaurantRepository.findById(request.getRestaurantId())
-                .orElseThrow(() -> new RuntimeException("Restaurant not found"));
 
-        Cart cart = cartRepository.findByCustomerId(customer.getId()).orElseGet(() -> {
-            Cart newCart = new Cart();
-            newCart.setCustomer(customer);
-            newCart.setCartGroups(new ArrayList<>());
-            return cartRepository.save(newCart);
-        });
+        Restaurant restaurant = menuItem.getCategory().getMenu().getRestaurant();
 
+        // 2) Get or create the Cart
+        Cart cart = cartRepository.findByCustomerId(customer.getId())
+                .orElseGet(() -> {
+                    Cart newCart = new Cart();
+                    newCart.setCustomer(customer);
+                    return cartRepository.save(newCart);
+                });
+
+        // 3) Get or create the CartGroup for this restaurant
         CartGroup cartGroup = cart.getCartGroups().stream()
-                .filter(cg -> cg.getRestaurant() != null && cg.getRestaurant().equals(restaurant))
+                .filter(cg -> cg.getRestaurant().equals(restaurant))
                 .findFirst()
                 .orElseGet(() -> {
                     CartGroup newGroup = new CartGroup();
                     newGroup.setCart(cart);
                     newGroup.setRestaurant(restaurant);
-                    newGroup.setCartItems(new ArrayList<>());
-                    cart.getCartGroups().add(newGroup);
                     return cartGroupRepository.save(newGroup);
                 });
 
-        Optional<CartItem> existingItemOpt = cartGroup.getCartItems().stream()
-                .filter(ci -> ci.getMenuItem() != null && ci.getMenuItem().equals(menuItem))
+        // 4) Find existing CartItem for this menuItem, or make a new one
+        Optional<CartItem> existing = cartGroup.getCartItems().stream()
+                .filter(ci -> ci.getMenuItem().equals(menuItem))
                 .findFirst();
 
-        CartItem cartItem;
-        if (existingItemOpt.isPresent()) {
-            cartItem = existingItemOpt.get();
-            cartItem.setQuantity(cartItem.getQuantity() + request.getQuantity());
-        } else {
-            cartItem = new CartItem();
-            cartItem.setCartGroup(cartGroup);
-            cartItem.setMenuItem(menuItem);
-            cartItem.setQuantity(request.getQuantity());
-            cartGroup.getCartItems().add(cartItem);
-            cartItemRepository.save(cartItem);
-        }
+        CartItem cartItem = existing.orElseGet(() -> {
+            CartItem ci = new CartItem();
+            ci.setCartGroup(cartGroup);
+            ci.setMenuItem(menuItem);
+            return ci;
+        });
 
+        // 5) Update quantity
+        cartItem.setQuantity(cartItem.getQuantity() + request.getQuantity());
 
+        cartItem.setRemovableElements(request.getRemovableElements());
+
+        // 7) Persist the CartItem
+        cartItemRepository.save(cartItem);
+
+        // 8) Recompute totals
         int totalQuantity = cart.getCartGroups().stream()
-                .flatMap(group -> group.getCartItems().stream())
+                .flatMap(g -> g.getCartItems().stream())
                 .mapToInt(CartItem::getQuantity)
                 .sum();
 
         int cartTotal = cart.getCartGroups().stream()
-                .flatMap(group -> group.getCartItems().stream())
-                .mapToInt(item -> item.getMenuItem().getPrice() * item.getQuantity())
+                .flatMap(g -> g.getCartItems().stream())
+                .mapToInt(ci -> ci.getMenuItem().getPrice() * ci.getQuantity())
                 .sum();
 
         int groupCount = cart.getCartGroups().size();
+
+        List<String> removed = cartItem.getRemovables();
+
 
         return new AddToCartResponse(
                 "Item added to cart successfully",
@@ -110,7 +104,8 @@ public class CartServiceImpl implements CartService {
                 menuItem.getPrice(),
                 cartTotal,
                 restaurant.getRestaurantName(),
-                groupCount
+                groupCount,
+                removed
         );
     }
 
@@ -143,7 +138,8 @@ public class CartServiceImpl implements CartService {
                         menuItem.getName(),
                         price,
                         quantity,
-                        menuItem.getImg()
+                        menuItem.getImg(),
+                        item.getRemovables()
                 ));
             }
             groupResponses.add(new CartGroupResponse(
@@ -187,6 +183,14 @@ public class CartServiceImpl implements CartService {
         CartGroup group = item.getCartGroup();
         group.getCartItems().remove(item);
         cartItemRepository.delete(item);
+
+        if (group.getCartItems().isEmpty()) {
+            cart.getCartGroups().remove(group);
+            cartGroupRepository.delete(group);
+            System.out.println("Cart group deleted.");
+        }
+
+
 
     }
 

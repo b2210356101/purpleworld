@@ -2,12 +2,14 @@ import { Box, Paper, Stack, Typography, Button } from "@mui/material";
 import LocationOn from "@mui/icons-material/LocationOn";
 import RemoveIngredientsModal from "../cart/RemoveIngredientsModal";
 import { useEffect, useState } from "react";
+import {addToCart, getIngredients} from "../../utils/api";
 
 interface Food {
     id: number;
     name: string;
     image: string;
     restaurant: string;
+    restaurantId: number;
     price: string;
     description: string;
 }
@@ -20,46 +22,44 @@ interface Ingredient {
 const PopularFoodCard: React.FC<{ food: Food }> = ({ food }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+    const [quantity, setQuantity] = useState<number>(1);
+    const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
 
-    // Fetch ingredients when modal opens
-    useEffect(() => {
-        if (isModalOpen) {
-            fetchIngredients();
-        }
-    }, [isModalOpen, food.id]);
-
-    // Mock function to fetch ingredients from backend
-    const fetchIngredients = async () => {
+    const fetchIngredients = async (menuItemId: number) => {
         try {
-            // const response = await api.get(`/customer/ingredients/${food.id}`);
-
-            setTimeout(() => {
-                // will be replaced with actual API call
-                const mockIngredients: Ingredient[] = [
-                    { id: 'ing1', name: 'Ingredient 1' },
-                    { id: 'ing2', name: 'Ingredient 2' },
-                    { id: 'ing3', name: 'Ingredient 3' },
-                    { id: 'ing4', name: 'Ingredient 4' },
-                    { id: 'ing5', name: 'Ingredient 5' },
-                ];
-
-                setIngredients(mockIngredients);
-            }, 300);
-        } catch (error) {
-            // Error handle
+            console.log("[PopularFoodCard] fetching ingredients for", menuItemId);
+            const list = await getIngredients(menuItemId);
+            console.log("[PopularFoodCard] got ingredients:", list);
+            setIngredients(list);
+        } catch (err) {
+            console.error("[PopularFoodCard] failed to load ingredients for", menuItemId, err);
         }
     };
 
-    // Handler for opening the modal
-    const handleOpenModal = () => {
+    const handleOpenModal = async () => {
+        // 3) fetch first...
+        await fetchIngredients(food.id);
+        // 4) ...then open
+        console.log("[PopularFoodCard] opening modal");
         setIsModalOpen(true);
     };
 
     // Handler for adding to cart
-    const handleAddToCart = () => {
-        console.log(`Added ${food.name} to cart with customizations`);
-        setIsModalOpen(false);
-        // Add your cart logic here
+    const handleAddToCart = async () => {
+        const csv = selectedIngredients.join(',');
+
+        try {
+            const res = await addToCart({
+                menuItemId: food.id,
+                quantity,
+                removableElements: csv,
+            });
+
+            console.log("Added to cart:", res);
+            setIsModalOpen(false);
+        } catch (err) {
+            console.error("Failed to add to cart", err);
+        }
     };
 
 
@@ -108,17 +108,23 @@ const PopularFoodCard: React.FC<{ food: Food }> = ({ food }) => {
                 </Stack>
             </Paper>
 
-            {/* RemoveIngredientsModal Component */}
-            <RemoveIngredientsModal
-                open={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onAddToCart={handleAddToCart}
-                foodName={food.name}
-                foodImage={food.image}
-                ingredients={ingredients}
-                restaurant={food.restaurant}
-                foodDescription={food.description}
-            />
+           {/* Only mount the modal when needed, and pass quantity handlers */}
+           {isModalOpen && (
+             <RemoveIngredientsModal
+               open={true}
+               onClose={() => setIsModalOpen(false)}
+               onAddToCart={handleAddToCart}
+               foodName={food.name}
+               foodImage={food.image}
+               ingredients={ingredients}
+               restaurant={food.restaurant}
+               foodDescription={food.description}
+               quantity={quantity}            // ← new prop
+               setQuantity={setQuantity}      // ← new prop
+               selectedIngredients={selectedIngredients}                // ← yeni prop
+               setSelectedIngredients={setSelectedIngredients}
+             />
+           )}
         </>
     );
 };
