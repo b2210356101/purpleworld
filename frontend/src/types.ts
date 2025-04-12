@@ -26,3 +26,25 @@ export interface Address {
 export interface CurrentAddress {
     addressId: number;
 }
+
+export interface CartItemResponse {
+    itemId: number;
+    itemName: string;
+    itemPrice: number;
+    quantity: number;
+    itemImg: string;
+  }
+  
+export interface CartGroupResponse {
+restaurantId: number;
+restaurantName: string;
+items: CartItemResponse[];
+}
+
+export interface ViewCartResponse {
+cartId: number;
+totalQuantity: number;
+cartTotal: number;
+groupCount: number;
+groups: CartGroupResponse[];
+}

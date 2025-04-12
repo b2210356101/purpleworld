@@ -9,6 +9,8 @@ import { login } from '../store/slices/authSlice';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import RegisterPage from '../pages/RegisterPage';
 import MenuManagementPage from "../pages/MenuManagementPage";
+import CartPage from "../pages/CartPage";
+import CheckoutPage from '../pages/CheckoutPage';
 
 
 // ai-gen start (claude sonnet 3.7,1)
@@ -119,6 +121,14 @@ const router = createBrowserRouter([
                         path: 'restaurant/menu',
                         element: <MenuManagementPage />
                     },
+                    {
+                        path: 'cart',
+                        element: <CartPage />
+                    },
+                    {
+                        path: 'checkout',
+                        element: <CheckoutPage />
+                    }
 
                 ]
             }

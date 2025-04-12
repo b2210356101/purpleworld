@@ -115,52 +115,59 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    @Transactional
-    public ViewCartResponse viewCart(String email) {
-        Customer customer = customerRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
-        Cart cart = cartRepository.findByCustomerId(customer.getId())
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
-        List<CartGroupResponse> groupResponses = new ArrayList<>();
-        int totalQuantity = 0;
-        int cartTotal = 0;
+@Transactional
+public ViewCartResponse viewCart(String email) {
+    Customer customer = customerRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Customer not found"));
 
-        for (CartGroup group : cart.getCartGroups()) {
-            Restaurant restaurant = group.getRestaurant();
-            List<CartItemResponse> itemResponses = new ArrayList<>();
+    Cart cart = cartRepository.findByCustomerId(customer.getId())
+            .orElseThrow(() -> new RuntimeException("Cart not found"));
 
+    List<CartGroupResponse> groupResponses = new ArrayList<>();
+    int totalQuantity = 0;
+    int cartTotal = 0;
 
-            for (CartItem item : group.getCartItems()) {
-                MenuItem menuItem = item.getMenuItem();
-                int quantity = item.getQuantity();
-                int price = menuItem.getPrice();
+    for (CartGroup group : cart.getCartGroups()) {
+        Restaurant restaurant = group.getRestaurant();
 
-                totalQuantity += quantity;
-                cartTotal += quantity * price;
+        List<CartItem> sortedItems = new ArrayList<>(group.getCartItems());
+        sortedItems.sort((a, b) -> a.getMenuItem().getName().compareToIgnoreCase(b.getMenuItem().getName())); // sort by name
 
-                itemResponses.add(new CartItemResponse(
-                        menuItem.getId(),
-                        menuItem.getName(),
-                        price,
-                        quantity,
-                        menuItem.getImg()
-                ));
-            }
-            groupResponses.add(new CartGroupResponse(
-                    restaurant.getId(),
-                    restaurant.getRestaurantName(),
-                    itemResponses
+        List<CartItemResponse> itemResponses = new ArrayList<>();
+
+        for (CartItem item : sortedItems) {
+            MenuItem menuItem = item.getMenuItem();
+            int quantity = item.getQuantity();
+            int price = menuItem.getPrice();
+
+            totalQuantity += quantity;
+            cartTotal += quantity * price;
+
+            itemResponses.add(new CartItemResponse(
+                    item.getId(),
+                    menuItem.getName(),
+                    price,
+                    quantity,
+                    menuItem.getImg()
             ));
-
         }
-        return new ViewCartResponse(
-                cart.getId(),
-                totalQuantity,
-                cartTotal,
-                groupResponses.size(),
-                groupResponses
-        );
+
+        groupResponses.add(new CartGroupResponse(
+                restaurant.getId(),
+                restaurant.getRestaurantName(),
+                itemResponses
+        ));
     }
+
+    return new ViewCartResponse(
+            cart.getId(),
+            totalQuantity,
+            cartTotal,
+            groupResponses.size(),
+            groupResponses
+    );
+}
+
 
 
     @Override
