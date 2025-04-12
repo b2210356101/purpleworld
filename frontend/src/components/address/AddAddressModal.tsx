@@ -48,14 +48,18 @@ const AddAddressModal: React.FC<AddAddressModalProps> = ({
         floor: '',
         buildingNumber: '',
         deliveryNote: '',
+        addressId: -1,
     });
 
     // Fill form with address data when in edit mode
     useEffect(() => {
         if (isEditMode && addressData) {
+
+
             setAddress({
                 ...addressData
             });
+
 
             // If we have location data for this address
             if (addressData.latitude && addressData.longitude) {
@@ -91,8 +95,8 @@ const AddAddressModal: React.FC<AddAddressModalProps> = ({
         // Validate title
         if (!address.name.trim()) {
             newErrors.name = 'Address title is required';
-        } else if (address.name.trim().length < 3) {
-            newErrors.name = 'Title must be at least 3 characters';
+        } else if (address.name.trim().length < 2) {
+            newErrors.name = 'Title must be at least 2 characters';
         }
 
         // Validate full address
@@ -163,6 +167,7 @@ const AddAddressModal: React.FC<AddAddressModalProps> = ({
             floor: '',
             buildingNumber: '',
             deliveryNote: '',
+            addressId: -1,
         });
         setErrors({});
     };
@@ -314,7 +319,7 @@ const AddAddressModal: React.FC<AddAddressModalProps> = ({
                 }
             }}
         >
-            <DialogTitle>Add New Address</DialogTitle>
+            <DialogTitle>{isEditMode ? "Edit Address" : "Add New Address"}</DialogTitle>
             <DialogContent>
                 <Box sx={{ mb: 3, mt: 1 }}>
                     <TextField
@@ -451,6 +456,8 @@ const AddAddressModal: React.FC<AddAddressModalProps> = ({
                         margin="normal"
                         error={!!errors.phoneNumber}
                         helperText={errors.phoneNumber || "Format: 5XXXXXXXXX"}
+                        inputProps={{ maxLength: 10 }}
+
                     />
 
                     <TextField
@@ -477,7 +484,7 @@ const AddAddressModal: React.FC<AddAddressModalProps> = ({
                     variant="contained"
                     color="primary"
                 >
-                    Add Address
+                    {isEditMode ? "Update Address" : "Add Address"}
                 </Button>
             </DialogActions>
         </Dialog>

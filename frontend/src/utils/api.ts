@@ -186,21 +186,20 @@ export const updateAddress = async (
 
         // Prepare request body
         const requestBody = {
-            addressId: address.addressId,
-            name: address.name,
-            city: address.city,
-            district: address.district,
-            neighborhood: address.neighborhood,
-            street: address.street || null,
+            name: address.name || "",
             buildingNumber: address.buildingNumber,
-            floor: address.floor,
             apartmentNumber: address.apartmentNumber,
+            fullAddress: address.fullAddress,
+            floor: address.floor,
             phoneNumber: address.phoneNumber,
-            location: location || null
+            deliveryNote: address.deliveryNote || "",
+            latitude: location?.lat,
+            longitude: location?.lng
         };
 
+
         // Make the API call
-        const response = await fetch(`${API_URL}/customer/addresses/${address.addressId}`, {
+        const response = await fetch(`${API_URL}/customer/address?addressId=${address.addressId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

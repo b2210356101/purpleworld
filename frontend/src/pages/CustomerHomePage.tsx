@@ -4,10 +4,10 @@ import { Link } from 'react-router-dom';
 import RestaurantCard from '../components/restaurant/RestaurantCart';
 import PopularFoodCard from '../components/menu/PopularFoodCard';
 import FoodCategories from '../components/menu/FoodCategories';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import AddAddressModal from '../components/address/AddAddressModal';
 import { Address, Restaurant } from '../types';
-import {
+import api, {
     getCurrentAddress,
     getCustomerAddresses,
     saveAddress,
@@ -16,6 +16,7 @@ import {
     getNearestRestaurants,
     getPopularMenuItems
 } from '../utils/api';
+import DeleteIcon from "@mui/icons-material/Delete";
 
 interface PopularFood {
     id: number;
@@ -80,9 +81,6 @@ const CustomerHomePage = () => {
 
             if (currentAddress) {
                 setSelectedAddress(currentAddress.addressId);
-            } else if (formattedAddresses.length > 0 && formattedAddresses[0].addressId) {
-                // Fallback to first address if current address not in list
-                setSelectedAddress(formattedAddresses[0].addressId);
             } else {
                 setSelectedAddress(null);
             }
@@ -247,6 +245,16 @@ const CustomerHomePage = () => {
 
     const handleAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSelectedAddress(Number(event.target.value));
+    };
+
+    const handleDeleteAddress = async (addressId: number) => {
+        try {
+            await api.delete(`/customer/address?addressId=${addressId}`);
+            await fetchAddresses();
+        } catch (error) {
+            console.error('Failed to delete category:', error);
+            alert('Failed to delete category. Please try again.');
+        }
     };
 
     // Current order information
@@ -555,9 +563,14 @@ const CustomerHomePage = () => {
                                         <IconButton
                                             color="primary"
                                             onClick={() => handleEditAddress(address)}
-                                            sx={{ mt: 1 }}
                                         >
                                             <Edit />
+                                        </IconButton>
+                                        <IconButton
+                                            color="error"
+                                            onClick={() => handleDeleteAddress(address.addressId)}
+                                        >
+                                            <DeleteIcon />
                                         </IconButton>
                                     </Box>
                                 ))}

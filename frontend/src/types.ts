@@ -22,7 +22,7 @@ export interface Restaurant {
 }
 
 export interface Address {
-    addressId?: number;
+    addressId: number;
     name: string;
     fullAddress: string;
     phoneNumber: string;
