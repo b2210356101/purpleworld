@@ -1,4 +1,4 @@
-import { UserType } from '../types';
+import { UserInfo, UserType } from '../types';
 
 // Get authentication token from localStorage
 export const getToken = (): string | null => {
@@ -16,6 +16,17 @@ export const getUserRole = (): UserType => {
     return undefined;
 };
 
+// Get user information
+export const getUserInfo = (): UserInfo | null => {
+    const username = localStorage.getItem('username');
+    if (!username) return null;
+
+    return {
+        username,
+        profileImage: localStorage.getItem('profileImage') || undefined
+    };
+};
+
 // Check if user is authenticated
 export const isAuthenticated = (): boolean => {
     return !!getToken();
@@ -27,14 +38,11 @@ export const getAuthHeader = () => {
     return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-export const setAuthData = (token: string, roleType: string) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('roleType', roleType);
-  };
-
 // Log out the user
 export const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('roleType');
+    localStorage.removeItem('username');
+    localStorage.removeItem('profileImage');
     window.location.href = '/';
 };

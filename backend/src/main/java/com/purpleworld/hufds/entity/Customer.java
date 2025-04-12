@@ -21,7 +21,7 @@ public class Customer {
     @Column(name = "Last_Name", nullable = false, length = 255)
     private String lastName;
 
-    @Column(name = "Email", nullable = false, length = 50)
+    @Column(name = "Email", nullable = false, length = 50,unique = true)
     private String email;
 
     @Column(name = "Password", nullable = false, length = 255)
@@ -35,7 +35,7 @@ public class Customer {
     private String profileImg;
 
     @Column(name = "CurrentAddressId")
-    private Integer currentAddressId;
+    private Long currentAddressId;
 
     @Column(name = "IsBanned", nullable = false)
     private boolean isBanned;

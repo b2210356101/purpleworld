@@ -1,38 +1,98 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
-    AppBar, Toolbar, IconButton, Box, Drawer, Avatar, Button, Typography, Stack, InputBase, Badge, useMediaQuery, useTheme
-} from '@mui/material';
+    AppBar,
+    Toolbar,
+    IconButton,
+    Box,
+    Drawer,
+    Avatar,
+    Button,
+    Typography,
+    Stack,
+    InputBase,
+    Badge,
+    useMediaQuery,
+    useTheme,
+} from "@mui/material";
 
-import MenuIcon from '@mui/icons-material/Menu';
-import SearchIcon from '@mui/icons-material/Search';
-import LoginIcon from '@mui/icons-material/Login';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import MenuIcon from "@mui/icons-material/Menu";
+import SearchIcon from "@mui/icons-material/Search";
+import LoginIcon from "@mui/icons-material/Login";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 
-import MenuDrawer from './MenuDrawer';
-import CartDrawer from './CartDrawer';
-import { UserType } from '../../types';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { logout } from '../../store/slices/authSlice';
+import MenuDrawer from "./MenuDrawer";
+import CartDrawer from "./CartDrawer";
+import {
+    UserType,
+    ViewCartResponse,
+} from "../../types";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { logout } from "../../store/slices/authSlice";
+import { viewCart } from "../../utils/api";
 
+interface HeaderProps {
+    userType: UserType;
+    username?: string;
+    profileImage?: string;
+}
 
-const Header = ({ userType }: { userType: UserType }) => {
+const Header: React.FC<HeaderProps> = ({
+    userType,
+    username,
+    profileImage,
+}) => {
     const theme = useTheme();
     const navigate = useNavigate();
-    const isMobile = useMediaQuery(theme.breakpoints.up('sm'));
+    const isMobile = useMediaQuery(theme.breakpoints.up("sm"));
 
     const [mobileOpen, setMobileOpen] = useState(false);
     const [cartOpen, setCartOpen] = useState(false);
-    const [cartCount] = useState(2); // cart count
+    const [cartCount, setCartCount] = useState<number>(0); // Dynamic cart count
 
     const dispatch = useAppDispatch();
-    const { isAuthenticated } = useAppSelector(state => state.auth);
+    const { isAuthenticated } = useAppSelector((state) => state.auth);
+
+    const location = useLocation();
+    const isCartPage = location.pathname === "/cart";
+
+    // Fetch cart count on mount and when cart drawer closes
+    useEffect(() => {
+        if (userType === "CUSTOMER" && isAuthenticated) {
+            fetchCartCount();
+        }
+    }, [userType, isAuthenticated]);
+
+    const fetchCartCount = async () => {
+        try {
+            const data: ViewCartResponse = await viewCart();
+            // Calculate total quantity of items in the cart
+            const totalItems = data.groups.reduce((sum, group) => {
+                return (
+                    sum +
+                    group.items.reduce((itemSum, item) => itemSum + item.quantity, 0)
+                );
+            }, 0);
+            setCartCount(totalItems);
+        } catch (err) {
+            console.error("Failed to fetch cart count:", err);
+            setCartCount(0); // Reset to 0 on error to avoid misleading count
+        }
+    };
 
     const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
-    const handleCartDrawerToggle = () => setCartOpen(!cartOpen);
+
+    const handleCartDrawerToggle = () => {
+        setCartOpen(!cartOpen);
+        // Refresh cart count when closing the drawer to sync with updates
+        if (cartOpen) {
+            fetchCartCount();
+        }
+    };
+
     const handleLogout = () => {
-        navigate('/');
+        navigate("/");
         handleDrawerToggle();
         dispatch(logout());
     };
@@ -62,19 +122,24 @@ const Header = ({ userType }: { userType: UserType }) => {
             );
         } else {
             return (
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    {isMobile ? <Typography sx={{ mr: 1 }}>
-                        Hello, {userType}!
-                    </Typography> : <></>}
-                    <IconButton
-                        component={Link}
-                        to="/profile"
-                    >
-                        <Avatar sx={{ width: 32, height: 32 }} />
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                    {isMobile ? (
+                        <Typography sx={{ mr: 1 }}>Hello, {username}!</Typography>
+                    ) : (
+                        <></>
+                    )}
+                    <IconButton component={Link} to="/profile">
+                        <Avatar
+                            sx={{ width: 32, height: 32 }}
+                            src={profileImage || undefined}
+                            alt={username || "User"}
+                        >
+                            {username?.charAt(0) || "U"}
+                        </Avatar>
                     </IconButton>
 
                     {/* Cart icon is shown only for customers */}
-                    {userType === 'CUSTOMER' && (
+                    {userType === "CUSTOMER" && !isCartPage && (
                         <IconButton color="inherit" onClick={handleCartDrawerToggle}>
                             <Badge badgeContent={cartCount} color="error">
                                 <ShoppingCartIcon />
@@ -87,11 +152,12 @@ const Header = ({ userType }: { userType: UserType }) => {
     };
 
     // Show search bar only for guest and customer
-    const shouldShowSearchBar = isMobile && (!isAuthenticated || userType === 'CUSTOMER');
+    const shouldShowSearchBar =
+        isMobile && (!isAuthenticated || userType === "CUSTOMER");
 
     return (
         <AppBar position="sticky" elevation={0}>
-            <Toolbar sx={{ bgcolor: 'primary.main' }}>
+            <Toolbar sx={{ bgcolor: "primary.main" }}>
                 {/* Left side - Menu icon and logo */}
                 <IconButton
                     size="large"
@@ -103,18 +169,14 @@ const Header = ({ userType }: { userType: UserType }) => {
                     <MenuIcon />
                 </IconButton>
 
-                <Box
-                    component={Link}
-                    to="/"
-                    sx={{ display: 'flex' }}
-                >
+                <Box component={Link} to="/" sx={{ display: "flex" }}>
                     <img
                         src="https://i.hizliresim.com/qkl6ett.png"                        
                         alt="Logo"
                         height="30"
                         style={{
-                            marginRight: '10px',
-                            filter: 'brightness(0) invert(1)' // white
+                            marginRight: "10px",
+                            filter: "brightness(0) invert(1)", // white
                         }}
                     />
                 </Box>
@@ -124,21 +186,21 @@ const Header = ({ userType }: { userType: UserType }) => {
                     <Box
                         sx={{
                             flexGrow: 1,
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center'
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
                         }}
                     >
                         <Box
                             sx={{
-                                backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                                borderRadius: '50px',
-                                '&:hover': {
-                                    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                                backgroundColor: "rgba(255, 255, 255, 0.15)",
+                                borderRadius: "50px",
+                                "&:hover": {
+                                    backgroundColor: "rgba(255, 255, 255, 0.25)",
                                 },
-                                width: '300px',
-                                display: 'flex',
-                                alignItems: 'center',
+                                width: "300px",
+                                display: "flex",
+                                alignItems: "center",
                                 px: 2,
                                 py: 0.5,
                             }}
@@ -146,15 +208,15 @@ const Header = ({ userType }: { userType: UserType }) => {
                             <InputBase
                                 placeholder="Search restaurants & foods..."
                                 sx={{
-                                    color: 'white',
-                                    width: '100%',
-                                    '& ::placeholder': {
-                                        color: 'rgba(255, 255, 255, 0.7)',
-                                        opacity: 1
-                                    }
+                                    color: "white",
+                                    width: "100%",
+                                    "& ::placeholder": {
+                                        color: "rgba(255, 255, 255, 0.7)",
+                                        opacity: 1,
+                                    },
                                 }}
                             />
-                            <SearchIcon sx={{ color: 'white', ml: 1 }} />
+                            <SearchIcon sx={{ color: "white", ml: 1 }} />
                         </Box>
                     </Box>
                 ) : (
@@ -172,18 +234,13 @@ const Header = ({ userType }: { userType: UserType }) => {
                     ModalProps={{
                         keepMounted: true,
                     }}
-                    sx={{ '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 360 } }}
+                    sx={{ "& .MuiDrawer-paper": { boxSizing: "border-box", width: 360 } }}
                 >
-                    <MenuDrawer
-                        userType={userType}
-                        open={mobileOpen}
-                        onClose={handleDrawerToggle}
-                        onLogout={handleLogout}
-                    />
+                    <MenuDrawer onClose={handleDrawerToggle} onLogout={handleLogout} />
                 </Drawer>
 
                 {/* Right drawer - Cart for customer */}
-                {userType === 'CUSTOMER' && (
+                {userType === "CUSTOMER" && (
                     <Drawer
                         variant="temporary"
                         anchor="right"
@@ -193,14 +250,16 @@ const Header = ({ userType }: { userType: UserType }) => {
                             keepMounted: true,
                         }}
                         sx={{
-                            '& .MuiDrawer-paper': {
-                                boxSizing: 'border-box', width: 360
-                            }
+                            "& .MuiDrawer-paper": {
+                                boxSizing: "border-box",
+                                width: 360,
+                            },
                         }}
                     >
                         <CartDrawer
-                            open={cartOpen}
+                            isOpen={cartOpen}
                             onClose={handleCartDrawerToggle}
+                            refreshCartCount={fetchCartCount}
                         />
                     </Drawer>
                 )}
@@ -210,7 +269,3 @@ const Header = ({ userType }: { userType: UserType }) => {
 };
 
 export default Header;
-
-function dispatch(arg0: any) {
-    throw new Error('Function not implemented.');
-}

@@ -1,18 +1,19 @@
 package com.purpleworld.hufds.service.impl;
 
 import com.purpleworld.hufds.dto.request.*;
+import com.purpleworld.hufds.dto.response.LoginResponse;
 import com.purpleworld.hufds.dto.response.RegisterResponse;
 import com.purpleworld.hufds.entity.*;
 import com.purpleworld.hufds.enums.Role;
 import com.purpleworld.hufds.exception.RegistrationException;
 import com.purpleworld.hufds.repository.*;
+import com.purpleworld.hufds.security.JwtService;
 import com.purpleworld.hufds.service.AuthService;
 import com.purpleworld.hufds.service.GoogleMapsService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import jakarta.transaction.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,12 +25,24 @@ public class AuthServiceImpl implements AuthService {
     private final AddressRepository addressRepository;
     private final RestaurantRepository restaurantRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+    private final AdminRepository adminRepository;
+    private final MenuRepository menuRepository;
+    private final CartRepository cartRepository;
 
+
+    private boolean checkEmailUniqueness(String email) {
+        return customerRepository.findByEmail(email).isPresent() ||
+                courierRepository.findByEmail(email).isPresent() ||
+                restaurantRepository.findByEmail(email).isPresent() ||
+                adminRepository.findByEmail(email).isPresent();
+    }
     @Override
     public RegisterResponse registerCustomer(CustomerRegisterRequest request) {
 
-        if (customerRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RegistrationException("A customer with this email already exists");
+
+        if(checkEmailUniqueness(request.getEmail())){
+            throw new RegistrationException( "A customer with this email already exists");
         }
 
         Customer customer = new Customer();
@@ -41,24 +54,21 @@ public class AuthServiceImpl implements AuthService {
         customer.setRole(Role.CUSTOMER);
         customer.setBanned(false);
 
-//        Address address = googleMapsService.getAddressFromCoordinates(request.getLatitude(), request.getLongitude());
-//        address.setBuildingNumber(request.getBuildingNumber());
-//        address.setApartmentNumber(request.getApartmentNumber());
-//        address.setCustomer(customer);
-//
-//        customerRepository.save(customer);
-//        addressRepository.save(address);
-//
-//        customer.setCurrentAddressId(address.getId().intValue());
-        customerRepository.save(customer);
+        Customer savedCustomer = customerRepository.save(customer);
+
+        Cart newCart = new Cart ();
+        newCart.setCustomer(savedCustomer);
+        cartRepository.save(newCart);
 
         return new RegisterResponse("Customer registered successfully with address!", true);
     }
 
     @Override
     public RegisterResponse registerCourier(CourierRegisterRequest request) {
-        if (courierRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RegistrationException("A courier with this email already exists");
+
+
+        if(checkEmailUniqueness(request.getEmail())){
+            throw new RegistrationException( "A courier with this email already exists");
         }
 
         if (courierRepository.findBySsn(request.getSsn()).isPresent()) {
@@ -81,8 +91,10 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public RegisterResponse registerRestaurant(RestaurantRegisterRequest request) {
-        if (restaurantRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RegistrationException("A restaurant with this email already exists");
+
+
+        if(checkEmailUniqueness(request.getEmail())){
+            throw new RegistrationException( "A restaurant with this email already exists");
         }
 
         if (restaurantRepository.findByTaxId(request.getTax_Id()).isPresent()) {
@@ -99,19 +111,61 @@ public class AuthServiceImpl implements AuthService {
         restaurant.setProfileImg(request.getProfile_image());
         restaurant.setPassword(passwordEncoder.encode(request.getPassword()));
         restaurant.setRole(Role.RESTAURANT);
-        
+
+        restaurantRepository.save(restaurant);
 
         Address address = googleMapsService.getAddressFromCoordinates(request.getLatitude(), request.getLongitude());
         address.setName(request.getName());
         address.setBuildingNumber(request.getBuildingNumber());
         address.setApartmentNumber(request.getApartmentNumber());
         address.setRestaurant(restaurant);
+        address.setPhoneNumber(request.getPhone_Number());
+        address.setFullAddress(request.getAddress());
         address.setFloor("1");
 
-
-        restaurantRepository.save(restaurant);
         addressRepository.save(address);
 
+        Menu defaultMenu = new Menu();
+        defaultMenu.setRestaurant(restaurant);
+        menuRepository.save(defaultMenu);
+
+
+
+
         return new RegisterResponse("Restaurant registered successfully!", true);
+    }
+
+
+    @Override
+    @Transactional
+    public LoginResponse login(LoginRequest request) {
+        String email = request.getEmail();
+        String password = request.getPassword();
+
+        var customer = customerRepository.findByEmail(email);
+        if (customer.isPresent() && passwordEncoder.matches(password, customer.get().getPassword())) {
+            String token = jwtService.generateToken(email, "CUSTOMER");
+            return new LoginResponse(token, "CUSTOMER", customer.get().getFirstName(), null);
+        }
+
+        var courier = courierRepository.findByEmail(email);
+        if (courier.isPresent() && passwordEncoder.matches(password, courier.get().getPassword())) {
+            String token = jwtService.generateToken(email, "COURIER");
+            return new LoginResponse(token, "COURIER", courier.get().getFirstName(), null);
+        }
+
+        var restaurant = restaurantRepository.findByEmail(email);
+        if (restaurant.isPresent() && passwordEncoder.matches(password, restaurant.get().getPassword())) {
+            String token = jwtService.generateToken(email, "RESTAURANT");
+            return new LoginResponse(token, "RESTAURANT", restaurant.get().getRestaurantName(), restaurant.get().getProfileImg());
+        }
+
+        var admin = adminRepository.findByEmail(email);
+        if (admin.isPresent() && passwordEncoder.matches(password, admin.get().getPassword())) {
+            String token = jwtService.generateToken(email, "ADMIN");
+            return new LoginResponse(token, "ADMIN", admin.get().getFirstName(), null);
+        }
+
+        throw new RuntimeException("Invalid credentials");
     }
 }

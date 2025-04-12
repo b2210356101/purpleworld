@@ -11,4 +11,5 @@ public class GlobalExceptionHandler {
     public ResponseEntity<RegisterResponse> handleRegistrationException(RegistrationException ex) {
         return ResponseEntity.badRequest().body(new RegisterResponse(ex.getMessage(), false));
     }
+
 }

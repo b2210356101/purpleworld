@@ -1,29 +1,262 @@
-import { Box, Typography, Button, Avatar, Paper, Grid, Stack } from '@mui/material';
-import { ArrowForward, CircleRounded, Restaurant, } from '@mui/icons-material';
+import { Box, Typography, Button, Avatar, Paper, Grid, Stack, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Radio, RadioGroup, Alert, MenuItem, IconButton } from '@mui/material';
+import { ArrowForward, CircleRounded, Add, LocationOn, Edit } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import RestaurantCard from '../components/restaurant/RestaurantCart';
 import PopularFoodCard from '../components/menu/PopularFoodCard';
 import FoodCategories from '../components/menu/FoodCategories';
-
+import React, { useState, useEffect } from 'react';
+import AddAddressModal from '../components/address/AddAddressModal';
+import { Address, Restaurant } from '../types';
+import api, {
+    getCurrentAddress,
+    getCustomerAddresses,
+    saveAddress,
+    updateAddress,
+    setCurrentAddress,
+    getNearestRestaurants,
+    getPopularMenuItems
+} from '../utils/api';
+import DeleteIcon from "@mui/icons-material/Delete";
 
 interface PopularFood {
     id: number;
     name: string;
     image: string;
-    restaurant: string;
+    restaurant: Restaurant;
     price: string;
+    description: string;
 }
 
-interface Restaurant {
-    id: number;
+interface ApiAddress {
+    addressId: number;
     name: string;
-    image: string;
-    logo?: string;
-    rating: number;
-    reviews: number;
+    city: string;
+    district: string;
+    neighborhood: string;
+    street: string | null;
+    buildingNumber: string;
+    floor: string;
+    apartmentNumber: string;
+    fullAddress: string;
+    phoneNumber: string;
 }
 
 const CustomerHomePage = () => {
+    const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
+    const [addresses, setAddresses] = useState<Address[]>([]);
+    const [selectedAddress, setSelectedAddress] = useState<number | null>(null);
+    const [isNewAddressDialogOpen, setIsNewAddressDialogOpen] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [addressToEdit, setAddressToEdit] = useState<Address | null>(null);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchAddresses = async () => {
+        try {
+            const data = await getCustomerAddresses();
+
+            // Initialize addresses as empty array by default
+            let formattedAddresses: Address[] = [];
+
+            if (data && data.addresses && Array.isArray(data.addresses) && data.addresses.length > 0) {
+                // Transform API addresses to match our Address type
+                formattedAddresses = data.addresses.map((addr: ApiAddress) => ({
+                    addressId: addr.addressId,
+                    name: addr.name,
+                    fullAddress: addr.fullAddress,
+                    phoneNumber: addr.phoneNumber,
+                    neighborhood: addr.neighborhood,
+                    buildingNumber: addr.buildingNumber,
+                    floor: addr.floor,
+                    apartmentNumber: addr.apartmentNumber,
+                    city: addr.city,
+                    district: addr.district,
+                    street: addr.street || '',
+                }));
+            }
+
+            const currentAddress = await getCurrentAddress();
+
+            // Set addresses (either with parsed data or empty array)
+            setAddresses(formattedAddresses);
+
+            if (currentAddress) {
+                setSelectedAddress(currentAddress.addressId);
+            } else {
+                setSelectedAddress(null);
+            }
+        } catch (err) {
+            console.error('Error fetching addresses:', err);
+            setError('Failed to load addresses. Please try again later.');
+        }
+    };
+
+    // fetchAddresses in useEffect
+    useEffect(() => {
+        fetchAddresses();
+    }, []);
+
+    const [nearbyRestaurants, setNearbyRestaurants] = useState<Restaurant[]>([]);
+
+    // Only fetch restaurants when an address is selected
+    useEffect(() => {
+        if (selectedAddress) {
+            (async () => {
+                try {
+                    const list = await getNearestRestaurants();
+                    setNearbyRestaurants(
+                        list.map(r => ({
+                            id: r.id,
+                            restaurantName: r.restaurantName,
+                            distanceInKm: r.distanceInKm,
+                            profileImg: r.profileImg,
+                            rating: r.rating,
+                            reviews: r.reviews,
+                        })) as unknown as Restaurant[]
+                    );
+                } catch (err) {
+                    console.error('could not load nearby restaurants', err);
+                }
+            })();
+        }
+    }, [selectedAddress]);
+
+    const [popularMenuItems, setPopularMenuItems] = useState<PopularFood[]>([]);
+
+    // Only fetch popular menu items when an address is selected
+    useEffect(() => {
+        if (selectedAddress) {
+            (async () => {
+                try {
+                    const items = await getPopularMenuItems();
+                    setPopularMenuItems(
+                        items.map(mi => ({
+                            id: mi.id,
+                            name: mi.name,
+                            image: mi.img,
+                            restaurant: mi.restaurant,
+                            price: `${mi.price}₺`,
+                            description: mi.description
+                        }))
+                    );
+                } catch (err) {
+                    console.error('Failed to load popular menu items', err);
+                }
+            })();
+        }
+    }, [selectedAddress]);
+
+    const handleDialogOpen = () => {
+        setIsAddressDialogOpen(true);
+    };
+
+    const handleDialogClose = () => {
+        setIsAddressDialogOpen(false);
+    };
+
+    const handleAddNewAddress = () => {
+        setIsEditMode(false);
+        setAddressToEdit(null);
+        setIsNewAddressDialogOpen(true);
+    };
+
+    const handleEditAddress = (address: Address) => {
+        setIsEditMode(true);
+        setAddressToEdit(address);
+        setIsNewAddressDialogOpen(true);
+    };
+
+    const handleSaveNewAddress = async (address: Omit<Address, 'id'>, location: { lat: number, lng: number } | null) => {
+        try {
+            await saveAddress(address, location);
+
+            // Reload all addresses
+            await fetchAddresses();
+
+            setIsNewAddressDialogOpen(false);
+        } catch (error) {
+            // Handle errors
+            console.error('Error saving address:', error);
+        }
+    };
+
+    const handleUpdateAddress = async (address: Address, location: { lat: number, lng: number } | null) => {
+        try {
+            // Call the API to update the address
+            await updateAddress(address, location);
+
+            // Reload all addresses
+            await fetchAddresses();
+
+            // Close the modal
+            setIsNewAddressDialogOpen(false);
+
+            // Reset edit state
+            setIsEditMode(false);
+            setAddressToEdit(null);
+        } catch (error) {
+            console.error('Error updating address:', error);
+            // Handle error - you might want to show an error message to the user
+        }
+    };
+
+    const handleSaveAddresses = async () => {
+        if (!selectedAddress) {
+            setError('Please select an address first');
+            return;
+        }
+
+        try {
+            await setCurrentAddress(selectedAddress);
+
+            // Refetch nearby restaurants and popular menu items
+            try {
+                const list = await getNearestRestaurants();
+                setNearbyRestaurants(
+                    list.map(r => ({
+                        id: r.id,
+                        restaurantName: r.restaurantName,
+                        distanceInKm: r.distanceInKm,
+                        profileImg: r.profileImg,
+                        rating: r.rating,
+                        reviews: r.reviews,
+                    })) as unknown as Restaurant[]
+                );
+
+                const items = await getPopularMenuItems();
+                setPopularMenuItems(
+                    items.map(mi => ({
+                        id: mi.id,
+                        name: mi.name,
+                        image: mi.img,
+                        restaurant: mi.restaurant,
+                        price: `${mi.price}₺`,
+                        description: mi.description
+                    }))
+                );
+            } catch (err) {
+                console.error('Failed to refresh data after address change:', err);
+            }
+
+            handleDialogClose();
+        } catch (error) {
+            setError('Failed to set current address. Please try again.');
+        }
+    };
+
+    const handleAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSelectedAddress(Number(event.target.value));
+    };
+
+    const handleDeleteAddress = async (addressId: number) => {
+        try {
+            await api.delete(`/customer/address?addressId=${addressId}`);
+            await fetchAddresses();
+        } catch (error) {
+            console.error('Failed to delete category:', error);
+            alert('Failed to delete category. Please try again.');
+        }
+    };
+
     // Current order information
     const currentOrder = {
         id: "27349",
@@ -35,82 +268,6 @@ const CustomerHomePage = () => {
         items: 2,
         distance: "1.2 km"
     };
-
-
-    // Popular foods
-    const popularFoods: PopularFood[] = [
-        {
-            id: 1,
-            name: 'Cheese Burger',
-            image: 'https://picsum.photos/300/230',
-            restaurant: 'Burger Arena',
-            price: '320₺'
-        },
-        {
-            id: 2,
-            name: 'Toffe\'s Cake',
-            image: 'https://picsum.photos/300/220',
-            restaurant: 'Top Sticks',
-            price: '280₺'
-        },
-        {
-            id: 3,
-            name: 'Dancake',
-            image: 'https://picsum.photos/320/200',
-            restaurant: 'Donuts hut',
-            price: '235₺'
-        },
-        {
-            id: 4,
-            name: 'Crispy Sandwich',
-            image: 'https://picsum.photos/310/200',
-            restaurant: 'Fastfood Dine',
-            price: '320₺'
-        },
-        {
-            id: 5,
-            name: 'Thai Soup',
-            image: 'https://picsum.photos/300/210',
-            restaurant: 'Foody man',
-            price: '620₺'
-        }
-    ];
-
-    // Featured restaurants
-    const featuredRestaurants: Restaurant[] = [
-        {
-            id: 1,
-            name: "Foodworld",
-            image: "https://picsum.photos/400/250",
-            logo: "https://picsum.photos/61/60",
-            rating: 4.8,
-            reviews: 325,
-        },
-        {
-            id: 2,
-            name: "McBurgers",
-            image: "https://picsum.photos/400/250",
-            logo: "https://picsum.photos/60/50",
-            rating: 4.9,
-            reviews: 1360,
-        },
-        {
-            id: 3,
-            name: "Donuts hut",
-            image: "https://picsum.photos/400/250",
-            logo: "https://picsum.photos/50/60",
-            rating: 4.7,
-            reviews: 534,
-        },
-        {
-            id: 4,
-            name: "Domitoz Pizza",
-            image: "https://picsum.photos/400/250",
-            logo: "https://picsum.photos/40/60",
-            rating: 4.6,
-            reviews: 635,
-        }
-    ];
 
     // Order status steps
     const orderSteps = [
@@ -127,14 +284,14 @@ const CustomerHomePage = () => {
             <Grid container spacing={6} sx={{ bgcolor: 'primary.main', mt: { xs: 2, md: 6 }, p: 6, alignItems: 'center', justifyContent: 'space-between', borderRadius: 6, color: 'white' }}>
                 <Grid size={{ xs: 12, md: 6 }}>
                     <Typography variant="h4" fontWeight="bold" gutterBottom>
-                        Hello, Beste!
+                        Hello, {localStorage.getItem('username')}!
                     </Typography>
                     <Typography>
                         What would you like to eat today?<br />
                         Your favorite flavors are just a click away.
                     </Typography>
 
-                    <Button variant="contained" size="large" sx={{ mt: 2, color: 'primary.main', bgcolor: 'white' }}>
+                    <Button variant="contained" size="large" sx={{ mt: 2, color: 'primary.main', bgcolor: 'white' }} onClick={handleDialogOpen}>
                         Select Address
                     </Button>
                 </Grid>
@@ -142,7 +299,7 @@ const CustomerHomePage = () => {
                 <Grid size={{ xs: 12, md: 6 }} sx={{ textAlign: 'right' }}>
                     <Box
                         component="img"
-                        src="https://i.hizliresim.com/1xcam90.jpeg"
+                        src="src/assets/hero-customer.jpeg"
                         alt="Food Delivery"
                         sx={{
                             maxWidth: '100%',
@@ -297,53 +454,180 @@ const CustomerHomePage = () => {
                 <FoodCategories />
             </Box>
 
-            {/* Featured Restaurants */}
-            <Box sx={{ py: 6 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                    <Typography variant="h5" fontWeight="bold">
-                        Featured Restaurants
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Typography
-                            variant="body2"
-                            component={Link}
-                            to="/categories"
-                            sx={{
-                                color: 'primary.main',
-                                textDecoration: 'none',
-                                display: 'flex',
-                                alignItems: 'center'
-                            }}
-                        >
-                            View All
-                            <ArrowForward sx={{ fontSize: 16, ml: 1 }} />
-                        </Typography>
+            {/* Conditional rendering for restaurant and food sections */}
+            {selectedAddress ? (
+                <>
+                    {/* Featured Restaurants */}
+                    <Box sx={{ py: 6 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                            <Typography variant="h5" fontWeight="bold">
+                                Nearest Restaurants
+                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Typography
+                                    variant="body2"
+                                    component={Link}
+                                    to="/restaurants"
+                                    sx={{
+                                        color: 'primary.main',
+                                        textDecoration: 'none',
+                                        display: 'flex',
+                                        alignItems: 'center'
+                                    }}
+                                >
+                                    View All
+                                    <ArrowForward sx={{ fontSize: 16, ml: 1 }} />
+                                </Typography>
+                            </Box>
+                        </Box>
+
+                        <Grid container spacing={3}>
+                            {nearbyRestaurants.map((restaurant) => (
+                                <Grid size={{ xs: 12, sm: 6, md: 3 }} key={restaurant.id}>
+                                    <RestaurantCard restaurant={restaurant} />
+                                </Grid>
+                            ))}
+                        </Grid>
                     </Box>
+
+                    {/* Popular Foods */}
+                    <Box sx={{ py: 6 }}>
+                        <Typography variant="h5" fontWeight="bold" sx={{ mb: 3 }}>
+                            Popular Foods
+                        </Typography>
+
+                        <Grid container spacing={2}>
+                            {popularMenuItems.map((food) => (
+                                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }} key={food.id}>
+                                    <PopularFoodCard food={food} />
+                                </Grid>
+                            ))}
+                        </Grid>
+                    </Box>
+                </>
+            ) : (
+                // Message prompting user to select an address when none is selected
+                <Box sx={{ py: 6, textAlign: 'center' }}>
+                    <Paper elevation={3} sx={{ p: 5, borderRadius: 4, maxWidth: 600, mx: 'auto' }}>
+                        <Typography variant="h5" color="primary" gutterBottom>
+                            Please Select an Address
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+                            To view restaurants and foods near you, please select a delivery address.
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            onClick={handleDialogOpen}
+                            startIcon={<LocationOn />}
+                            size="large"
+                        >
+                            Select Address
+                        </Button>
+                    </Paper>
                 </Box>
+            )}
 
-                <Grid container spacing={3}>
-                    {featuredRestaurants.map((restaurant) => (
-                        <Grid size={{ xs: 12, sm: 6, md: 3 }} key={restaurant.id}>
-                            <RestaurantCard restaurant={restaurant} />
+            {/* Address Selection Dialog */}
+            <Dialog open={isAddressDialogOpen} onClose={handleDialogClose} fullWidth maxWidth="md">
+                <DialogTitle>Select Your Addresses</DialogTitle>
+                <DialogContent>
+                    {error ? (
+                        <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
+                    ) : addresses.length === 0 ? (
+                        <Alert severity="warning" sx={{ mb: 2 }}>
+                            You don't have any saved addresses yet. Please add a new address.
+                        </Alert>
+                    ) : (
+                        <Box sx={{ mb: 2 }}>
+                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                Your saved addresses
+                            </Typography>
+                            <RadioGroup
+                                value={selectedAddress}
+                                onChange={handleAddressChange}
+                            >
+                                {addresses.map((address, index) => (
+                                    <Box key={index} sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
+                                        <FormControlLabel
+                                            value={address.addressId}
+                                            control={<Radio />}
+                                            label={
+                                                <Box sx={{ mb: 1 }}>
+                                                    <Typography variant="body1">{address.name}</Typography>
+                                                    <Typography variant="body2" color="text.secondary">{address.fullAddress}</Typography>
+                                                    <Typography variant="body2" color="text.secondary">{address.phoneNumber}</Typography>
+                                                </Box>
+                                            }
+                                            sx={{ flexGrow: 1 }}
+                                        />
+                                        <IconButton
+                                            color="primary"
+                                            onClick={() => handleEditAddress(address)}
+                                        >
+                                            <Edit />
+                                        </IconButton>
+                                        <IconButton
+                                            color="error"
+                                            onClick={() => handleDeleteAddress(address.addressId)}
+                                        >
+                                            <DeleteIcon />
+                                        </IconButton>
+                                    </Box>
+                                ))}
+                            </RadioGroup>
+                        </Box>
+                    )}
+
+                    <Grid container spacing={2}>
+                        <Grid size={{ xs: 12, md: 6 }}>
+                            <Button
+                                variant="outlined"
+                                startIcon={<Add />}
+                                fullWidth
+                                onClick={handleAddNewAddress}
+                            >
+                                Add New Address
+                            </Button>
                         </Grid>
-                    ))}
-                </Grid>
-            </Box>
-
-            {/* Popular Foods */}
-            <Box sx={{ py: 6 }}>
-                <Typography variant="h5" fontWeight="bold" sx={{ mb: 3 }}>
-                    Popular Foods
-                </Typography>
-
-                <Grid container spacing={2}>
-                    {popularFoods.map((food) => (
-                        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }} key={food.id}>
-                            <PopularFoodCard food={food} />
+                        <Grid size={{ xs: 12, md: 6 }}>
+                            <Button
+                                component={Link}
+                                to="/profile"
+                                variant="outlined"
+                                fullWidth
+                                sx={{ color: 'secondary.main', borderColor: 'secondary.main' }}
+                            >
+                                Manage Addresses
+                            </Button>
                         </Grid>
-                    ))}
-                </Grid>
-            </Box>
+                    </Grid>
+                </DialogContent>
+                <DialogActions sx={{ p: 3 }}>
+                    <Button onClick={handleDialogClose} color="secondary">
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleSaveAddresses}
+                        disabled={!selectedAddress && addresses.length > 0}
+                        variant="contained"
+                        color="primary"
+                    >
+                        Select Address
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <AddAddressModal
+                open={isNewAddressDialogOpen}
+                onClose={() => {
+                    setIsNewAddressDialogOpen(false);
+                    setIsEditMode(false);
+                    setAddressToEdit(null);
+                }}
+                onSave={isEditMode ? handleUpdateAddress : handleSaveNewAddress}
+                isEditMode={isEditMode}
+                addressData={addressToEdit}
+            />
         </Box>
     );
 };

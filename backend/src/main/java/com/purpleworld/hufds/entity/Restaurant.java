@@ -26,7 +26,7 @@ public class Restaurant {
     @Column(name = "Password", nullable = false, length = 255)
     private String password;
 
-    @Column(name = "Email", nullable = false, length = 50)
+    @Column(name = "Email", nullable = false, length = 50,unique = true)
     private String email;
 
     @Column(name = "PhoneNumber", nullable = false, length = 10)

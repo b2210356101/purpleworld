@@ -1,14 +1,6 @@
 import { Box, Paper, Stack, Typography, Button } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
-
-interface Restaurant {
-    id: number;
-    name: string;
-    image: string;
-    logo?: string;
-    rating: number;
-    reviews: number;
-}
+import { Restaurant } from "../../types";
 
 const renderRatingStars = (rating: number) => {
     return (
@@ -34,8 +26,8 @@ const RestaurantCard: React.FC<{ restaurant: Restaurant }> = ({ restaurant }) =>
             <Box sx={{ position: "relative" }}>
                 <Box
                     component="img"
-                    src={restaurant.image}
-                    alt={restaurant.name}
+                    src={restaurant.profileImg}
+                    alt={restaurant.restaurantName}
                     sx={{
                         width: "100%",
                         borderRadius: 4,
@@ -47,14 +39,18 @@ const RestaurantCard: React.FC<{ restaurant: Restaurant }> = ({ restaurant }) =>
 
             <Stack sx={{ p: 2 }}>
                 <Typography variant="h6" fontWeight="medium" noWrap>
-                    {restaurant.name}
+                    {restaurant.restaurantName}
                 </Typography>
 
-                <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                    {renderRatingStars(restaurant.rating)}
-                    <Typography variant="body2" sx={{ ml: 1 }}>
-                        {restaurant.reviews}
-                    </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 1, justifyContent:'space-between' }}>
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                        {restaurant.rating && renderRatingStars(restaurant.rating)}
+                        <Typography variant="body2" sx={{ ml: 1 }}>
+                            {restaurant.reviews}
+                        </Typography>
+                    </Box>
+
+                    {restaurant.distanceInKm && restaurant.distanceInKm.toFixed(1)} km
                 </Box>
 
                 <Button fullWidth variant="outlined" sx={{ py: 1 }}>
