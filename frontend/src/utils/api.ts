@@ -10,7 +10,7 @@ import {
     Restaurant,
 } from '../types';
 
-const API_URL = 'purpleworld-production.up.railway.app';
+const API_URL = 'https://purpleworld-production.up.railway.app';
 
 // ai-gen start (claude sonnet 3.7, 0)
 const createAxiosInstance = () => {
