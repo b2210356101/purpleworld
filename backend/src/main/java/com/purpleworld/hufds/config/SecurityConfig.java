@@ -3,6 +3,9 @@ package com.purpleworld.hufds.config;
 import com.purpleworld.hufds.security.JwtAuthenticationFilter;
 import com.purpleworld.hufds.security.JwtService;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,12 +35,13 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .cors(Customizer.withDefaults()) 
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/verification/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
@@ -45,8 +49,7 @@ public class SecurityConfig {
                         .requestMatchers("/courier/**").hasRole("COURIER")
                         .requestMatchers("/restaurant/**").hasRole("RESTAURANT")
                         .requestMatchers("/tracking/**").hasAnyRole("CUSTOMER", "RESTAURANT", "COURIER")
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
