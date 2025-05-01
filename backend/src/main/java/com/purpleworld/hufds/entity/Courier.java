@@ -28,6 +28,9 @@ public class Courier {
     @Column(name = "IsAvailable", nullable = false)
     private boolean isAvailable;
 
+    @Column(name = "IsWorking", nullable = false)
+    private boolean isWorking = false;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "Status", nullable = false)
     private AccountStatus status = AccountStatus.PENDING;
@@ -43,6 +46,10 @@ public class Courier {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @OneToOne
+    @JoinColumn(name = "queued_order_id")
+    private OrderGroup queuedOrder;
 
     @PrePersist
     public void setDefaultRole() {

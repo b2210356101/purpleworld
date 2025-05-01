@@ -3,15 +3,9 @@ package com.purpleworld.hufds.controller;
 import com.purpleworld.hufds.dto.request.*;
 import com.purpleworld.hufds.dto.response.LoginResponse;
 import com.purpleworld.hufds.dto.response.RegisterResponse;
-import com.purpleworld.hufds.repository.AdminRepository;
-import com.purpleworld.hufds.repository.CourierRepository;
-import com.purpleworld.hufds.repository.CustomerRepository;
-import com.purpleworld.hufds.repository.RestaurantRepository;
-import com.purpleworld.hufds.security.JwtService;
 import com.purpleworld.hufds.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -36,19 +30,25 @@ public class AuthController {
         return ResponseEntity.ok(authService.registerRestaurant(request));
     }
 
-    private final CustomerRepository customerRepository;
-    private final CourierRepository courierRepository;
-    private final RestaurantRepository restaurantRepository;
-    private final AdminRepository adminRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
-
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-        try {
-            return ResponseEntity.ok(authService.login(request));
-        } catch (RuntimeException ex) {
-            return ResponseEntity.status(401).body(new LoginResponse(null, "Invalid credentials", null, null));
-        }
+        return ResponseEntity.ok(authService.login(request));
     }
+
+    @GetMapping("/check-email")
+    public ResponseEntity<Boolean> checkEmailExists(@RequestParam String email) {
+        boolean exists = authService.isEmailRegistered(email);
+        return ResponseEntity.ok(exists);
+    }
+    @GetMapping("/check-ssn")
+    public ResponseEntity<Boolean> checkSsnExists(@RequestParam String ssn) {
+        return ResponseEntity.ok(authService.isSsnRegistered(ssn));
+    }
+
+    @GetMapping("/check-tax-id")
+    public ResponseEntity<Boolean> checkTaxIdExists(@RequestParam String taxId) {
+        return ResponseEntity.ok(authService.isTaxIdRegistered(taxId));
+    }
+
+
 }

@@ -39,10 +39,12 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/verification/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/customer/**").hasRole("CUSTOMER")
                         .requestMatchers("/courier/**").hasRole("COURIER")
                         .requestMatchers("/restaurant/**").hasRole("RESTAURANT")
+                        .requestMatchers("/tracking/**").hasAnyRole("CUSTOMER", "RESTAURANT", "COURIER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

@@ -1,6 +1,5 @@
 package com.purpleworld.hufds.dto.response;
 
-import com.purpleworld.hufds.dto.RemovableElementDTO;
 import com.purpleworld.hufds.entity.RemovableElement;
 import lombok.AllArgsConstructor;
 import lombok.Data;

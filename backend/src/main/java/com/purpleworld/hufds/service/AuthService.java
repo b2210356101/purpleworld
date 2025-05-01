@@ -10,5 +10,9 @@ public interface AuthService {
     RegisterResponse registerCourier(CourierRegisterRequest request);
     RegisterResponse registerRestaurant(RestaurantRegisterRequest request);
     LoginResponse login(LoginRequest request);
+    boolean isEmailRegistered(String email);
+    boolean isSsnRegistered(String ssn);
+    boolean isTaxIdRegistered(String taxId);
+
 
 }

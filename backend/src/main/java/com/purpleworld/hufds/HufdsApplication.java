@@ -2,8 +2,10 @@ package com.purpleworld.hufds;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication(scanBasePackages = "com.purpleworld.hufds")
+@EnableScheduling
 public class HufdsApplication {
 
 	public static void main(String[] args) {

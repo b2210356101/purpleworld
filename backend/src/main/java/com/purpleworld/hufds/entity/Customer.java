@@ -30,7 +30,6 @@ public class Customer {
     @Column(name = "PhoneNumber", length = 10,nullable = false)
     private String phoneNumber;
 
-    @Lob
     @Column(name = "ProfileImg",columnDefinition = "TEXT")
     private String profileImg;
 

@@ -14,8 +14,8 @@ public class OrderItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "order_group_id", nullable = false)
-    private Long orderGroupId;
+    //@Column(name = "order_group_id", nullable = false)
+   // private Long orderGroupId;
 
     @Column(name = "menu_item_id", nullable = false)
     private Long menuItemId;
@@ -26,11 +26,14 @@ public class OrderItem {
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_group_id", insertable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "order_group_id", nullable = false)
     private OrderGroup orderGroup;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "menu_item_id", referencedColumnName = "id", insertable = false, updatable = false)
     private MenuItem menuItem;
+
+    @Column(name = "removables")
+    private String removables; // JSON string like: ["onion", "mushroom"]
 }

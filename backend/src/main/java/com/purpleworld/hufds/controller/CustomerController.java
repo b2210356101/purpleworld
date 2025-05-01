@@ -1,5 +1,6 @@
 package com.purpleworld.hufds.controller;
 
+import com.purpleworld.hufds.dto.OrderDetailsResponse;
 import com.purpleworld.hufds.dto.request.AddressRequest;
 import com.purpleworld.hufds.service.CustomerService;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +57,7 @@ public class CustomerController {
     }
 
 
+
     @GetMapping("/nearest-restaurants")
     public ResponseEntity<?> getNearestRestaurants(@AuthenticationPrincipal String email) {
         return customerService.getNearestRestaurants(email);
@@ -71,4 +73,34 @@ public class CustomerController {
     public ResponseEntity<?> getIngredients(@AuthenticationPrincipal String email, @PathVariable Long menuItemId) {
         return customerService.getIngredients(menuItemId,email);
     }
+
+    @GetMapping("/orders/current")
+    public ResponseEntity<?> getCurrentOrders(@AuthenticationPrincipal String email) {
+        return customerService.getCurrentCustomerOrders(email);
+    }
+
+
+    @PostMapping("/orders/{orderGroupId}/cancel")
+    public ResponseEntity<?> cancelOrder(@PathVariable Long orderGroupId, @AuthenticationPrincipal String email) {
+        return customerService.cancelOrder(orderGroupId, email);
+    }
+
+    @GetMapping("/order/{orderGroupId}/details")
+    public ResponseEntity<OrderDetailsResponse> getOrderDetails(
+            @PathVariable Long orderGroupId,
+            @AuthenticationPrincipal String email
+    ) {
+        return ResponseEntity.ok(customerService.getOrderDetails(email, orderGroupId));
+    }
+
+    @GetMapping("/restaurants/{restaurantId}")
+    public ResponseEntity<?> getRestaurantDetails(@PathVariable Long restaurantId) {
+        return customerService.getRestaurantById(restaurantId);
+    }
+
+    @GetMapping("/restaurants/{restaurantId}/menu")
+    public ResponseEntity<?> getRestaurantMenu(@PathVariable Long restaurantId) {
+        return customerService.getRestaurantMenu(restaurantId);
+    }
 }
+

@@ -57,6 +57,7 @@ public class CartServiceImpl implements CartService {
                                 CartGroup newGroup = new CartGroup();
                                 newGroup.setCart(cart);
                                 newGroup.setRestaurant(restaurant);
+                                cart.getCartGroups().add(newGroup);
                                 return cartGroupRepository.save(newGroup);
                         });
 
@@ -69,6 +70,7 @@ public class CartServiceImpl implements CartService {
                         CartItem ci = new CartItem();
                         ci.setCartGroup(cartGroup);
                         ci.setMenuItem(menuItem);
+                        cartGroup.getCartItems().add(ci);
                         return ci;
                 });
 
@@ -82,6 +84,10 @@ public class CartServiceImpl implements CartService {
                 // 7) Persist the CartItem
                 cartItemRepository.save(cartItem);
 
+                System.out.println("Cart Groups: " + cart.getCartGroups().size());
+                for (CartGroup group : cart.getCartGroups()) {
+                        System.out.println("Group ID: " + group.getId() + " | Items count: " + (group.getCartItems() != null ? group.getCartItems().size() : 0));
+                }
                 // 8) Calculate totals for response
                 int totalQuantity = cart.getCartGroups().stream()
                         .flatMap(g -> g.getCartItems().stream())

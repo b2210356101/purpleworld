@@ -19,7 +19,6 @@ public class Restaurant {
     @Column(name = "Restaurant_Name", nullable = false, length = 255)
     private String restaurantName;
 
-    @Lob
     @Column(name = "ProfileImg",columnDefinition = "TEXT")
     private String profileImg;
 
@@ -53,6 +52,9 @@ public class Restaurant {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @Column(name = "rating")
+    private Double rating = -1.0;
 
     @PrePersist
     public void setDefaultRole() {

@@ -3,6 +3,8 @@ package com.purpleworld.hufds.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "Coupon")
 @Data
@@ -14,9 +16,21 @@ public class Coupon {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "coupon_limit")
-    private Integer couponLimit;
+    @Column(name = "code", nullable = false, unique = true)
+    private String code;
 
-    @Column(name = "Discount", nullable = false)
-    private Integer discount;
+    @Column(name = "description")
+    private String description;
+
+    @Column(name = "discount_percent", nullable = false)
+    private int discountPercent;
+
+    @Column(name = "min_order_price")
+    private int minOrderPrice;
+
+    @Column(name = "expiry_date")
+    private LocalDate expiryDate;
+
+    @Column(name = "is_active")
+    private boolean isActive = true;
 }

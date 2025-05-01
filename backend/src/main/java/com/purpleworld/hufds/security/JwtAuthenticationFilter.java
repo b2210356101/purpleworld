@@ -1,5 +1,9 @@
 package com.purpleworld.hufds.security;
 
+import com.purpleworld.hufds.enums.AccountStatus;
+import com.purpleworld.hufds.repository.CourierRepository;
+import com.purpleworld.hufds.repository.CustomerRepository;
+import com.purpleworld.hufds.repository.RestaurantRepository;
 import com.purpleworld.hufds.security.JwtService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -23,9 +27,18 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final CustomerRepository customerRepository;
+    private final CourierRepository courierRepository;
+    private final RestaurantRepository restaurantRepository;
 
-    public JwtAuthenticationFilter(JwtService jwtService) {
+    public JwtAuthenticationFilter(JwtService jwtService,
+                                   CustomerRepository customerRepository,
+                                   CourierRepository courierRepository,
+                                   RestaurantRepository restaurantRepository) {
         this.jwtService = jwtService;
+        this.customerRepository = customerRepository;
+        this.courierRepository = courierRepository;
+        this.restaurantRepository = restaurantRepository;
     }
 
     @Override
@@ -41,28 +54,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final String jwt = authHeader.substring(7);
         String username;
+        String role;
 
         try {
             username = jwtService.extractUsername(jwt);
+            role = jwtService.extractClaim(jwt, claims -> claims.get("role", String.class));
         } catch (ExpiredJwtException e) {
             sendErrorResponse(response, "Token has expired");
-            return;
-        } catch (UnsupportedJwtException e) {
-            sendErrorResponse(response, "Unsupported token");
-            return;
-        } catch (MalformedJwtException e) {
-            sendErrorResponse(response, "Malformed token");
-            return;
-        } catch (SignatureException e) {
-            sendErrorResponse(response, "Invalid token signature");
             return;
         } catch (Exception e) {
             sendErrorResponse(response, "Invalid token");
             return;
         }
 
+        // Check user status
+        if (!isAccountValid(username, role)) {
+            sendErrorResponse(response, "Account is not approved or has been banned/rejected");
+            return;
+        }
+
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            String role = jwtService.extractClaim(jwt, claims -> claims.get("role", String.class));
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                     username, null, List.of(new SimpleGrantedAuthority("ROLE_" + role))
             );
@@ -70,6 +81,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isAccountValid(String email, String role) {
+        return switch (role) {
+            case "CUSTOMER" -> customerRepository.findByEmail(email).map(c -> !c.isBanned()).orElse(false);
+            case "COURIER" ->
+                    courierRepository.findByEmail(email).map(c -> c.getStatus() == AccountStatus.APPROVED).orElse(false);
+            case "RESTAURANT" ->
+                    restaurantRepository.findByEmail(email).map(r -> r.getStatus() == AccountStatus.APPROVED).orElse(false);
+            default -> true;
+        };
     }
 
     private void sendErrorResponse(HttpServletResponse response, String message) throws IOException {

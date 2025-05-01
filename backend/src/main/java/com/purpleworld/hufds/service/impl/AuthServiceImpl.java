@@ -4,7 +4,9 @@ import com.purpleworld.hufds.dto.request.*;
 import com.purpleworld.hufds.dto.response.LoginResponse;
 import com.purpleworld.hufds.dto.response.RegisterResponse;
 import com.purpleworld.hufds.entity.*;
+import com.purpleworld.hufds.enums.AccountStatus;
 import com.purpleworld.hufds.enums.Role;
+import com.purpleworld.hufds.exception.LoginException;
 import com.purpleworld.hufds.exception.RegistrationException;
 import com.purpleworld.hufds.repository.*;
 import com.purpleworld.hufds.security.JwtService;
@@ -31,18 +33,11 @@ public class AuthServiceImpl implements AuthService {
     private final CartRepository cartRepository;
 
 
-    private boolean checkEmailUniqueness(String email) {
-        return customerRepository.findByEmail(email).isPresent() ||
-                courierRepository.findByEmail(email).isPresent() ||
-                restaurantRepository.findByEmail(email).isPresent() ||
-                adminRepository.findByEmail(email).isPresent();
-    }
     @Override
     public RegisterResponse registerCustomer(CustomerRegisterRequest request) {
 
-
-        if(checkEmailUniqueness(request.getEmail())){
-            throw new RegistrationException( "A customer with this email already exists");
+        if (isEmailRegistered(request.getEmail())) {
+            throw new RegistrationException("A user with this email already exists!");
         }
 
         Customer customer = new Customer();
@@ -66,9 +61,8 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public RegisterResponse registerCourier(CourierRegisterRequest request) {
 
-
-        if(checkEmailUniqueness(request.getEmail())){
-            throw new RegistrationException( "A courier with this email already exists");
+        if (isEmailRegistered(request.getEmail())) {
+            throw new RegistrationException("A user with this email already exists!");
         }
 
         if (courierRepository.findBySsn(request.getSsn()).isPresent()) {
@@ -92,9 +86,8 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public RegisterResponse registerRestaurant(RestaurantRegisterRequest request) {
 
-
-        if(checkEmailUniqueness(request.getEmail())){
-            throw new RegistrationException( "A restaurant with this email already exists");
+        if (isEmailRegistered(request.getEmail())) {
+            throw new RegistrationException("A user with this email already exists!");
         }
 
         if (restaurantRepository.findByTaxId(request.getTax_Id()).isPresent()) {
@@ -135,6 +128,27 @@ public class AuthServiceImpl implements AuthService {
         return new RegisterResponse("Restaurant registered successfully!", true);
     }
 
+    @Override
+    public boolean isEmailRegistered(String email) {
+        return customerRepository.findByEmail(email).isPresent() ||
+                courierRepository.findByEmail(email).isPresent() ||
+                restaurantRepository.findByEmail(email).isPresent() ||
+                adminRepository.findByEmail(email).isPresent();
+    }
+
+    @Override
+    public boolean isSsnRegistered(String ssn) {
+        return courierRepository.findBySsn(ssn).isPresent();
+    }
+
+    @Override
+    public boolean isTaxIdRegistered(String taxId) {
+        return restaurantRepository.findByTaxId(taxId).isPresent();
+    }
+
+
+
+
 
     @Override
     @Transactional
@@ -144,18 +158,42 @@ public class AuthServiceImpl implements AuthService {
 
         var customer = customerRepository.findByEmail(email);
         if (customer.isPresent() && passwordEncoder.matches(password, customer.get().getPassword())) {
+            if (customer.get().isBanned()) {
+                throw new LoginException("Account Banned", "Your restaurant account has been banned.", 403);
+            }
+
             String token = jwtService.generateToken(email, "CUSTOMER");
             return new LoginResponse(token, "CUSTOMER", customer.get().getFirstName(), null);
         }
 
         var courier = courierRepository.findByEmail(email);
         if (courier.isPresent() && passwordEncoder.matches(password, courier.get().getPassword())) {
+            AccountStatus status = courier.get().getStatus();
+            if (status != AccountStatus.APPROVED) {
+                if (status == AccountStatus.PENDING) {
+                    throw new LoginException("Account Pending", "Your courier account is pending approval.", 403);
+                } else if (status == AccountStatus.REJECTED) {
+                    throw new LoginException("Account Rejected", "Your courier account has been rejected.", 403);
+                } else if (status == AccountStatus.BANNED) {
+                    throw new LoginException("Account Banned", "Your courier account has been banned.", 403);
+                }
+            }
             String token = jwtService.generateToken(email, "COURIER");
             return new LoginResponse(token, "COURIER", courier.get().getFirstName(), null);
         }
 
         var restaurant = restaurantRepository.findByEmail(email);
         if (restaurant.isPresent() && passwordEncoder.matches(password, restaurant.get().getPassword())) {
+            AccountStatus status = restaurant.get().getStatus();
+            if (status != AccountStatus.APPROVED) {
+                if (status == AccountStatus.PENDING) {
+                    throw new LoginException("Account Pending", "Your restaurant account is pending approval.", 403);
+                } else if (status == AccountStatus.REJECTED) {
+                    throw new LoginException("Account Rejected", "Your restaurant account has been rejected.", 403);
+                } else if (status == AccountStatus.BANNED) {
+                    throw new LoginException("Account Banned", "Your restaurant account has been banned.", 403);
+                }
+            }
             String token = jwtService.generateToken(email, "RESTAURANT");
             return new LoginResponse(token, "RESTAURANT", restaurant.get().getRestaurantName(), restaurant.get().getProfileImg());
         }
