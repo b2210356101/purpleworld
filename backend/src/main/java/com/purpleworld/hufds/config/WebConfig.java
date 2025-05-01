@@ -12,6 +12,8 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOrigins("https://purpleworld.tr", "http://purpleworld.tr")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
-                .allowCredentials(true);
+                .exposedHeaders("Authorization") // Important for CORS to allow the client to read the Authorization header
+                .allowCredentials(true)
+                .maxAge(3600); // Cache preflight requests for 1 hour
     }
 }
