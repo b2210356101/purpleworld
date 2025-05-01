@@ -10,24 +10,22 @@ import {
     MenuResponse, PlaceOrderRequest, PlaceOrderResponse,
     Restaurant, TrackingInfoResponseDTO, OrderGroupDTO,
     RestaurantResponseForAdmin, CourierResponseForAdmin,
-    OrderItemDTO, CustomerOrderSummaryDTO, OrderDetailsData, OrderDetails, Stat,
+    CustomerOrderSummaryDTO, OrderDetails, Stat,
     CourierOrder,
     CourierStats, AdminStats,
 } from '../types';
 
 const API_URL = 'https://purpleworld-production.up.railway.app';
 
-// ai-gen start (claude 3.7)
 /**
  * Creates an axios instance with authentication and error handling
  */
 const createAxiosInstance = () => {
     const instance = axios.create({
         baseURL: API_URL,
-        withCredentials: false, 
+        withCredentials: false, // CORS sorunlarını önlemek için false
         headers: {
             'Content-Type': 'application/json',
-            'Referrer-Policy': 'strict-origin-when-cross-origin'
         },
     });
 
@@ -59,7 +57,6 @@ const createAxiosInstance = () => {
 
     return instance;
 };
-// ai-gen end
 
 const api = createAxiosInstance();
 
@@ -69,23 +66,25 @@ interface BackendErrorResponse {
     status?: number;
 }
 
+// Auth Services
 export const loginUser = async (email: string, password: string) => {
     try {
-        const response = await api.post('/auth/login', { email, password });
+        const response = await axios.post(`${API_URL}/auth/login`, { email, password }, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
         return response.data;
     } catch (error) {
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;
         }
-
         throw error;
     }
 };
 
-// Registration
-
-// Courier
+// Registration Services
 export const registerCourier = async (formData: {
     first_Name: string;
     last_Name: string;
@@ -94,11 +93,22 @@ export const registerCourier = async (formData: {
     phone_Number: string;
     password: string;
 }) => {
-    const response = await api.post('/auth/register/courier', formData);
-    return response.data;
+    try {
+        const response = await axios.post(`${API_URL}/auth/register/courier`, formData, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        if (error instanceof AxiosError && error.response) {
+            const errData = error.response.data as BackendErrorResponse;
+            throw errData;
+        }
+        throw error;
+    }
 };
 
-// Customer
 export const registerCustomer = async (formData: {
     first_Name: string;
     last_Name: string;
@@ -106,11 +116,22 @@ export const registerCustomer = async (formData: {
     email: string;
     password: string;
 }) => {
-    const response = await api.post('/auth/register/customer', formData);
-    return response.data;
+    try {
+        const response = await axios.post(`${API_URL}/auth/register/customer`, formData, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        if (error instanceof AxiosError && error.response) {
+            const errData = error.response.data as BackendErrorResponse;
+            throw errData;
+        }
+        throw error;
+    }
 };
 
-// Restaurant
 export const registerRestaurant = async (formData: {
     name: string;
     email: string;
@@ -126,20 +147,39 @@ export const registerRestaurant = async (formData: {
     buildingNumber: string;
     apartmentNumber: string;
 }) => {
-    const dataToSend = {
-        ...formData,
-        profile_image: formData.profile_image || '',
-    };
-    const response = await api.post('/auth/register/restaurant', dataToSend);
-    return response.data;
+    try {
+        const dataToSend = {
+            ...formData,
+            profile_image: formData.profile_image || '',
+        };
+        const response = await axios.post(`${API_URL}/auth/register/restaurant`, dataToSend, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        if (error instanceof AxiosError && error.response) {
+            const errData = error.response.data as BackendErrorResponse;
+            throw errData;
+        }
+        throw error;
+    }
 };
 
 // Address Services
 export const getCustomerAddresses = async () => {
     try {
-        const response = await api.get('/customer/addresses');
+        const token = getToken();
+        const response = await axios.get(`${API_URL}/customer/addresses`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
         return response.data;
     } catch (error) {
+        console.error('Error fetching addresses:', error);
         throw error;
     }
 };
@@ -163,19 +203,32 @@ export const saveAddress = async (address: Omit<Address, 'id'>, location: { lat:
             longitude: location?.lng || address.longitude
         };
 
-        // Make the API call
-        const response = await api.post('/customer/address', requestData);
+        const token = getToken();
+        const response = await axios.post(`${API_URL}/customer/address`, requestData, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
         return response.data;
     } catch (error) {
+        console.error('Error saving address:', error);
         throw error;
     }
 };
 
 export const setCurrentAddress = async (addressId: number) => {
     try {
-        await api.post(`/customer/set-current-address?addressId=${addressId}`);
+        const token = getToken();
+        await axios.post(`${API_URL}/customer/set-current-address?addressId=${addressId}`, null, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
         return true;
     } catch (error) {
+        console.error('Error setting current address:', error);
         throw error;
     }
 };
@@ -197,8 +250,13 @@ export const updateAddress = async (
             longitude: location?.lng
         };
 
-        // Make the API call
-        const response = await api.put(`/customer/address?addressId=${address.addressId}`, requestBody);
+        const token = getToken();
+        const response = await axios.put(`${API_URL}/customer/address?addressId=${address.addressId}`, requestBody, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
 
         if (!response.data) {
             throw new Error('Failed to update address');
@@ -211,7 +269,13 @@ export const updateAddress = async (
 
 export const deleteAddress = async (addressId: number): Promise<void> => {
     try {
-        await api.delete(`/customer/address?addressId=${addressId}`);
+        const token = getToken();
+        await axios.delete(`${API_URL}/customer/address?addressId=${addressId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
     } catch (error) {
         console.error('Failed to delete address:', error);
         throw error;
@@ -220,7 +284,13 @@ export const deleteAddress = async (addressId: number): Promise<void> => {
 
 export const getCurrentAddress = async (): Promise<CurrentAddress | null> => {
     try {
-        const response = await api.get('/customer/current-address');
+        const token = getToken();
+        const response = await axios.get(`${API_URL}/customer/current-address`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
         return response.data;
     } catch (error) {
         if (error instanceof AxiosError && error.response) {
@@ -233,86 +303,221 @@ export const getCurrentAddress = async (): Promise<CurrentAddress | null> => {
 
             throw errData;
         }
-
         throw error;
     }
-
 };
-
 
 // Restaurant and Menu Services
 export const getNearestRestaurants = async (): Promise<Restaurant[]> => {
-    const response = await api.get('/customer/nearest-restaurants');
-    return response.data;
+    try {
+        const token = getToken();
+        const response = await axios.get(`${API_URL}/customer/nearest-restaurants`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching nearest restaurants:', error);
+        throw error;
+    }
 };
 
 export const getPopularMenuItems = async (): Promise<MenuItem[]> => {
-    const response = await api.get('/customer/popular-foods');
-    return response.data;
+    try {
+        const token = getToken();
+        const response = await axios.get(`${API_URL}/customer/popular-foods`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching popular menu items:', error);
+        throw error;
+    }
 };
 
 export const getIngredients = async (menuItemId: number): Promise<Ingredient[]> => {
-    const response = await api.get(`/customer/${menuItemId}/ingredients`);
-    return response.data;
+    try {
+        const token = getToken();
+        const response = await axios.get(`${API_URL}/customer/${menuItemId}/ingredients`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching ingredients:', error);
+        throw error;
+    }
 };
 
 export const getRestaurantDetails = async (restaurantId: number): Promise<Restaurant> => {
-    const response = await api.get(`/customer/restaurants/${restaurantId}`);
-    return response.data;
+    try {
+        const token = getToken();
+        const response = await axios.get(`${API_URL}/customer/restaurants/${restaurantId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching restaurant details:', error);
+        throw error;
+    }
 };
 
 export const getRestaurantMenuForCustomer = async (restaurantId: number): Promise<MenuResponse> => {
-    const response = await api.get(`/customer/restaurants/${restaurantId}/menu`);
-    return response.data;
+    try {
+        const token = getToken();
+        const response = await axios.get(`${API_URL}/customer/restaurants/${restaurantId}/menu`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching restaurant menu:', error);
+        throw error;
+    }
 };
 
 // Cart Services
 export const addToCart = async (req: AddToCartRequest): Promise<AddToCartResponse> => {
-    const response = await api.post('/customer/cart/add', req);
-    return response.data;
+    try {
+        const token = getToken();
+        const response = await axios.post(`${API_URL}/customer/cart/add`, req, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error adding to cart:', error);
+        throw error;
+    }
 };
 
 export const viewCart = async () => {
-    const response = await api.get('/customer/cart/view');
-    return response.data;
+    try {
+        const token = getToken();
+        const response = await axios.get(`${API_URL}/customer/cart/view`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error viewing cart:', error);
+        throw error;
+    }
 };
 
 export const updateCartGroupNote = async (groupId: number, note: string) => {
-    const response = await api.put(`/customer/cart/group/${groupId}/note`, { note });
-    return response.data;
+    try {
+        const token = getToken();
+        const response = await axios.put(`${API_URL}/customer/cart/group/${groupId}/note`, { note }, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error updating cart note:', error);
+        throw error;
+    }
 };
 
 export const updateItemQuantity = async (itemId: number, operation: string) => {
-    const response = await api.put('/customer/cart/item', { operation, itemId });
-    return response.data;
+    try {
+        const token = getToken();
+        const response = await axios.put(`${API_URL}/customer/cart/item`, { operation, itemId }, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error updating item quantity:', error);
+        throw error;
+    }
 };
 
 export const removeItemFromCart = async (itemId: number) => {
-    const response = await api.delete(`/customer/cart/item/${itemId}`);
-    return response.data;
+    try {
+        const token = getToken();
+        const response = await axios.delete(`${API_URL}/customer/cart/item/${itemId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error removing item from cart:', error);
+        throw error;
+    }
 };
 
 // Menu Management Services
-
-// Fetches the restaurant's menu information
 export const getRestaurantMenu = async (): Promise<MenuResponse> => {
-    const response = await api.get('/restaurant/menu');
-    return response.data;
+    try {
+        const token = getToken();
+        const response = await axios.get(`${API_URL}/restaurant/menu`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching restaurant menu:', error);
+        throw error;
+    }
 };
 
-// Adds a new category to the restaurant's menu
 export const addMenuCategory = async (categoryName: string) => {
-    const response = await api.post('/restaurant/menu/categories', { name: categoryName });
-    return response.data;
+    try {
+        const token = getToken();
+        const response = await axios.post(`${API_URL}/restaurant/menu/categories`, { name: categoryName }, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error adding menu category:', error);
+        throw error;
+    }
 };
 
-// Deletes a category from the restaurant's menu
 export const deleteMenuCategory = async (categoryId: number) => {
-    const response = await api.delete(`/restaurant/menu/categories/${categoryId}`);
-    return response.data;
+    try {
+        const token = getToken();
+        const response = await axios.delete(`${API_URL}/restaurant/menu/categories/${categoryId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error deleting menu category:', error);
+        throw error;
+    }
 };
 
-// Adds a new menu item to a specific category
 export const addMenuItem = async (categoryId: number, menuItem: {
     name: string;
     price: number;
@@ -320,11 +525,21 @@ export const addMenuItem = async (categoryId: number, menuItem: {
     img?: string;
     removableElements?: string;
 }) => {
-    const response = await api.post(`/restaurant/menu/categories/${categoryId}/items`, menuItem);
-    return response.data;
+    try {
+        const token = getToken();
+        const response = await axios.post(`${API_URL}/restaurant/menu/categories/${categoryId}/items`, menuItem, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error adding menu item:', error);
+        throw error;
+    }
 };
 
-// Updates an existing menu item
 export const updateMenuItem = async (itemId: number, menuItem: {
     name: string;
     price: number;
@@ -332,77 +547,162 @@ export const updateMenuItem = async (itemId: number, menuItem: {
     img?: string;
     removableElements?: string;
 }) => {
-    const response = await api.put(`/restaurant/menu/items/${itemId}`, menuItem);
-    return response.data;
+    try {
+        const token = getToken();
+        const response = await axios.put(`${API_URL}/restaurant/menu/items/${itemId}`, menuItem, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error updating menu item:', error);
+        throw error;
+    }
 };
 
-//Deletes a menu item
 export const deleteMenuItem = async (itemId: number) => {
-    const response = await api.delete(`/restaurant/menu/items/${itemId}`);
-    return response.data;
+    try {
+        const token = getToken();
+        const response = await axios.delete(`${API_URL}/restaurant/menu/items/${itemId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error deleting menu item:', error);
+        throw error;
+    }
 };
 
-//Adds a removable element to a menu item
 export const addRemovableElement = async (menuItemId: number, elementName: string) => {
-    const response = await api.post(`/restaurant/menu/menu-items/${menuItemId}/removable-elements`, {
-        name: elementName
-    });
-    return response.data;
+    try {
+        const token = getToken();
+        const response = await axios.post(`${API_URL}/restaurant/menu/menu-items/${menuItemId}/removable-elements`, {
+            name: elementName
+        }, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error adding removable element:', error);
+        throw error;
+    }
 };
 
-// Deletes a removable element
 export const deleteRemovableElement = async (elementId: number) => {
-    const response = await api.delete(`/restaurant/menu/removable-elements/${elementId}`);
-    return response.data;
+    try {
+        const token = getToken();
+        const response = await axios.delete(`${API_URL}/restaurant/menu/removable-elements/${elementId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error deleting removable element:', error);
+        throw error;
+    }
 };
 
-
+// Verification Services
 export const sendVerificationCode = async (email: string): Promise<void> => {
     try {
-        await api.post('/verification/send-code', { email });
+        await axios.post(`${API_URL}/verification/send-code`, { email }, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
     } catch (error) {
         console.error("Error sending verification code:", error);
         throw error;
     }
 };
 
-// Verify email code before registration
 export const verifyEmailCode = async (email: string, code: string): Promise<boolean> => {
     try {
-        const response = await api.post('/verification/verify-code', { email, code });
+        const response = await axios.post(`${API_URL}/verification/verify-code`, { email, code }, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
         return response.status === 200;
     } catch (error) {
         console.error("Email verification failed:", error);
         return false;
     }
 };
+
+// Check Existence Services
 export const checkEmailExists = async (email: string): Promise<boolean> => {
-    const response = await api.get(`/auth/check-email?email=${email}`);
-    return response.data;
+    try {
+        const response = await axios.get(`${API_URL}/auth/check-email?email=${email}`, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error checking email:', error);
+        throw error;
+    }
 };
 
 export const checkSsnExists = async (ssn: string): Promise<boolean> => {
-    const response = await api.get(`/auth/check-ssn?ssn=${ssn}`);
-    return response.data;
+    try {
+        const response = await axios.get(`${API_URL}/auth/check-ssn?ssn=${ssn}`, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error checking SSN:', error);
+        throw error;
+    }
 };
 
 export const checkTaxIdExists = async (taxId: string): Promise<boolean> => {
-    const response = await api.get(`/auth/check-tax-id?taxId=${taxId}`);
-    return response.data;
+    try {
+        const response = await axios.get(`${API_URL}/auth/check-tax-id?taxId=${taxId}`, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error checking tax ID:', error);
+        throw error;
+    }
 };
 
-
-
+// Order Services
 export const placeOrder = async (
     request: PlaceOrderRequest
 ): Promise<PlaceOrderResponse> => {
-    const resp = await api.post<PlaceOrderResponse>(
-        "/customer/order/place",
-        request
-    );
-    return resp.data;
+    try {
+        const token = getToken();
+        const response = await axios.post(`${API_URL}/customer/order/place`, request, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error placing order:', error);
+        throw error;
+    }
 };
 
+// Tracking Services
 export const startTracking = async (
     orderId: number,
     originLat: number,
@@ -410,28 +710,68 @@ export const startTracking = async (
     destLat: number,
     destLng: number
 ): Promise<string> => {
-    const response = await api.post(`/tracking/start`, null, {
-        params: { orderId, originLat, originLng, destLat, destLng }
-    });
-    return response.data;
+    try {
+        const token = getToken();
+        const response = await axios.post(`${API_URL}/tracking/start`, null, {
+            params: { orderId, originLat, originLng, destLat, destLng },
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error starting tracking:', error);
+        throw error;
+    }
 };
 
 export const getNextLocation = async (orderId: number): Promise<TrackingInfoResponseDTO> => {
-    const response = await api.get(`/tracking/next?orderId=${orderId}`);
-    return response.data;
-};
-export const getFullRoute = async (orderId: number) => {
-    const response = await api.get(`/tracking/full-route`, {
-        params: { orderId }
-    });
-    return response.data;
-};
-
-export const getRestaurantOrders = async (): Promise<OrderGroupDTO[]> => {
     try {
-        const response = await api.get('/restaurant/orders');
+        const token = getToken();
+        const response = await axios.get(`${API_URL}/tracking/next?orderId=${orderId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
         return response.data;
     } catch (error) {
+        console.error('Error getting next location:', error);
+        throw error;
+    }
+};
+
+export const getFullRoute = async (orderId: number) => {
+    try {
+        const token = getToken();
+        const response = await axios.get(`${API_URL}/tracking/full-route`, {
+            params: { orderId },
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error getting full route:', error);
+        throw error;
+    }
+};
+
+// Restaurant Order Services
+export const getRestaurantOrders = async (): Promise<OrderGroupDTO[]> => {
+    try {
+        const token = getToken();
+        const response = await axios.get(`${API_URL}/restaurant/orders`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error getting restaurant orders:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;
@@ -440,12 +780,18 @@ export const getRestaurantOrders = async (): Promise<OrderGroupDTO[]> => {
     }
 };
 
-
 export const getActiveOrdersForRestaurant = async (): Promise<OrderGroupDTO[]> => {
     try {
-        const response = await api.get('/restaurant/orders/active');
+        const token = getToken();
+        const response = await axios.get(`${API_URL}/restaurant/orders/active`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
         return response.data;
     } catch (error) {
+        console.error('Error getting active orders for restaurant:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;
@@ -456,8 +802,15 @@ export const getActiveOrdersForRestaurant = async (): Promise<OrderGroupDTO[]> =
 
 export const acceptOrder = async (orderGroupId: number): Promise<void> => {
     try {
-        await api.post(`/restaurant/orders/${orderGroupId}/accept`);
+        const token = getToken();
+        await axios.post(`${API_URL}/restaurant/orders/${orderGroupId}/accept`, null, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
     } catch (error) {
+        console.error('Error accepting order:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;
@@ -468,8 +821,15 @@ export const acceptOrder = async (orderGroupId: number): Promise<void> => {
 
 export const rejectOrder = async (orderGroupId: number): Promise<void> => {
     try {
-        await api.post(`/restaurant/orders/${orderGroupId}/reject`);
+        const token = getToken();
+        await axios.post(`${API_URL}/restaurant/orders/${orderGroupId}/reject`, null, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
     } catch (error) {
+        console.error('Error rejecting order:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;
@@ -480,8 +840,15 @@ export const rejectOrder = async (orderGroupId: number): Promise<void> => {
 
 export const markOrderAsPrepared = async (orderGroupId: number): Promise<void> => {
     try {
-        await api.post(`/restaurant/orders/${orderGroupId}/prepared`);
+        const token = getToken();
+        await axios.post(`${API_URL}/restaurant/orders/${orderGroupId}/prepared`, null, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
     } catch (error) {
+        console.error('Error marking order as prepared:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;
@@ -492,9 +859,16 @@ export const markOrderAsPrepared = async (orderGroupId: number): Promise<void> =
 
 export const getCustomerOrderHistory = async () => {
     try {
-        const response = await api.get('/customer/order/history');
+        const token = getToken();
+        const response = await axios.get(`${API_URL}/customer/order/history`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
         return response.data;
     } catch (error) {
+        console.error('Error getting customer order history:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;
@@ -503,12 +877,19 @@ export const getCustomerOrderHistory = async () => {
     }
 };
 
-// Admin restaurant management API
+// Admin Services
 export const getAllRestaurants = async (): Promise<RestaurantResponseForAdmin[]> => {
     try {
-        const response = await api.get('/admin/restaurants');
+        const token = getToken();
+        const response = await axios.get(`${API_URL}/admin/restaurants`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
         return response.data;
     } catch (error) {
+        console.error('Error getting all restaurants:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;
@@ -516,15 +897,34 @@ export const getAllRestaurants = async (): Promise<RestaurantResponseForAdmin[]>
         throw error;
     }
 };
+
 export const getCurrentOrders = async (): Promise<CustomerOrderSummaryDTO[]> => {
-    const response = await api.get("/customer/orders/current");
-    return response.data;
+    try {
+        const token = getToken();
+        const response = await axios.get(`${API_URL}/customer/orders/current`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error getting current orders:', error);
+        throw error;
+    }
 };
 
 export const cancelOrder = async (orderGroupId: number): Promise<void> => {
     try {
-        await api.post(`/customer/orders/${orderGroupId}/cancel`);
+        const token = getToken();
+        await axios.post(`${API_URL}/customer/orders/${orderGroupId}/cancel`, null, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
     } catch (error) {
+        console.error('Error canceling order:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as { error: string; message: string };
             throw errData;
@@ -534,21 +934,50 @@ export const cancelOrder = async (orderGroupId: number): Promise<void> => {
 };
 
 export const getOrderDetails = async (orderGroupId: number): Promise<OrderDetails> => {
-    const response = await api.get(`/customer/order/${orderGroupId}/details`);
-    return response.data;
+    try {
+        const token = getToken();
+        const response = await axios.get(`${API_URL}/customer/order/${orderGroupId}/details`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error getting order details:', error);
+        throw error;
+    }
 };
 
 export const getRestaurantStats = async (): Promise<Stat[]> => {
-    const response = await api.get(`/restaurant/orders/stats`);
-    return response.data;
+    try {
+        const token = getToken();
+        const response = await axios.get(`${API_URL}/restaurant/orders/stats`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error getting restaurant stats:', error);
+        throw error;
+    }
 };
 
-// Get assigned orders for courier
+// Courier Services
 export const getCourierOrders = async (): Promise<CourierOrder[]> => {
     try {
-        const response = await api.get('/courier/orders');
+        const token = getToken();
+        const response = await axios.get(`${API_URL}/courier/orders`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
         return response.data;
     } catch (error) {
+        console.error('Error getting courier orders:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;
@@ -557,12 +986,17 @@ export const getCourierOrders = async (): Promise<CourierOrder[]> => {
     }
 };
 
-
-// Mark order as picked up
 export const markOrderAsPickedUp = async (orderGroupId: number): Promise<void> => {
     try {
-        await api.post(`/courier/orders/${orderGroupId}/picked-up`);
+        const token = getToken();
+        await axios.post(`${API_URL}/courier/orders/${orderGroupId}/picked-up`, null, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
     } catch (error) {
+        console.error('Error marking order as picked up:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;
@@ -571,12 +1005,18 @@ export const markOrderAsPickedUp = async (orderGroupId: number): Promise<void> =
     }
 };
 
-// Get courier statistics
 export const getCourierStats = async (): Promise<CourierStats> => {
     try {
-        const response = await api.get('/courier/stats');
+        const token = getToken();
+        const response = await axios.get(`${API_URL}/courier/stats`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
         return response.data;
     } catch (error) {
+        console.error('Error getting courier stats:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;
@@ -585,11 +1025,17 @@ export const getCourierStats = async (): Promise<CourierStats> => {
     }
 };
 
-// Update courier availability status
 export const updateCourierAvailability = async (): Promise<void> => {
     try {
-        await api.post('/courier/availability');
+        const token = getToken();
+        await axios.post(`${API_URL}/courier/availability`, null, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
     } catch (error) {
+        console.error('Error updating courier availability:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;
@@ -598,11 +1044,17 @@ export const updateCourierAvailability = async (): Promise<void> => {
     }
 };
 
-// Courier delivered
 export const deliveredOrder = async (orderGroupId: number): Promise<void> => {
     try {
-        await api.post(`/courier/orders/${orderGroupId}/delivered`);
+        const token = getToken();
+        await axios.post(`${API_URL}/courier/orders/${orderGroupId}/delivered`, null, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
     } catch (error) {
+        console.error('Error marking order as delivered:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;
@@ -611,10 +1063,18 @@ export const deliveredOrder = async (orderGroupId: number): Promise<void> => {
     }
 };
 
+// Admin Restaurant Management
 export const approveRestaurant = async (restaurantId: number): Promise<void> => {
     try {
-        await api.post(`/admin/restaurant/approve/${restaurantId}`);
+        const token = getToken();
+        await axios.post(`${API_URL}/admin/restaurant/approve/${restaurantId}`, null, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
     } catch (error) {
+        console.error('Error approving restaurant:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;
@@ -625,8 +1085,15 @@ export const approveRestaurant = async (restaurantId: number): Promise<void> => 
 
 export const rejectRestaurant = async (restaurantId: number): Promise<void> => {
     try {
-        await api.post(`/admin/restaurant/reject/${restaurantId}`);
+        const token = getToken();
+        await axios.post(`${API_URL}/admin/restaurant/reject/${restaurantId}`, null, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
     } catch (error) {
+        console.error('Error rejecting restaurant:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;
@@ -637,8 +1104,15 @@ export const rejectRestaurant = async (restaurantId: number): Promise<void> => {
 
 export const banRestaurant = async (restaurantId: number): Promise<void> => {
     try {
-        await api.post(`/admin/restaurant/ban/${restaurantId}`);
+        const token = getToken();
+        await axios.post(`${API_URL}/admin/restaurant/ban/${restaurantId}`, null, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
     } catch (error) {
+        console.error('Error banning restaurant:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;
@@ -649,8 +1123,15 @@ export const banRestaurant = async (restaurantId: number): Promise<void> => {
 
 export const unbanRestaurant = async (restaurantId: number): Promise<void> => {
     try {
-        await api.post(`/admin/restaurant/unban/${restaurantId}`);
+        const token = getToken();
+        await axios.post(`${API_URL}/admin/restaurant/unban/${restaurantId}`, null, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
     } catch (error) {
+        console.error('Error unbanning restaurant:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;
@@ -659,13 +1140,19 @@ export const unbanRestaurant = async (restaurantId: number): Promise<void> => {
     }
 };
 
-
-// Courier management API functions
+// Courier Management API functions
 export const getAllCouriers = async (): Promise<CourierResponseForAdmin[]> => {
     try {
-        const response = await api.get('/admin/couriers');
+        const token = getToken();
+        const response = await axios.get(`${API_URL}/admin/couriers`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
         return response.data;
     } catch (error) {
+        console.error('Error getting all couriers:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;
@@ -676,8 +1163,15 @@ export const getAllCouriers = async (): Promise<CourierResponseForAdmin[]> => {
 
 export const approveCourier = async (courierId: number): Promise<void> => {
     try {
-        await api.post(`/admin/courier/approve/${courierId}`);
+        const token = getToken();
+        await axios.post(`${API_URL}/admin/courier/approve/${courierId}`, null, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
     } catch (error) {
+        console.error('Error approving courier:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;
@@ -688,8 +1182,15 @@ export const approveCourier = async (courierId: number): Promise<void> => {
 
 export const rejectCourier = async (courierId: number): Promise<void> => {
     try {
-        await api.post(`/admin/courier/reject/${courierId}`);
+        const token = getToken();
+        await axios.post(`${API_URL}/admin/courier/reject/${courierId}`, null, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
     } catch (error) {
+        console.error('Error rejecting courier:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;
@@ -700,8 +1201,15 @@ export const rejectCourier = async (courierId: number): Promise<void> => {
 
 export const banCourier = async (courierId: number): Promise<void> => {
     try {
-        await api.post(`/admin/courier/ban/${courierId}`);
+        const token = getToken();
+        await axios.post(`${API_URL}/admin/courier/ban/${courierId}`, null, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
     } catch (error) {
+        console.error('Error banning courier:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;
@@ -712,8 +1220,15 @@ export const banCourier = async (courierId: number): Promise<void> => {
 
 export const unbanCourier = async (courierId: number): Promise<void> => {
     try {
-        await api.post(`/admin/courier/unban/${courierId}`);
+        const token = getToken();
+        await axios.post(`${API_URL}/admin/courier/unban/${courierId}`, null, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
     } catch (error) {
+        console.error('Error unbanning courier:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;
@@ -724,9 +1239,16 @@ export const unbanCourier = async (courierId: number): Promise<void> => {
 
 export const getAdminStats = async (): Promise<AdminStats> => {
     try {
-        const response = await api.get('/admin/stats');
+        const token = getToken();
+        const response = await axios.get(`${API_URL}/admin/stats`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
         return response.data;
     } catch (error) {
+        console.error('Error getting admin stats:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;
@@ -735,4 +1257,4 @@ export const getAdminStats = async (): Promise<AdminStats> => {
     }
 };
 
-export default api;
+export default axios;
