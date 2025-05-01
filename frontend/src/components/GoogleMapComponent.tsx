@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { GoogleMap, Marker, useJsApiLoader, Polyline } from "@react-google-maps/api";
-import { getNextLocation, getFullRoute } from "../utils/api"; // importlarına dikkat et
+import { getNextLocation, getFullRoute } from "../utils/api";
 import RestaurantMarker from "../assets/restaurant-location.png";
+import {Box, CircularProgress, Typography} from "@mui/material";
 
 const containerStyle = {
     width: "100%",
@@ -12,12 +13,13 @@ const GoogleMapComponent = ({ orderId }: { orderId: number }) => {
     const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
     const [polyline, setPolyline] = useState<{ lat: number; lng: number }[]>([]);
     const [route, setRoute] = useState<{ lat: number; lng: number }[]>([]);
-    const [completed, setCompleted] = useState(false);
+    const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | undefined>();
 
     const { isLoaded } = useJsApiLoader({
         googleMapsApiKey: "AIzaSyBkEQfPxLwjzhWwPshlQAdIuWTHlk80Vls"
     });
 
+    // Fetch full route once
     useEffect(() => {
         const fetchRoute = async () => {
             try {
@@ -30,36 +32,37 @@ const GoogleMapComponent = ({ orderId }: { orderId: number }) => {
         fetchRoute();
     }, [orderId]);
 
-    // Kurye ilerledikçe nokta al
+    // Periodically fetch next courier location
     useEffect(() => {
         const interval = setInterval(async () => {
             try {
                 const res = await getNextLocation(orderId);
                 const { lat, lng, completed } = res;
-                setPosition({ lat, lng });
-                setCompleted(completed);
-                setPolyline(prev => [...prev, { lat, lng }]);
+                const newPosition = { lat, lng };
 
-                if (completed) {
-                    clearInterval(interval);
+                setPosition(newPosition);
+                setPolyline(prev => [...prev, newPosition]);
+
+                if (!mapCenter) {
+                    setMapCenter(newPosition);
                 }
+
+                if (completed) clearInterval(interval);
             } catch (err) {
                 console.error("Next location fetch error", err);
             }
         }, 3000);
 
         return () => clearInterval(interval);
-    }, [orderId]);
+    }, [orderId, mapCenter]);
 
-    return isLoaded ? (
+    return isLoaded && mapCenter ? (
         <GoogleMap
             mapContainerStyle={containerStyle}
-            center={position || route[0]}
+            center={mapCenter}
             zoom={15}
         >
-
             <Polyline path={route} options={{ strokeColor: "#00BFFF", strokeWeight: 4 }} />
-
             <Polyline path={polyline} options={{ strokeColor: "#FF0000", strokeWeight: 2 }} />
 
             {position && (
@@ -73,7 +76,25 @@ const GoogleMapComponent = ({ orderId }: { orderId: number }) => {
             )}
         </GoogleMap>
     ) : (
-        <div>Loading map...</div>
+        <Box
+            sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "400px",
+                flexDirection: "column",
+                textAlign: "center",
+            }}
+        >
+            <CircularProgress color="primary" />
+            <Typography
+                variant="subtitle1"
+                color="primary"
+                sx={{ mt: 2, fontWeight: 500 }}
+            >
+                Loading map...
+            </Typography>
+        </Box>
     );
 };
 

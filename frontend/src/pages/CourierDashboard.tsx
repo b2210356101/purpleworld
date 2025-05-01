@@ -262,7 +262,7 @@ const CourierDashboard = () => {
                                         sx={{ color: 'primary.main', bgcolor: "primary.light" }}
                                         component="a"
                                         disabled={activeOrder.status === "READY_FOR_PICKUP"}
-                                        href={`tel:${activeOrder.customerPhone}`}
+                                        href={`tel:0${activeOrder.customerPhone}`}
                                     >
                                         Call Customer
                                     </Button>
