@@ -24,6 +24,7 @@ const API_URL = 'https://purpleworld-production.up.railway.app';
 const createAxiosInstance = () => {
     const instance = axios.create({
         baseURL: API_URL,
+        withCredentials: false, 
         headers: {
             'Content-Type': 'application/json',
             'Referrer-Policy': 'strict-origin-when-cross-origin'
