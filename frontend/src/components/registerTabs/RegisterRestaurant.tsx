@@ -2,6 +2,11 @@ import {
   Box,
   Button,
   Checkbox,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
   FormControlLabel,
   FormLabel,
@@ -15,7 +20,14 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
-import { registerRestaurant } from "../../utils/api";
+import {
+  checkEmailExists,
+  checkTaxIdExists,
+  registerCustomer,
+  registerRestaurant,
+  sendVerificationCode,
+  verifyEmailCode,
+} from "../../utils/api";
 import MyLocationIcon from "@mui/icons-material/MyLocation";
 
 // Track if the script has been loaded to prevent multiple loads
@@ -36,7 +48,7 @@ const RegisterRestaurant = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
-      null
+    null
   );
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [profileImage, setProfileImage] = useState<File | null>(null);
@@ -64,7 +76,7 @@ const RegisterRestaurant = () => {
   const [managerPhoneErrorMsg, setManagerPhoneErrorMsg] = useState("");
   const [restaurantNameErrorMsg, setRestaurantNameErrorMsg] = useState("");
   const [restaurantAddressErrorMsg, setRestaurantAddressErrorMsg] =
-      useState("");
+    useState("");
   const [taxIdErrorMsg, setTaxIdErrorMsg] = useState("");
   const [buildingNumberErrorMsg, setBuildingNumberErrorMsg] = useState("");
   const [apartmentNumberErrorMsg, setApartmentNumberErrorMsg] = useState("");
@@ -72,6 +84,18 @@ const RegisterRestaurant = () => {
   const [passwordErrorMsg, setPasswordErrorMsg] = useState("");
   const [confirmPasswordErrorMsg, setConfirmPasswordErrorMsg] = useState("");
   const [locationErrorMsg, setLocationErrorMsg] = useState("");
+
+  const [showVerificationDialog, setShowVerificationDialog] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [verificationError, setVerificationError] = useState("");
+  const [isSendingCode, setIsSendingCode] = useState(false);
+  const [formData, setFormData] = useState<any>(null);
+
+  const [codeDigits, setCodeDigits] = useState(Array(6).fill(""));
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  inputRefs.current = Array(6)
+    .fill(null)
+    .map((_, i) => inputRefs.current[i] || null);
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   // ai-gen
@@ -140,32 +164,32 @@ const RegisterRestaurant = () => {
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const currentLocation = {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-            };
+        (position) => {
+          const currentLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
 
-            // Update location state
-            setLocation(currentLocation);
+          // Update location state
+          setLocation(currentLocation);
 
-            // Clear any location errors
-            setLocationError(false);
-            setLocationErrorMsg("");
+          // Clear any location errors
+          setLocationError(false);
+          setLocationErrorMsg("");
 
-            // Update map and place marker
-            if (mapObject) {
-              mapObject.setCenter(currentLocation);
-              mapObject.setZoom(15); // Closer zoom for precision
-            }
-          },
-          (error) => {
-            console.error("Error getting location:", error);
-            setLocationError(true);
-            setLocationErrorMsg(
-                "Unable to get your current location. Please enable location services."
-            );
+          // Update map and place marker
+          if (mapObject) {
+            mapObject.setCenter(currentLocation);
+            mapObject.setZoom(15); // Closer zoom for precision
           }
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          setLocationError(true);
+          setLocationErrorMsg(
+            "Unable to get your current location. Please enable location services."
+          );
+        }
       );
     } else {
       setLocationError(true);
@@ -190,34 +214,34 @@ const RegisterRestaurant = () => {
 
   const validateInputs = (): boolean => {
     const managerName =
-        (document.getElementById("managerName") as HTMLInputElement)?.value || "";
+      (document.getElementById("managerName") as HTMLInputElement)?.value || "";
     const managerLastName =
-        (document.getElementById("managerLastName") as HTMLInputElement)?.value ||
-        "";
+      (document.getElementById("managerLastName") as HTMLInputElement)?.value ||
+      "";
     const managerPhone =
-        (document.getElementById("managerPhone") as HTMLInputElement)?.value ||
-        "";
+      (document.getElementById("managerPhone") as HTMLInputElement)?.value ||
+      "";
     const restaurantName =
-        (document.getElementById("restaurantName") as HTMLInputElement)?.value ||
-        "";
+      (document.getElementById("restaurantName") as HTMLInputElement)?.value ||
+      "";
     const restaurantAddress =
-        (document.getElementById("restaurantAddress") as HTMLInputElement)
-            ?.value || "";
+      (document.getElementById("restaurantAddress") as HTMLInputElement)
+        ?.value || "";
     const taxId =
-        (document.getElementById("taxId") as HTMLInputElement)?.value || "";
+      (document.getElementById("taxId") as HTMLInputElement)?.value || "";
     const buildingNumber =
-        (document.getElementById("buildingNumber") as HTMLInputElement)?.value ||
-        "";
+      (document.getElementById("buildingNumber") as HTMLInputElement)?.value ||
+      "";
     const apartmentNumber =
-        (document.getElementById("apartmentNumber") as HTMLInputElement)?.value ||
-        "";
+      (document.getElementById("apartmentNumber") as HTMLInputElement)?.value ||
+      "";
     const email =
-        (document.getElementById("email") as HTMLInputElement)?.value || "";
+      (document.getElementById("email") as HTMLInputElement)?.value || "";
     const password =
-        (document.getElementById("password") as HTMLInputElement)?.value || "";
+      (document.getElementById("password") as HTMLInputElement)?.value || "";
     const confirmPassword =
-        (document.getElementById("confirmPassword") as HTMLInputElement)?.value ||
-        "";
+      (document.getElementById("confirmPassword") as HTMLInputElement)?.value ||
+      "";
 
     let isValid = true;
 
@@ -304,12 +328,12 @@ const RegisterRestaurant = () => {
     }
 
     const passwordRegex =
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*_])[A-Za-z\d!@#$%^&*_]{8,}$/;
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*_])[A-Za-z\d!@#$%^&*_]{8,}$/;
 
     if (!password || !passwordRegex.test(password)) {
       setPasswordError(true);
       setPasswordErrorMsg(
-          "Password must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one number, and one special character (e.g., !@#$%^&*+-=)."
+        "Password must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one number, and one special character (e.g., !@#$%^&*+-=)."
       );
       isValid = false;
     } else {
@@ -345,11 +369,14 @@ const RegisterRestaurant = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setGeneralError("");
+    setVerificationError("");
+    setTaxIdError(false);
+    setTaxIdErrorMsg("");
 
     if (validateInputs()) {
       const data = new FormData(e.currentTarget);
 
-      const formData = {
+      const formDataObj = {
         name: data.get("restaurantName") as string,
         email: data.get("email") as string,
         password: data.get("password") as string,
@@ -366,357 +393,504 @@ const RegisterRestaurant = () => {
       };
 
       try {
-        const response = await registerRestaurant(formData);
-        console.log("Restaurant registered:", response);
-        navigate("/login");
-      } catch (err: any) {
-        console.error("Registration failed:", err);
-        if (err.response && err.response.data && err.response.data.message) {
-          const errorMessage = err.response.data.message;
-          if (errorMessage === "A restaurant with this email already exists") {
+        setIsSendingCode(true);
+
+        try {
+          const emailExists = await checkEmailExists(formDataObj.email);
+          if (emailExists) {
             setEmailError(true);
             setEmailErrorMsg("This email is already registered.");
-          } else {
-            setGeneralError(errorMessage);
+            setIsSendingCode(false);
+            return;
           }
-        } else {
-          setGeneralError(
-              "An error occurred during registration. Please try again."
-          );
+        } catch (err) {
+          console.error("Email check failed:", err);
+          setGeneralError("Error while checking email.");
+          setIsSendingCode(false);
+          return;
         }
+
+        try {
+          const taxIdExists = await checkTaxIdExists(formDataObj.tax_Id);
+          if (taxIdExists) {
+            setTaxIdError(true);
+            setTaxIdErrorMsg("This Tax ID is already registered.");
+            setIsSendingCode(false);
+            return;
+          }
+        } catch (err) {
+          console.error("Tax ID check failed:", err);
+          setGeneralError("Error while checking Tax ID.");
+          setIsSendingCode(false);
+          return;
+        }
+
+        await sendVerificationCode(formDataObj.email);
+        setFormData(formDataObj);
+        setShowVerificationDialog(true);
+      } catch (err: any) {
+        console.error("Code sending failed:", err);
+        setGeneralError(
+          "An error occurred while sending the verification code."
+        );
+      } finally {
+        setIsSendingCode(false);
       }
     }
   };
 
+  const handleVerifyAndRegister = async () => {
+    setVerificationError("");
+
+    if (!formData) {
+      setVerificationError("Missing form data.");
+      return;
+    }
+
+    try {
+      const isValid = await verifyEmailCode(formData.email, verificationCode);
+      if (!isValid) {
+        setVerificationError("Invalid or expired verification code.");
+        return;
+      }
+
+      await registerRestaurant(formData);
+      setShowVerificationDialog(false);
+      navigate("/login");
+    } catch (err: any) {
+      console.error("Final registration error:", err);
+      setVerificationError(
+        "Something went wrong during verification or registration."
+      );
+    }
+  };
+  const handleDigitChange = (index: number, value: string) => {
+    if (!/^\d?$/.test(value)) return;
+
+    const newDigits = [...codeDigits];
+    newDigits[index] = value;
+    setCodeDigits(newDigits);
+    setVerificationCode(newDigits.join(""));
+
+    if (value && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === "Backspace" && !codeDigits[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handlePaste = (event: React.ClipboardEvent) => {
+    event.preventDefault();
+    const pastedData = event.clipboardData.getData("text/plain").trim();
+
+    // Check if pasted content contains only digits
+    if (/^\d+$/.test(pastedData)) {
+      // Take only the first 6 digits (or fewer if the pasted text is shorter)
+      const digits = pastedData.slice(0, 6).split("");
+
+      // Create a new array with the pasted digits and fill remaining positions with empty strings
+      const newDigits = [...digits, ...Array(6 - digits.length).fill("")];
+
+      // Update state with new digits
+      setCodeDigits(newDigits);
+      setVerificationCode(newDigits.join(""));
+
+      // Focus the next empty input field or the last one if all are filled
+      const nextEmptyIndex = digits.length < 6 ? digits.length : 5;
+      inputRefs.current[nextEmptyIndex]?.focus();
+    }
+  };
+
   return (
-      // ai-gen
-      <Box
-          component="form"
-          noValidate
-          onSubmit={handleSubmit}
-          sx={{
-            maxWidth: 500, // Prevents the form from being too wide
-            mx: "auto", // Centers horizontally
-            px: { xs: 2, sm: 4 }, // Padding left/right based on screen size
-            py: 4,
-            display: "flex",
-            flexDirection: "column",
-            gap: 3,
-            borderRadius: 2,
-            width: "100%", // Allows responsive shrinking
-            boxSizing: "border-box",
-          }}
+    // ai-gen
+    <Box
+      component="form"
+      noValidate
+      onSubmit={handleSubmit}
+      sx={{
+        maxWidth: 500, // Prevents the form from being too wide
+        mx: "auto", // Centers horizontally
+        px: { xs: 2, sm: 4 }, // Padding left/right based on screen size
+        py: 4,
+        display: "flex",
+        flexDirection: "column",
+        gap: 3,
+        borderRadius: 2,
+        width: "100%", // Allows responsive shrinking
+        boxSizing: "border-box",
+      }}
+    >
+      {/* ai-gen end */}
+      <Typography
+        variant="h4"
+        fontWeight={600}
+        textAlign="center"
+        color="primary"
       >
-        {/* ai-gen end */}
-        <Typography
-            variant="h4"
-            fontWeight={600}
-            textAlign="center"
-            color="primary"
-        >
-          Register Your Restaurant
-          {generalError && (
-              <Typography color="error" variant="body2" textAlign="center">
-                {generalError}
-              </Typography>
-          )}
-        </Typography>
-
-        <FormControl>
-          <FormLabel htmlFor="managerName">Manager Name</FormLabel>
-          <TextField
-              id="managerName"
-              name="managerName"
-              variant="standard"
-              fullWidth
-              autoComplete="given-name"
-              error={managerNameError}
-              helperText={managerNameErrorMsg}
-          />
-        </FormControl>
-
-        <FormControl>
-          <FormLabel htmlFor="managerLastName">Manager Last Name</FormLabel>
-          <TextField
-              id="managerLastName"
-              name="managerLastName"
-              variant="standard"
-              fullWidth
-              autoComplete="family-name"
-              error={managerLastNameError}
-              helperText={managerLastNameErrorMsg}
-          />
-        </FormControl>
-
-        <FormControl>
-          <FormLabel htmlFor="managerPhone">Manager Phone</FormLabel>
-          <TextField
-              id="managerPhone"
-              name="managerPhone"
-              variant="standard"
-              fullWidth
-              autoComplete="tel"
-              placeholder="e.g. 5551234567"
-              error={managerPhoneError}
-              helperText={managerPhoneErrorMsg}
-              inputProps={{ maxLength: 10 }}
-          />
-        </FormControl>
-
-        <FormControl>
-          <FormLabel htmlFor="restaurantName">Restaurant Name</FormLabel>
-          <TextField
-              id="restaurantName"
-              name="restaurantName"
-              variant="standard"
-              fullWidth
-              error={restaurantNameError}
-              helperText={restaurantNameErrorMsg}
-          />
-        </FormControl>
-
-        <FormControl>
-          <FormLabel htmlFor="restaurantAddress">Restaurant Address</FormLabel>
-          <TextField
-              id="restaurantAddress"
-              name="restaurantAddress"
-              variant="standard"
-              fullWidth
-              placeholder="e.g. 123 Main St"
-              error={restaurantAddressError}
-              helperText={restaurantAddressErrorMsg}
-          />
-        </FormControl>
-
-        <FormControl>
-          <FormLabel htmlFor="taxId">Tax ID</FormLabel>
-          <TextField
-              id="taxId"
-              name="taxId"
-              variant="standard"
-              fullWidth
-              autoComplete="off"
-              placeholder="e.g. 1234567890"
-              error={taxIdError}
-              helperText={taxIdErrorMsg}
-              inputProps={{ maxLength: 10 }}
-          />
-        </FormControl>
-
-        <FormControl>
-          <FormLabel htmlFor="buildingNumber">Building Number</FormLabel>
-          <TextField
-              id="buildingNumber"
-              name="buildingNumber"
-              variant="standard"
-              fullWidth
-              error={buildingNumberError}
-              helperText={buildingNumberErrorMsg}
-          />
-        </FormControl>
-
-        <FormControl>
-          <FormLabel htmlFor="apartmentNumber">Apartment Number</FormLabel>
-          <TextField
-              id="apartmentNumber"
-              name="apartmentNumber"
-              variant="standard"
-              fullWidth
-              error={apartmentNumberError}
-              helperText={apartmentNumberErrorMsg}
-          />
-        </FormControl>
-
-        <FormControl>
-          <FormLabel htmlFor="email">Email</FormLabel>
-          <TextField
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              variant="standard"
-              fullWidth
-              placeholder="e.g. mail@example.com"
-              error={emailError}
-              helperText={emailErrorMsg}
-          />
-        </FormControl>
-
-        <FormControl>
-          <FormLabel htmlFor="password">Password</FormLabel>
-          <TextField
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              variant="standard"
-              fullWidth
-              placeholder="••••••"
-              autoComplete="new-password"
-              error={passwordError}
-              helperText={passwordErrorMsg}
-              InputProps={{
-                endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                          onClick={togglePasswordVisibility}
-                          aria-label={showPassword ? "Hide password" : "Show password"}
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                ),
-              }}
-          />
-        </FormControl>
-
-        <FormControl>
-          <FormLabel htmlFor="confirmPassword">Confirm Password</FormLabel>
-          <TextField
-              id="confirmPassword"
-              name="passwordConfirmation"
-              type={showPassword ? "text" : "password"}
-              variant="standard"
-              fullWidth
-              placeholder="••••••"
-              autoComplete="new-password"
-              error={confirmPasswordError}
-              helperText={confirmPasswordErrorMsg}
-              InputProps={{
-                endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                          onClick={togglePasswordVisibility}
-                          aria-label={showPassword ? "Hide password" : "Show password"}
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                ),
-              }}
-          />
-        </FormControl>
-
-        <FormControl>
-          <FormLabel htmlFor="profileImage">Upload Profile Image</FormLabel>
-          <input
-              type="file"
-              id="profileImage"
-              name="profileImage"
-              accept="image/*"
-              onChange={handleImageChange}
-          />
-        </FormControl>
-
-        {profileImage && (
-            <Box>
-              <Typography variant="body2" mt={1}>
-                Preview:
-              </Typography>
-              <img
-                  src={URL.createObjectURL(profileImage)}
-                  alt="Profile image preview"
-                  style={{ maxWidth: 150, borderRadius: 8 }}
-              />
-            </Box>
+        Register Your Restaurant
+        {generalError && (
+          <Typography color="error" variant="body2" textAlign="center">
+            {generalError}
+          </Typography>
         )}
+      </Typography>
 
-        <Typography fontWeight={500} mt={2}>
-          Select Restaurant Location
-        </Typography>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-          {/* Button above and aligned right */}
-          <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-            <Button
-                variant="contained"
-                startIcon={<MyLocationIcon />}
-                onClick={getCurrentLocation}
-                sx={{
-                  backgroundColor: theme.palette.background.paper,
-                  color: theme.palette.primary.main,
-                  boxShadow: 2,
-                  "&:hover": {
-                    backgroundColor: theme.palette.grey[100],
-                  },
-                }}
-            >
-              My Location
-            </Button>
-          </Box>
+      <FormControl>
+        <FormLabel htmlFor="managerName">Manager Name</FormLabel>
+        <TextField
+          id="managerName"
+          name="managerName"
+          variant="standard"
+          fullWidth
+          autoComplete="given-name"
+          error={managerNameError}
+          helperText={managerNameErrorMsg}
+        />
+      </FormControl>
 
-          {/* Map */}
-          <Box
-              ref={mapRef}
-              sx={{
-                height: 400,
-                width: "100%",
-                borderRadius: 2,
-                backgroundColor: theme.palette.grey[200],
-                overflow: "hidden",
-              }}
+      <FormControl>
+        <FormLabel htmlFor="managerLastName">Manager Last Name</FormLabel>
+        <TextField
+          id="managerLastName"
+          name="managerLastName"
+          variant="standard"
+          fullWidth
+          autoComplete="family-name"
+          error={managerLastNameError}
+          helperText={managerLastNameErrorMsg}
+        />
+      </FormControl>
+
+      <FormControl>
+        <FormLabel htmlFor="managerPhone">Manager Phone</FormLabel>
+        <TextField
+          id="managerPhone"
+          name="managerPhone"
+          variant="standard"
+          fullWidth
+          autoComplete="tel"
+          placeholder="e.g. 5551234567"
+          error={managerPhoneError}
+          helperText={managerPhoneErrorMsg}
+          inputProps={{ maxLength: 10 }}
+        />
+      </FormControl>
+
+      <FormControl>
+        <FormLabel htmlFor="restaurantName">Restaurant Name</FormLabel>
+        <TextField
+          id="restaurantName"
+          name="restaurantName"
+          variant="standard"
+          fullWidth
+          error={restaurantNameError}
+          helperText={restaurantNameErrorMsg}
+        />
+      </FormControl>
+
+      <FormControl>
+        <FormLabel htmlFor="restaurantAddress">Restaurant Address</FormLabel>
+        <TextField
+          id="restaurantAddress"
+          name="restaurantAddress"
+          variant="standard"
+          fullWidth
+          placeholder="e.g. 123 Main St"
+          error={restaurantAddressError}
+          helperText={restaurantAddressErrorMsg}
+        />
+      </FormControl>
+
+      <FormControl>
+        <FormLabel htmlFor="taxId">Tax ID</FormLabel>
+        <TextField
+          id="taxId"
+          name="taxId"
+          variant="standard"
+          fullWidth
+          autoComplete="off"
+          placeholder="e.g. 1234567890"
+          error={taxIdError}
+          helperText={taxIdErrorMsg}
+          inputProps={{ maxLength: 10 }}
+        />
+      </FormControl>
+
+      <FormControl>
+        <FormLabel htmlFor="buildingNumber">Building Number</FormLabel>
+        <TextField
+          id="buildingNumber"
+          name="buildingNumber"
+          variant="standard"
+          fullWidth
+          error={buildingNumberError}
+          helperText={buildingNumberErrorMsg}
+        />
+      </FormControl>
+
+      <FormControl>
+        <FormLabel htmlFor="apartmentNumber">Apartment Number</FormLabel>
+        <TextField
+          id="apartmentNumber"
+          name="apartmentNumber"
+          variant="standard"
+          fullWidth
+          error={apartmentNumberError}
+          helperText={apartmentNumberErrorMsg}
+        />
+      </FormControl>
+
+      <FormControl>
+        <FormLabel htmlFor="email">Email</FormLabel>
+        <TextField
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          variant="standard"
+          fullWidth
+          placeholder="e.g. mail@example.com"
+          error={emailError}
+          helperText={emailErrorMsg}
+        />
+      </FormControl>
+
+      <FormControl>
+        <FormLabel htmlFor="password">Password</FormLabel>
+        <TextField
+          id="password"
+          name="password"
+          type={showPassword ? "text" : "password"}
+          variant="standard"
+          fullWidth
+          placeholder="••••••"
+          autoComplete="new-password"
+          error={passwordError}
+          helperText={passwordErrorMsg}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={togglePasswordVisibility}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+      </FormControl>
+
+      <FormControl>
+        <FormLabel htmlFor="confirmPassword">Confirm Password</FormLabel>
+        <TextField
+          id="confirmPassword"
+          name="passwordConfirmation"
+          type={showPassword ? "text" : "password"}
+          variant="standard"
+          fullWidth
+          placeholder="••••••"
+          autoComplete="new-password"
+          error={confirmPasswordError}
+          helperText={confirmPasswordErrorMsg}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={togglePasswordVisibility}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+      </FormControl>
+
+      <FormControl>
+        <FormLabel htmlFor="profileImage">Upload Profile Image</FormLabel>
+        <input
+          type="file"
+          id="profileImage"
+          name="profileImage"
+          accept="image/*"
+          onChange={handleImageChange}
+        />
+      </FormControl>
+
+      {profileImage && (
+        <Box>
+          <Typography variant="body2" mt={1}>
+            Preview:
+          </Typography>
+          <img
+            src={URL.createObjectURL(profileImage)}
+            alt="Profile image preview"
+            style={{ maxWidth: 150, borderRadius: 8 }}
           />
         </Box>
+      )}
 
-        {location ? (
-            <Typography fontSize={14} color="text.secondary">
-              Selected Location: {location.lat.toFixed(5)},{" "}
-              {location.lng.toFixed(5)}
-            </Typography>
-        ) : (
-            locationError && (
-                <Typography fontSize={14} color="error">
-                  {locationErrorMsg}
-                </Typography>
-            )
-        )}
-
-        <FormControl required error={acceptTermsError}>
-          <FormControlLabel
-              control={
-                <Checkbox
-                    id="acceptTerms"
-                    name="acceptTerms"
-                    checked={acceptTerms}
-                    onChange={(e) => setAcceptTerms(e.target.checked)}
-                    sx={{ color: theme.palette.primary.main }}
-                />
-              }
-              label={
-                <Typography variant="body2">
-                  I accept the terms & conditions
-                </Typography>
-              }
-          />
-        </FormControl>
-
-        <Button
-            type="submit"
-            fullWidth
+      <Typography fontWeight={500} mt={2}>
+        Select Restaurant Location
+      </Typography>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+        {/* Button above and aligned right */}
+        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+          <Button
             variant="contained"
-            size="large"
+            startIcon={<MyLocationIcon />}
+            onClick={getCurrentLocation}
             sx={{
-              py: 2,
-              backgroundColor: theme.palette.primary.main,
-              borderRadius: "50px",
-              fontWeight: 600,
-              fontSize: "1rem",
-              "&:hover": { backgroundColor: theme.palette.primary.dark },
+              backgroundColor: theme.palette.background.paper,
+              color: theme.palette.primary.main,
+              boxShadow: 2,
+              "&:hover": {
+                backgroundColor: theme.palette.grey[100],
+              },
             }}
-        >
-          Register
-        </Button>
+          >
+            My Location
+          </Button>
+        </Box>
 
-        <Typography
-            component={Link}
-            to="/login"
-            sx={{
-              alignSelf: "center",
-              textDecoration: "none",
-              color: theme.palette.text.primary,
-            }}
-        >
-          Already have an account? Login now.
-        </Typography>
+        {/* Map */}
+        <Box
+          ref={mapRef}
+          sx={{
+            height: 400,
+            width: "100%",
+            borderRadius: 2,
+            backgroundColor: theme.palette.grey[200],
+            overflow: "hidden",
+          }}
+        />
       </Box>
+
+      {location ? (
+        <Typography fontSize={14} color="text.secondary">
+          Selected Location: {location.lat.toFixed(5)},{" "}
+          {location.lng.toFixed(5)}
+        </Typography>
+      ) : (
+        locationError && (
+          <Typography fontSize={14} color="error">
+            {locationErrorMsg}
+          </Typography>
+        )
+      )}
+
+      <FormControl required error={acceptTermsError}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              id="acceptTerms"
+              name="acceptTerms"
+              checked={acceptTerms}
+              onChange={(e) => setAcceptTerms(e.target.checked)}
+              sx={{ color: theme.palette.primary.main }}
+            />
+          }
+          label={
+            <Typography variant="body2">
+              I accept the terms & conditions
+            </Typography>
+          }
+        />
+      </FormControl>
+      {/* Submit Button */}
+      <Button
+        type="submit"
+        fullWidth
+        variant="contained"
+        size="large"
+        disabled={isSendingCode}
+        sx={{
+          py: 2,
+          backgroundColor: theme.palette.primary.main,
+          color: "white",
+          borderRadius: "50px",
+          fontWeight: 600,
+          fontSize: "1rem",
+          "&:hover": {
+            backgroundColor: theme.palette.primary.dark,
+          },
+        }}
+      >
+        {isSendingCode ? (
+          <Box display="flex" alignItems="center" gap={1}>
+            <CircularProgress size={16} />
+            Sending code...
+          </Box>
+        ) : (
+          "Register"
+        )}
+      </Button>
+
+      <Typography
+        component={Link}
+        to="/login"
+        sx={{
+          alignSelf: "center",
+          textDecoration: "none",
+          color: theme.palette.text.primary,
+        }}
+      >
+        Already have an account? Login now.
+      </Typography>
+      {/* Dialog: Verification Code Popup */}
+      <Dialog
+        open={showVerificationDialog}
+        onClose={() => setShowVerificationDialog(false)}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Verification Code</DialogTitle>
+        <DialogContent>
+          {verificationError && (
+            <Typography color="error" variant="body2" sx={{ mb: 1 }}>
+              {verificationError}
+            </Typography>
+          )}
+          <Box display="flex" justifyContent="center" gap={1}>
+            {codeDigits.map((digit, index) => (
+              <TextField
+                key={index}
+                inputRef={(el) => (inputRefs.current[index] = el)}
+                value={digit}
+                onChange={(e) => handleDigitChange(index, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(index, e)}
+                onPaste={index === 0 ? handlePaste : undefined} // Only add paste handler to first input
+                inputProps={{
+                  maxLength: 1,
+                  style: {
+                    width: "3rem",
+                    height: "3rem",
+                    textAlign: "center",
+                    fontSize: "1.5rem",
+                  },
+                }}
+                variant="outlined"
+              />
+            ))}
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ pr: 3, pb: 2 }}>
+          <Button onClick={() => setShowVerificationDialog(false)}>
+            Cancel
+          </Button>
+          <Button variant="contained" onClick={handleVerifyAndRegister}>
+            Verify & Register
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 };
 

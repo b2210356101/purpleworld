@@ -11,6 +11,19 @@ import RegisterPage from '../pages/RegisterPage';
 import MenuManagementPage from "../pages/MenuManagementPage";
 import CartPage from "../pages/CartPage";
 import CheckoutPage from '../pages/CheckoutPage';
+import RestaurantOrderPage from '../pages/RestaurantOrderPage';
+import RestaurantDashboard from '../pages/RestaurantDashboard';
+import AdminRestaurantManagementPage from '../pages/AdminRestaurantManagementPage';
+import AdminCourierManagementPage from "../pages/AdminCourierManagementPage";
+import AdminDashboard from "../pages/AdminDashboard";
+import CourierDashboard from '../pages/CourierDashboard';
+import ContactPage from '../pages/ContactPage';
+import AboutPage from '../pages/AboutPage';
+import CustomerOrdersPage from '../pages/CustomerOrdersPage';
+import GDPRPage from '../pages/GDPRPage';
+import CookiePolicyPage from '../pages/CookiePolicyPage';
+import RestaurantPage from '../pages/RestaurantPage';
+
 
 
 // ai-gen start (claude sonnet 3.7,1)
@@ -27,7 +40,6 @@ const AuthCheck = () => {
 
         // If token and username exist, restore auth state to Redux
         if (token && storedUserType && username) {
-            console.log("AuthCheck - Dispatching login");
             dispatch(login({
                 token,
                 role: storedUserType,
@@ -56,31 +68,40 @@ const DynamicHomePage = () => {
             return <CustomerHomePage />;
         case 'RESTAURANT':
             // Placeholder for restaurant dashboard
-            return <div>Restaurant Dashboard</div>;
+            return <RestaurantDashboard />;
         case 'COURIER':
             // Placeholder for courier dashboard
-            return <div>Courier Dashboard</div>;
+            return <CourierDashboard />;
         case 'ADMIN':
             // Placeholder for admin dashboard
-            return <div>Admin Dashboard</div>;
+            return <AdminDashboard />;
         default:
             return <HomePage />;
     }
 };
 
-// Interface for PrivateRoute props
-interface PrivateRouteProps {
+// Interface for RoleBasedRoute props
+interface RoleBasedRouteProps {
     children: ReactNode;
+    allowedRoles: string[];
+    redirectTo?: string;
 }
 
-// Private route component - redirects to login if not authenticated
-const PrivateRoute = ({ children }: PrivateRouteProps) => {
-    const { isAuthenticated } = useAppSelector(state => state.auth);
+// Role-based route component
+const RoleBasedRoute = ({ children, allowedRoles, redirectTo = "/" }: RoleBasedRouteProps) => {
+    const { isAuthenticated, userType } = useAppSelector(state => state.auth);
 
+    // If not authenticated, redirect to login
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
     }
 
+    // If user role is not allowed, redirect to specified path
+    if (userType && !allowedRoles.includes(userType)) {
+        return <Navigate to={redirectTo} replace />;
+    }
+
+    // User is authenticated and has allowed role, render children
     return <>{children}</>;
 };
 // ai-gen end
@@ -102,34 +123,83 @@ const router = createBrowserRouter([
                         element: <LoginPage />
                     },
                     {
+                        path: 'register',
+                        element: <RegisterPage />
+                    },
+                    {
+                        path: 'contact',
+                        element: <ContactPage />
+                    },
+                    {
+                        path: 'about',
+                        element: <AboutPage />
+                    },
+                    {
+                        path: 'gdpr',
+                        element: <GDPRPage />
+                    },
+                    {
+                        path: 'cookie',
+                        element: <CookiePolicyPage />
+                    },
+                    {
                         path: 'profile',
                         element: (
-                            <PrivateRoute>
-                                <div>Profile Page</div>
-                            </PrivateRoute>
+                            <RoleBasedRoute allowedRoles={['CUSTOMER', 'RESTAURANT', 'COURIER', 'ADMIN']}> <div>Profile Page</div> </RoleBasedRoute>
                         )
                     },
                     {
-                        path: 'register',
-                        element: <RegisterPage />
+                        path: 'cart',
+                        element: <RoleBasedRoute allowedRoles={['CUSTOMER']}> <CartPage /> </RoleBasedRoute>
+                    },
+                    {
+                        path: 'checkout',
+                        element: <RoleBasedRoute allowedRoles={['CUSTOMER']}> <CheckoutPage /> </RoleBasedRoute>
+                    },
+                    {
+                        path: 'orders',
+                        element: <RoleBasedRoute allowedRoles={['CUSTOMER']}> < CustomerOrdersPage /> </RoleBasedRoute>
+                    },
+                    {
+                        path: 'restaurant/menu',
+                        element: <RoleBasedRoute allowedRoles={['RESTAURANT']}> <MenuManagementPage /> </RoleBasedRoute>
+                    },
+                    {
+                        path: 'restaurant/orders',
+                        element: <RoleBasedRoute allowedRoles={['RESTAURANT']}> <RestaurantOrderPage /> </RoleBasedRoute>
+                    },
+                    {
+                        path: 'restaurant/menu',
+                        element: <RoleBasedRoute allowedRoles={['RESTAURANT']}> <MenuManagementPage /> </RoleBasedRoute>
+                    },
+                    {
+                        path: 'cart',
+                        element: <RoleBasedRoute allowedRoles={['CUSTOMER']}> <CartPage /> </RoleBasedRoute>
+                    },
+                    {
+                        path: 'checkout',
+                        element: <RoleBasedRoute allowedRoles={['CUSTOMER']}> <CheckoutPage /> </RoleBasedRoute>
+                    },
+                    {
+                        path: 'restaurant/orders',
+                        element: <RoleBasedRoute allowedRoles={['RESTAURANT']}> <RestaurantOrderPage /> </RoleBasedRoute>
+                    },
+                    {
+                        path: 'admin/restaurants',
+                        element: <RoleBasedRoute allowedRoles={['ADMIN']}> <AdminRestaurantManagementPage /> </RoleBasedRoute>
+                    },
+                    {
+                        path: 'admin/couriers',
+                        element: <RoleBasedRoute allowedRoles={['ADMIN']}> <AdminCourierManagementPage /> </RoleBasedRoute>
+                    },
+                    {
+                        path: 'restaurants/:id',
+                        element: <RestaurantPage />
                     },
                     {
                         path: '*',
                         element: <NotFoundPage />
                     },
-                    {
-                        path: 'restaurant/menu',
-                        element: <MenuManagementPage />
-                    },
-                    {
-                        path: 'cart',
-                        element: <CartPage />
-                    },
-                    {
-                        path: 'checkout',
-                        element: <CheckoutPage />
-                    }
-
                 ]
             }
         ]

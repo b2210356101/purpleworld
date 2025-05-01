@@ -1,6 +1,7 @@
 import { Box, Paper, Stack, Typography, Button } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import { Restaurant } from "../../types";
+import { Link } from "react-router-dom";
 
 const renderRatingStars = (rating: number) => {
     return (
@@ -42,7 +43,7 @@ const RestaurantCard: React.FC<{ restaurant: Restaurant }> = ({ restaurant }) =>
                     {restaurant.restaurantName}
                 </Typography>
 
-                <Box sx={{ display: "flex", alignItems: "center", mb: 1, justifyContent:'space-between' }}>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 1, justifyContent: 'space-between' }}>
                     <Box sx={{ display: "flex", alignItems: "center" }}>
                         {restaurant.rating && renderRatingStars(restaurant.rating)}
                         <Typography variant="body2" sx={{ ml: 1 }}>
@@ -53,7 +54,7 @@ const RestaurantCard: React.FC<{ restaurant: Restaurant }> = ({ restaurant }) =>
                     {restaurant.distanceInKm && restaurant.distanceInKm.toFixed(1)} km
                 </Box>
 
-                <Button fullWidth variant="outlined" sx={{ py: 1 }}>
+                <Button fullWidth component={Link} to={`/restaurants/${restaurant.id}`} variant="outlined" sx={{ py: 1 }}>
                     View Restaurant
                 </Button>
             </Stack>

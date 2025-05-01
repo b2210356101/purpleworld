@@ -24,7 +24,7 @@ const Footer = () => {
                             sx={{ display: 'flex', mb: 2 }}
                         >
                             <img
-                                src="https://i.hizliresim.com/qkl6ett.png"
+                                src="/src/assets/logo.svg"
                                 alt="Logo"
                                 height="42"
                                 style={{
@@ -37,7 +37,7 @@ const Footer = () => {
                             color="text.secondary"
                             sx={{ maxWidth: '80%' }}
                         >
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do.
+                            Discover local and global cuisines near you. Fast delivery, just a few clicks with Purple World.
                         </Typography>
                         <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
                             <IconButton size="small">
@@ -111,11 +111,6 @@ const Footer = () => {
                             <ListItem key={'contact'} disablePadding component={Link} to={'/contact'} sx={{ color: 'inherit' }}>
                                 <ListItemButton disableGutters sx={{ py: 0 }}>
                                     <ListItemText secondary={'24/7 Support'} />
-                                </ListItemButton>
-                            </ListItem>
-                            <ListItem key={'feedback'} disablePadding component={Link} to={'/feedback'} sx={{ color: 'inherit' }}>
-                                <ListItemButton disableGutters sx={{ py: 0 }}>
-                                    <ListItemText secondary={'Feedback'} />
                                 </ListItemButton>
                             </ListItem>
                         </List>

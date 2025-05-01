@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     TextField, Button, Box, Typography, Grid,
@@ -25,9 +25,9 @@ interface AddAddressModalProps {
     addressData?: Address | null;
 }
 
-const AddAddressModal: React.FC<AddAddressModalProps> = ({ 
-    open, 
-    onClose, 
+const AddAddressModal: React.FC<AddAddressModalProps> = ({
+    open,
+    onClose,
     onSave,
     isEditMode = false,
     addressData = null
@@ -73,23 +73,27 @@ const AddAddressModal: React.FC<AddAddressModalProps> = ({
 
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    // Optimized handler using useCallback to prevent recreation on each render
+    const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
-        setAddress({
-            ...address,
+
+        setAddress(prev => ({
+            ...prev,
             [name]: value
+        }));
+
+        setErrors(prev => {
+            if (prev[name]) {
+                const newErrors = { ...prev };
+                delete newErrors[name];
+                return newErrors;
+            }
+            return prev;
         });
+    }, []);
 
-        // Clear error when field is edited
-        if (errors[name]) {
-            setErrors({
-                ...errors,
-                [name]: ''
-            });
-        }
-    };
-
-    const validateForm = () => {
+    // Only validate on form submission, not during typing
+    const validateForm = useCallback(() => {
         const newErrors: Record<string, string> = {};
 
         // Validate title
@@ -139,13 +143,12 @@ const AddAddressModal: React.FC<AddAddressModalProps> = ({
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0 && !locationError;
-    };
+    }, [address, location, locationError]);
 
-    const handleSubmit = async () => {
+    const handleSubmit = useCallback(() => {
         if (validateForm()) {
             try {
                 onSave(address, location);
-                resetForm();
             } catch (error) {
                 console.error('Error in address form submission:', error);
                 if (error instanceof Error) {
@@ -156,26 +159,12 @@ const AddAddressModal: React.FC<AddAddressModalProps> = ({
                 }
             }
         }
-    };
+    }, [address, location, onSave, validateForm]);
 
-    const resetForm = () => {
-        setAddress({
-            name: '',
-            fullAddress: '',
-            phoneNumber: '',
-            apartmentNumber: '',
-            floor: '',
-            buildingNumber: '',
-            deliveryNote: '',
-            addressId: -1,
-        });
-        setErrors({});
-    };
-
-    const handleClose = () => {
-        resetForm();
+    const handleClose = useCallback(() => {
         onClose();
-    };
+    }, [onClose]);
+
 
 
     // ai-gen start (claude 3.7)

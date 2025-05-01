@@ -59,9 +59,19 @@ const Header: React.FC<HeaderProps> = ({
 
     // Fetch cart count on mount and when cart drawer closes
     useEffect(() => {
+        const handleCartUpdated = () => {
+            fetchCartCount();
+        };
+
         if (userType === "CUSTOMER" && isAuthenticated) {
             fetchCartCount();
         }
+
+        window.addEventListener("cart-updated", handleCartUpdated);
+
+        return () => {
+            window.removeEventListener("cart-updated", handleCartUpdated);
+        };
     }, [userType, isAuthenticated]);
 
     const fetchCartCount = async () => {
@@ -75,6 +85,7 @@ const Header: React.FC<HeaderProps> = ({
                 );
             }, 0);
             setCartCount(totalItems);
+            localStorage.setItem("cartCount", totalItems.toString());
         } catch (err) {
             console.error("Failed to fetch cart count:", err);
             setCartCount(0); // Reset to 0 on error to avoid misleading count
@@ -171,7 +182,7 @@ const Header: React.FC<HeaderProps> = ({
 
                 <Box component={Link} to="/" sx={{ display: "flex" }}>
                     <img
-                        src="https://i.hizliresim.com/qkl6ett.png"                        
+                        src="/src/assets/logo.svg"
                         alt="Logo"
                         height="30"
                         style={{

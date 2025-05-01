@@ -78,6 +78,8 @@ const ShoppingCartPage: React.FC = () => {
         await updateItemQuantity(cartItemId, operation);
       }
       await fetchCart();
+      window.dispatchEvent(new Event("cart-updated"));
+
     } catch (err: any) {
       console.error("Cart update error:", err);
       setError("Failed to update cart item.");
@@ -194,7 +196,6 @@ const ShoppingCartPage: React.FC = () => {
                       justifyContent="space-between"
                       gap={2}
                       sx={{
-                        backgroundColor: "white",
                         p: 2,
                         borderRadius: 3,
                         mb: 2,
@@ -357,7 +358,7 @@ const ShoppingCartPage: React.FC = () => {
                   placeholder="SEPETTE80"
                   value={promoCode}
                   onChange={(e) => setPromoCode(e.target.value)}
-                  sx={{ backgroundColor: "white", borderRadius: 2 }}
+                  sx={{ backgroundColor: "background.default", borderRadius: 2 }}
                 />
                 <Button
                   variant="contained"

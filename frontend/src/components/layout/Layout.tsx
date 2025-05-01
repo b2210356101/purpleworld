@@ -5,6 +5,7 @@ import { Box, Container } from '@mui/material';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useEffect } from 'react';
 import { login } from '../../store/slices/authSlice';
+import ScrollToTop from '../ScrollToTop';
 
 /**
  * Main layout component that wraps the application with header and footer
@@ -18,7 +19,7 @@ const Layout = () => {
         const token = localStorage.getItem('token');
         const storedUserType = localStorage.getItem('roleType');
         const username = localStorage.getItem('username');
-        
+
         if (token && storedUserType && username) {
             // Restore auth state with all user information
             dispatch(login({
@@ -38,7 +39,7 @@ const Layout = () => {
                 username={userInfo?.username}
                 profileImage={userInfo?.profileImage}
             />
-
+            <ScrollToTop />
             <Container component="main" sx={{
                 flex: 1,
                 display: 'flex',

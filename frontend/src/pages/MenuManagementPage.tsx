@@ -19,8 +19,9 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import api from '../utils/api';
+import { addMenuCategory, addMenuItem, addRemovableElement, deleteMenuCategory, deleteMenuItem, deleteRemovableElement, getRestaurantMenu, updateMenuItem } from '../utils/api';
 import defaultFoodImg from "../assets/menuitem.png";
+import { Category } from '../types';
 
 
 // Define interface for removable element response
@@ -37,20 +38,6 @@ interface MenuItem {
     description: string;
     img: string;
     removableElements?: RemovableElementResponse[];
-}
-
-// Define interface for category
-interface Category {
-    id: number;
-    name: string;
-    menuItems: MenuItem[];
-}
-
-// Define menu response interface
-interface MenuResponse {
-    menuId: number;
-    restaurantName: string;
-    categories: Category[];
 }
 
 
@@ -80,8 +67,7 @@ const MenuManagementPage: React.FC = () => {
 
     const fetchMenu = async () => {
         try {
-            const response = await api.get('/restaurant/menu');
-            const menuData: MenuResponse = response.data;
+            const menuData = await getRestaurantMenu();
             setCategories(menuData.categories || []);
         } catch (error) {
             // error
@@ -147,9 +133,9 @@ const MenuManagementPage: React.FC = () => {
                 };
 
                 if (isEditing && selectedItem) {
-                    await api.put(`/restaurant/menu/items/${selectedItem.id}`, itemToSend);
+                    await updateMenuItem(selectedItem.id, itemToSend);
                 } else {
-                    await api.post(`/restaurant/menu/categories/${selectedCategoryId}/items`, itemToSend);
+                    await addMenuItem(selectedCategoryId, itemToSend);
                 }
 
                 // Fetch fresh data instead of trying to update state manually
@@ -167,13 +153,12 @@ const MenuManagementPage: React.FC = () => {
     const handleAddCategory = async () => {
         if (newCategory.trim() !== '') {
             try {
-                await api.post('/restaurant/menu/categories', { name: newCategory });
+                await addMenuCategory(newCategory);
                 // Fetch fresh data instead of trying to update state manually
                 await fetchMenu();
                 handleCloseCategoryDialog();
             } catch (error) {
                 console.error('Failed to add category:', error);
-                alert('Failed to add category. Please try again.');
             }
         }
     };
@@ -181,7 +166,7 @@ const MenuManagementPage: React.FC = () => {
     // Handler for deleting a menu item
     const handleDeleteItem = async (itemId: number) => {
         try {
-            await api.delete(`/restaurant/menu/items/${itemId}`);
+            await deleteMenuItem(itemId);
             // Fetch fresh data instead of trying to update state manually
             await fetchMenu();
         } catch (error) {
@@ -193,7 +178,7 @@ const MenuManagementPage: React.FC = () => {
     // Handler for deleting a removable element
     const handleDeleteRemovableItem = async (itemId: number) => {
         try {
-            await api.delete(`/restaurant/menu/removable-elements/${itemId}`);
+            await deleteRemovableElement(itemId);
             await fetchMenu();
         } catch (error) {
             console.error('Failed to delete item:', error);
@@ -204,7 +189,7 @@ const MenuManagementPage: React.FC = () => {
     // Handler for deleting a category
     const handleDeleteCategory = async (categoryId: number) => {
         try {
-            await api.delete(`/restaurant/menu/categories/${categoryId}`);
+            await deleteMenuCategory(categoryId);
             await fetchMenu();
         } catch (error) {
             console.error('Failed to delete category:', error);
@@ -278,9 +263,7 @@ const MenuManagementPage: React.FC = () => {
         const elementText = itemRemovableElements[itemId];
         if (elementText && elementText.trim() !== '') {
             try {
-                await api.post(`/restaurant/menu/menu-items/${itemId}/removable-elements`, {
-                    name: elementText.trim()
-                });
+                await addRemovableElement(itemId, elementText.trim());
 
                 // Clear the input for this specific item
                 setItemRemovableElements(prev => ({
@@ -402,7 +385,7 @@ const MenuManagementPage: React.FC = () => {
                                                     <Chip
                                                         key={removableElement.id}
                                                         label={removableElement.name}
-                                                        sx={{ bgcolor: 'white' }}
+                                                        sx={{ bgcolor: 'background.default' }}
                                                         onDelete={() => handleDeleteRemovableItem(removableElement.id)}
                                                     />
                                                 ))}
@@ -415,7 +398,7 @@ const MenuManagementPage: React.FC = () => {
                                                 placeholder="Add removable element"
                                                 variant="outlined"
                                                 size="small"
-                                                value={itemRemovableElements[item.id] || ''}  
+                                                value={itemRemovableElements[item.id] || ''}
                                                 onChange={(e) => handleItemElementChange(item.id, e.target.value)}
                                             />
                                             <Button

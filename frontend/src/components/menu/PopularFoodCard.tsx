@@ -4,6 +4,7 @@ import RemoveIngredientsModal from "../cart/RemoveIngredientsModal";
 import { useState } from "react";
 import { addToCart, getIngredients } from "../../utils/api";
 import { Ingredient, Restaurant, RemovableElementDTO } from "../../types";
+import { Link } from "react-router-dom";
 
 interface Food {
     id: number;
@@ -65,6 +66,7 @@ const PopularFoodCard: React.FC<{ food: Food }> = ({ food }) => {
                 removableElements: removableElements // Now sending array of objects
             });
 
+            window.dispatchEvent(new Event("cart-updated"));
             console.log("Added to cart:", res);
             setIsModalOpen(false);
 
@@ -108,7 +110,7 @@ const PopularFoodCard: React.FC<{ food: Food }> = ({ food }) => {
 
                     <Box sx={{ display: "flex", alignItems: "center" }}>
                         <LocationOn sx={{ color: "secondary.main", fontSize: 16, mr: 0.5 }} />
-                        <Typography variant="body2" color="text.secondary" noWrap>
+                        <Typography component={Link} to={`/restaurants/${food.restaurant.id}`} variant="body2" color="text.secondary" sx={{ textDecoration: 'none', }} noWrap>
                             {food.restaurant.restaurantName}
                         </Typography>
                     </Box>

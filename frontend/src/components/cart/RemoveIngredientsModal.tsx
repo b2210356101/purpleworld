@@ -20,6 +20,7 @@ import IconButton from '@mui/material/IconButton';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { Ingredient, Restaurant } from '../../types';
+import RemoveIcon from "@mui/icons-material/Remove";
 
 interface RemoveIngredientsDialogProps {
     open: boolean;
@@ -112,48 +113,76 @@ const RemoveIngredientsModal: React.FC<RemoveIngredientsDialogProps> = ({
 
             <DialogContent sx={{ p: 3 }}>
                 {/* Quantity selector */}
-                <Box sx={{ mb: 2 }}>
+                <Box
+                    sx={{
+                        mb: 3,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 2,
+                    }}
+                >
+                    <IconButton
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        disabled={quantity <= 1}
+                        sx={{ border: '1px solid', borderColor: 'grey.300' }}
+                    >
+                        <RemoveIcon fontSize="small" />
+                    </IconButton>
+
                     <TextField
                         type="number"
                         label="Quantity"
                         value={quantity}
-                        onChange={e => setQuantity(Number(e.target.value))}
-                        inputProps={{ min: 1 }}
-                        fullWidth
+                        onChange={e => {
+                            const val = Number(e.target.value);
+                            setQuantity(val < 1 ? 1 : val);
+                        }}
+                        inputProps={{ min: 1, style: { textAlign: 'center' } }}
+                        sx={{ width: 80 }}
                     />
+
+                    <IconButton
+                        onClick={() => setQuantity(quantity + 1)}
+                        sx={{ border: '1px solid', borderColor: 'grey.300' }}
+                    >
+                        <AddIcon fontSize="small" />
+                    </IconButton>
                 </Box>
                 {/* Ingredients Selection Header */}
-                <Box
-                    sx={{
-                        bgcolor: 'primary.main',
-                        color: 'white',
-                        py: 1,
-                        px: 2,
-                        borderRadius: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        mb: 2
-                    }}
-                >
+                {ingredients && ingredients.length > 0 && (
                     <Box
                         sx={{
-                            width: 24,
-                            height: 24,
-                            mr: 2,
-                            borderRadius: '50%',
-                            backgroundColor: 'primary.light',
+                            bgcolor: 'primary.main',
+                            color: 'white',
+                            py: 1,
+                            px: 2,
+                            borderRadius: 1,
                             display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center'
+                            alignItems: 'center',
+                            mb: 2
                         }}
                     >
-                        <RestaurantIcon sx={{ fontSize: 18, color: 'primary.main' }} />
-                    </Box>
+                        <Box
+                            sx={{
+                                width: 24,
+                                height: 24,
+                                mr: 2,
+                                borderRadius: '50%',
+                                backgroundColor: 'primary.light',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center'
+                            }}
+                        >
+                            <RestaurantIcon sx={{ fontSize: 18, color: 'primary.main' }} />
+                        </Box>
 
-                    <Typography fontWeight="medium">
-                        Select Ingredients to Remove
-                    </Typography>
-                </Box>
+                        <Typography fontWeight="medium">
+                            Select Ingredients to Remove
+                        </Typography>
+                    </Box>
+                )}
 
                 {/* Ingredients Grid */}
                 <Grid container spacing={2}>

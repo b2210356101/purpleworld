@@ -25,7 +25,7 @@ const FoodCategories = () => {
     return (
         <Grid container spacing={4} sx={{ justifyContent: "space-between" }}>
             {foodCategories.map((category) => (
-                <Grid size={{ xs: 6, sm: 4, md: 2 }} >
+                <Grid key={category.id} size={{ xs: 6, sm: 4, md: 2 }} >
                     <Card
                         component={Link}
                         to={`/category/${category.id}`}

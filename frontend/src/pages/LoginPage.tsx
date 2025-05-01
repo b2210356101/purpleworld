@@ -18,11 +18,6 @@ const LoginPage = () => {
     const [error, setError] = useState('');
     const [showError, setShowError] = useState(false);
 
-    // Password status tracking
-    const [passwordChanged, setPasswordChanged] = useState(true);
-    const [lastPassword, setLastPassword] = useState('');
-    const [failedAttempt, setFailedAttempt] = useState(false);
-
     const handleClickShowPassword = () => setShowPassword(!showPassword);
 
     const validateInputs = (): boolean => {
@@ -44,20 +39,6 @@ const LoginPage = () => {
         return isValid;
     };
 
-    // Handle password changes
-    // ai-gen start (claude sonnet 3.7, 0)
-    const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const newPassword = event.target.value;
-
-        // If there was a failed attempt and the password is different from last attempt
-        if (failedAttempt && newPassword !== lastPassword) {
-            setPasswordChanged(true);
-        } else if (failedAttempt && newPassword === lastPassword) {
-            setPasswordChanged(false);
-        }
-    };
-    // ai-gen end
-
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
@@ -66,15 +47,13 @@ const LoginPage = () => {
             const email = (form.elements.namedItem('email') as HTMLInputElement).value;
             const password = (form.elements.namedItem('password') as HTMLInputElement).value;
 
-            // Store the current password attempt
-            setLastPassword(password);
-
             try {
                 setLoading(true);
 
                 const data = await loginUser(email, password);
 
-                // Redux action dispatch
+                console.log(data)
+
                 dispatch(login({
                     token: data.token,
                     role: data.role,
@@ -83,23 +62,22 @@ const LoginPage = () => {
                 }));
 
                 navigate('/');
-            } catch (err) {
-                // Mark as failed attempt and require password change
-                // ai-gen start (claude sonnet 3.7, 0)
-                setFailedAttempt(true);
-                setPasswordChanged(false);
-                // ai-gen end
+            } catch (err: any) {
+                console.log("LOGIN ERROR:", err);
 
-                setError('Email or password is incorrect.');
+                const errorMessage =
+                    err?.response?.data?.message ||
+                    err?.message ||
+                    'Failed to login';
+
+                setError(errorMessage);
                 setShowError(true);
-            } finally {
+            }
+             finally {
                 setLoading(false);
             }
         }
     };
-
-    // Determine if login button should be disabled
-    const isLoginDisabled = loading || (failedAttempt && !passwordChanged);
 
     return (
         <Container sx={{ px: { xs: 1, md: 4 }, py: 4 }}>
@@ -175,7 +153,6 @@ const LoginPage = () => {
                             required
                             fullWidth
                             variant="standard"
-                            onChange={handlePasswordChange}
                             margin="dense"
                             slotProps={{
                                 input: {
@@ -211,7 +188,7 @@ const LoginPage = () => {
                         fullWidth
                         variant="contained"
                         size="large"
-                        disabled={isLoginDisabled}
+                        disabled={loading}
                         sx={{ py: 2 }}
                     >
                         {loading ? <CircularProgress size={24} /> : 'Sign in'}

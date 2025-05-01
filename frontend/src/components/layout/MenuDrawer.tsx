@@ -15,9 +15,12 @@ import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import CloseIcon from '@mui/icons-material/Close';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
-import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
 import { isAuthenticated } from '../../utils/auth';
 import { useAppSelector } from '../../store/hooks';
+import DeliveryDiningIcon from '@mui/icons-material/DeliveryDining';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../store';
+import { setTheme } from '../../store/slices/themeSlice';
 
 interface MenuDrawerProps {
     onClose: () => void;
@@ -56,6 +59,7 @@ const getMenuItems = () => {
                 { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
                 { text: 'User Management', icon: <AccountCircleIcon />, path: '/admin/users' },
                 { text: 'Restaurant Management', icon: <RestaurantIcon />, path: '/admin/restaurants' },
+                { text: 'Courier Management', icon: <DeliveryDiningIcon />, path: '/admin/couriers' },
                 { text: 'Reviews Management', icon: <ReviewsIcon />, path: '/admin/reviews' },
                 { text: 'Promotion Management', icon: <CardGiftcardIcon />, path: '/admin/promotions' },
                 { text: 'Contact', icon: <ContactSupportIcon />, path: '/contact' },
@@ -73,7 +77,14 @@ const getMenuItems = () => {
 const MenuDrawer = ({ onClose, onLogout }: MenuDrawerProps) => {
     const menuItems = getMenuItems();
     const isLoggedIn = isAuthenticated();
-    const { userType, userInfo } = useAppSelector(state => state.auth);
+    const { userInfo } = useAppSelector(state => state.auth);
+    const dispatch = useDispatch();
+    const currentThemeMode = useSelector((state: RootState) => state.theme.mode);
+
+    const handleThemeChange = (mode: 'light' | 'dark') => {
+        dispatch(setTheme(mode));
+        if (onClose) onClose();
+    };
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100svh', bgcolor: 'background.default' }}>
@@ -190,20 +201,21 @@ const MenuDrawer = ({ onClose, onLogout }: MenuDrawerProps) => {
             <Box>
                 {/* Dark / Light Mode */}
                 <List>
-                    <ListItem disablePadding sx={{ color: 'inherit' }}>
-                        <ListItemButton onClick={onClose}>
+                    <ListItem disablePadding sx={{ color: 'inherit', display: 'flex' }}>
+                        <ListItemButton
+                            onClick={() => handleThemeChange('dark')}
+                            selected={currentThemeMode === 'dark'}
+                        >
                             <ListItemIcon sx={{ color: 'inherit', minWidth: 0, pr: 1 }}>
                                 <Brightness4Icon />
                             </ListItemIcon>
                             <ListItemText primary={'Dark'} />
                         </ListItemButton>
-                        <ListItemButton onClick={onClose}>
-                            <ListItemIcon sx={{ color: 'inherit', minWidth: 0, pr: 1 }}>
-                                <SettingsBrightnessIcon />
-                            </ListItemIcon>
-                            <ListItemText primary={'System'} />
-                        </ListItemButton>
-                        <ListItemButton onClick={onClose}>
+
+                        <ListItemButton
+                            onClick={() => handleThemeChange('light')}
+                            selected={currentThemeMode === 'light'}
+                        >
                             <ListItemIcon sx={{ color: 'inherit', minWidth: 0, pr: 1 }}>
                                 <Brightness7Icon />
                             </ListItemIcon>
@@ -212,7 +224,8 @@ const MenuDrawer = ({ onClose, onLogout }: MenuDrawerProps) => {
                     </ListItem>
                 </List>
 
-                {isLoggedIn && (<Button
+                {isLoggedIn && (
+                    <Button
                         variant='contained'
                         onClick={onLogout}
                         startIcon={<LogoutIcon />}
@@ -232,3 +245,7 @@ const MenuDrawer = ({ onClose, onLogout }: MenuDrawerProps) => {
 };
 
 export default MenuDrawer;
+
+function setThemeMode(mode: string): any {
+    throw new Error('Function not implemented.');
+}
