@@ -182,7 +182,7 @@ const Header: React.FC<HeaderProps> = ({
 
                 <Box component={Link} to="/" sx={{ display: "flex" }}>
                     <img
-                        src="/src/assets/logo.png"
+                        src="https://i.hizliresim.com/qkl6ett.png"
                         alt="Logo"
                         height="30"
                         style={{
