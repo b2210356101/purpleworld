@@ -51,7 +51,6 @@ export interface MenuItem {
     img: string;
     restaurant: Restaurant;
     removableElements: { id: number; name: string }[];
-
 }
 
 export interface Ingredient {
@@ -108,5 +107,196 @@ export interface RemovableElementDTO {
 export interface AddToCartRequest {
     menuItemId: number;
     quantity: number;
-    removableElements: RemovableElementDTO[]; // Now expects an array of objects with id and name
+    removableElements: RemovableElementDTO[]; 
+}
+
+export interface Category {
+    id: number;
+    name: string;
+    menuItems: MenuItem[];
+}
+
+export interface MenuResponse {
+    menuId: number;
+    restaurantName: string;
+    categories: Category[];
+}
+
+export interface PlaceOrderRequest {
+    paymentType: "credit" | "cash";
+    note?: string;
+}
+
+export interface PlaceOrderResponse {
+    orderId: number;
+    status: string;
+    totalPrice: number;
+    estimatedDuration: string;
+    paymentType: string;
+    note?: string;
+}
+export interface TrackingInfoResponseDTO {
+    lat: number;
+    lng: number;
+    remainingDurationMinutes: number;
+    remainingDistanceKm: number;
+    completed: boolean;
+}
+
+export interface OrderItemDTO {
+    name: string;
+    menuItemId: number;
+    quantity: number;
+    price: number;
+    removables: string | null;
+  }
+  
+  export interface OrderGroupDTO {
+    orderGroupId: number;
+    restaurantName: string;
+    restaurantTotal: number;
+    img : string;
+    note: string | null;
+    status: string;
+    customerId: number;
+    customerName: string;
+    orderedDate: string 
+    preperationDate: string | null;
+    takenOverDate: string | null;
+    deliveredDate: string | null;
+    rejectionDate: string | null;
+    orderItems: OrderItemDTO[] | null;
+    
+  }
+
+  export interface OrderDTO {
+    orderId: number;
+    totalPrice: number;
+    paymentType: string;
+    note: string | null;
+    orderedDate: string; 
+    status: string;
+    orderGroups: OrderGroupDTO[];
+  }
+
+  export interface RestaurantResponseForAdmin {
+    id: number;
+    restaurantName: string;
+    joinDate: string;
+    status: 'APPROVED' | 'REJECTED' | 'BANNED' | 'PENDING';
+    email: string;
+    phoneNumber: string;
+    address: string;
+    taxId: string;
+    profileImage?: string;
+    latitude: number;
+    longitude: number;
+    manager_Name: string;
+    manager_Last_Name: string;
+    tax_Id: string;
+  }
+  export interface CourierResponseForAdmin {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+    status: 'APPROVED' | 'REJECTED' | 'BANNED' | 'PENDING';
+    ssn: string;
+  }
+
+export interface CustomerOrderSummaryDTO {
+    orderId: number;
+    status: string; // "IN_PROGRESS", "COMPLETED", "REJECTED"
+    orderedDate: string; 
+    orderGroups: CustomerCurrentOrderDTO[];
+}
+
+export interface CustomerCurrentOrderDTO {
+    orderGroupId: number;
+    restaurantId: number;
+    restaurantName: string;
+    img: string;
+    itemCount: number;
+    totalPrice: number;
+    status: string; // "PREPARING", "ON_THE_WAY", "DELIVERED", etc.
+    orderedDate: string; 
+    estimatedDeliveryTime: string; 
+    distanceInKm: number;
+}
+
+export interface OrderDetailsData {
+    orderId: number;
+    date: string;
+    restaurants: {
+        name: string;
+        items: {
+            name: string;
+            price: string;
+            quantity: number;
+        }[];
+    }[];
+    address: {
+        name: string;
+        address: string;
+        city: string;
+    };
+    billing: {
+        itemTotal: string;
+        discount: string;
+        totalPayment: string;
+    };
+}
+
+export interface OrderDetails {
+    orderId: number;
+    restaurantName: string;
+    itemCount: number;
+    totalPrice: number;
+    addressName: string;
+    addressFull: string;
+    addressCity: string;
+    date : string;
+    items: OrderItemDTO[];
+}
+
+// Stat type
+export interface Stat {
+    value: string | number;
+    label: string;
+    icon: string;
+}
+
+// Courier
+export interface CourierOrder {
+    orderGroupId: number;
+    status: string;
+    orderedDate: string;
+    takenOverDate: string;
+    customerId: number;
+    customerName: string;
+    customerPhone: string;
+    customerLatitude: number;
+    customerLongitude: number;
+    customerFullAddress: string;
+    restaurantName: string;
+    restaurantPhone: string;
+    restaurantLatitude: number;
+    restaurantLongitude: number;
+    mainOrder: boolean;
+    orderItems: OrderItemDTO[];
+}
+
+export interface CourierStats {
+    available: boolean;
+    totalDeliveries: number;
+    todayDeliveries: number;
+    totalEarnings: number;
+}
+
+export interface AdminStats {
+    totalRestaurants: number;
+    totalCouriers: number;
+    totalPendingApprovals: number;
+    totalCoupons: number;
 }

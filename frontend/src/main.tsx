@@ -4,18 +4,28 @@ import { RouterProvider } from 'react-router-dom';
 import router from './routes/router';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
-import theme from './theme';
-import { Provider } from 'react-redux';
-import { store } from './store';
+import { createAppTheme } from './theme';
+import { Provider, useSelector } from 'react-redux';
+import { RootState, store } from './store';
 
+const ThemeWrapper = ({ children }: { children: React.ReactNode }) => {
+    const mode = useSelector((state: RootState) => state.theme.mode);
+    const theme = React.useMemo(() => createAppTheme(mode), [mode]);
+
+    return (
+        <ThemeProvider theme={theme}>
+            <CssBaseline />
+            {children}
+        </ThemeProvider>
+    );
+};
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
         <Provider store={store}>
-            <ThemeProvider theme={theme} >
-                <CssBaseline />
+            <ThemeWrapper>
                 <RouterProvider router={router} />
-            </ThemeProvider>
+            </ThemeWrapper>
         </Provider>
-    </React.StrictMode>,
+    </React.StrictMode>
 );
