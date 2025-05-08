@@ -13,15 +13,20 @@ import {
     Snackbar,
     Alert,
     useTheme,
-    useMediaQuery
+    useMediaQuery,
+    Skeleton
 } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { Search as SearchIcon, Favorite } from '@mui/icons-material';
 import { getIngredients, addToCart, getRestaurantMenuForCustomer, getRestaurantDetails } from '../utils/api';
 import { MenuItem, Restaurant, Ingredient, RemovableElementDTO } from '../types';
 import RemoveIngredientsModal from "../components/cart/RemoveIngredientsModal";
+import Loading from '../components/Loading';
+import { useTranslation } from 'react-i18next';
 
 const RestaurantPage = () => {
+    const { t } = useTranslation();
+
     const { id } = useParams<{ id: string }>();
     const restaurantId = id ? parseInt(id) : 0;
     const theme = useTheme();
@@ -42,9 +47,11 @@ const RestaurantPage = () => {
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+    const [isLoading, setIsLoading] = useState(true); // Add loading state
 
     useEffect(() => {
         const fetchData = async () => {
+            setIsLoading(true); // Set loading to true when starting to fetch data
             try {
                 // Fetch restaurant details
                 const restaurantsData = await getRestaurantDetails(restaurantId);
@@ -66,7 +73,9 @@ const RestaurantPage = () => {
                 setSnackbarMessage('Failed to load restaurant data. Please try again.');
                 setSnackbarSeverity('error');
                 setSnackbarOpen(true);
-            } 
+            } finally {
+                setIsLoading(false); 
+            }
         };
 
         fetchData();
@@ -184,6 +193,8 @@ const RestaurantPage = () => {
         setSnackbarOpen(false);
     };
 
+    // We'll continue rendering the page even while loading
+
     return (
         <Box sx={{ pb: 6 }}>
             {/* Restaurant Banner */}
@@ -222,7 +233,7 @@ const RestaurantPage = () => {
                             fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.875rem' }
                         }}
                     >
-                        Add Favorites <Favorite fontSize='small' sx={{ ml: 0.5 }} />
+                        {t('restaurant.favorite')} <Favorite fontSize='small' sx={{ ml: 0.5 }} />
                     </Typography>
                 </Box>
 
@@ -234,14 +245,23 @@ const RestaurantPage = () => {
                     width: { xs: '100%', md: '55%' }
                 }}>
                     <Box sx={{ mb: { xs: 3, sm: 4, md: 6 } }}>
-                        <Typography
-                            variant={isMobile ? "h4" : isTablet ? "h3" : "h2"}
-                            component="h1"
-                            fontWeight="bold"
-                            sx={{ mb: { xs: 1, sm: 2 } }}
-                        >
-                            {restaurant?.restaurantName}
-                        </Typography>
+                        {isLoading ? (
+                            <Skeleton
+                                variant="text"
+                                width="70%"
+                                height={isMobile ? 40 : isTablet ? 50 : 60}
+                                sx={{ mb: { xs: 1, sm: 2 } }}
+                            />
+                        ) : (
+                            <Typography
+                                variant={isMobile ? "h4" : isTablet ? "h3" : "h2"}
+                                component="h1"
+                                fontWeight="bold"
+                                sx={{ mb: { xs: 1, sm: 2 } }}
+                            >
+                                {restaurant?.restaurantName}
+                            </Typography>
+                        )}
 
                         <Box sx={{
                             display: 'flex',
@@ -250,37 +270,61 @@ const RestaurantPage = () => {
                             gap: { xs: 1, sm: 2 },
                             mt: 2
                         }}>
-                            <Box
-                                sx={{
-                                    borderRadius: 50,
-                                    border: '1px solid rgba(255,255,255,0.6)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    px: { xs: 1.5, sm: 2 },
-                                    py: 0.5,
-                                }}
-                            >
-                                <Box sx={{ mr: 1, display: 'flex' }}>₺</Box>
-                                <Typography variant={isMobile ? "caption" : "body2"}>
-                                    Minimum Order: 250₺
-                                </Typography>
-                            </Box>
+                            {isLoading ? (
+                                <>
+                                    <Skeleton
+                                        variant="rectangular"
+                                        width={120}
+                                        height={32}
+                                        sx={{
+                                            borderRadius: 50,
+                                            mb: { xs: 1, sm: 0 }
+                                        }}
+                                    />
+                                    <Skeleton
+                                        variant="rectangular"
+                                        width={150}
+                                        height={32}
+                                        sx={{
+                                            borderRadius: 50
+                                        }}
+                                    />
+                                </>
+                            ) : (
+                                <>
+                                    <Box
+                                        sx={{
+                                            borderRadius: 50,
+                                            border: '1px solid rgba(255,255,255,0.6)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            px: { xs: 1.5, sm: 2 },
+                                            py: 0.5,
+                                        }}
+                                    >
+                                        <Box sx={{ mr: 1, display: 'flex' }}>₺</Box>
+                                        <Typography variant={isMobile ? "caption" : "body2"}>
+                                            {t('restaurant.min')}: 250₺
+                                        </Typography>
+                                    </Box>
 
-                            <Box
-                                sx={{
-                                    borderRadius: 50,
-                                    border: '1px solid rgba(255,255,255,0.6)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    px: { xs: 1.5, sm: 2 },
-                                    py: 0.5,
-                                }}
-                            >
-                                <Box sx={{ mr: 1, display: 'flex' }}>🕒</Box>
-                                <Typography variant={isMobile ? "caption" : "body2"}>
-                                    Delivery in 20-25 Min
-                                </Typography>
-                            </Box>
+                                    <Box
+                                        sx={{
+                                            borderRadius: 50,
+                                            border: '1px solid rgba(255,255,255,0.6)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            px: { xs: 1.5, sm: 2 },
+                                            py: 0.5,
+                                        }}
+                                    >
+                                        <Box sx={{ mr: 1, display: 'flex' }}>🕒</Box>
+                                        <Typography variant={isMobile ? "caption" : "body2"}>
+                                            {t('restaurant.delivery', { min: 20, max: 25 })}
+                                        </Typography>
+                                    </Box>
+                                </>
+                            )}
                         </Box>
                     </Box>
                 </Box>
@@ -307,16 +351,25 @@ const RestaurantPage = () => {
                             boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                         }}
                     >
-                        <Box
-                            component="img"
-                            src={restaurant?.profileImg}
-                            sx={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover',
-                            }}
-                            alt={restaurant?.restaurantName || "Restaurant image"}
-                        />
+                        {isLoading ? (
+                            <Skeleton
+                                variant="rectangular"
+                                width="100%"
+                                height="100%"
+                                animation="wave"
+                            />
+                        ) : (
+                            <Box
+                                component="img"
+                                src={restaurant?.profileImg}
+                                sx={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
+                                }}
+                                alt={restaurant?.restaurantName || "Restaurant image"}
+                            />
+                        )}
                     </Box>
 
                     {/* Rating Box - Bottom right of the image */}
@@ -334,49 +387,85 @@ const RestaurantPage = () => {
                             boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                         }}
                     >
-                        <Typography
-                            variant={isMobile ? "h5" : "h4"}
-                            fontWeight="bold"
-                            color="text.primary"
-                        >
-                            {restaurant?.rating}
-                        </Typography>
+                        {isLoading ? (
+                            <Skeleton
+                                variant="text"
+                                width="60%"
+                                height={isMobile ? 30 : 40}
+                                sx={{ mx: 'auto' }}
+                            />
+                        ) : (
+                            <Typography
+                                variant={isMobile ? "h5" : "h4"}
+                                fontWeight="bold"
+                                color="text.primary"
+                            >
+                                {restaurant?.rating}
+                            </Typography>
+                        )}
 
-                        <Box sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            color: '#FFB400',
-                            my: 0.5,
-                            fontSize: { xs: '0.8rem', md: '1rem' }
-                        }}>
-                            <Box component="span">★</Box>
-                            <Box component="span">★</Box>
-                            <Box component="span">★</Box>
-                            <Box component="span">★</Box>
-                            <Box component="span" sx={{ color: '#E0E0E0' }}>★</Box>
-                        </Box>
-
-                        <Typography
-                            variant={isMobile ? "caption" : "body2"}
-                            color="text.secondary"
-                            sx={{ mb: 0.5 }}
-                        >
-                            {restaurant?.reviews} reviews
-                        </Typography>
-
-                        <Typography
-                            variant={isMobile ? "caption" : "body2"}
-                            sx={{
-                                color: 'primary.main',
-                                fontWeight: 'medium',
+                        {isLoading ? (
+                            <Skeleton
+                                variant="text"
+                                width="80%"
+                                height={20}
+                                sx={{ mx: 'auto', my: 0.5 }}
+                            />
+                        ) : (
+                            <Box sx={{
                                 display: 'flex',
-                                alignItems: 'center',
                                 justifyContent: 'center',
-                                fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' }
-                            }}
-                        >
-                            View Reviews <Box component="span" sx={{ ml: 0.5 }}>›</Box>
-                        </Typography>
+                                color: '#FFB400',
+                                my: 0.5,
+                                fontSize: { xs: '0.8rem', md: '1rem' }
+                            }}>
+                                <Box component="span">★</Box>
+                                <Box component="span">★</Box>
+                                <Box component="span">★</Box>
+                                <Box component="span">★</Box>
+                                <Box component="span" sx={{ color: '#E0E0E0' }}>★</Box>
+                            </Box>
+                        )}
+
+                        {isLoading ? (
+                            <Skeleton
+                                variant="text"
+                                width="90%"
+                                height={16}
+                                sx={{ mx: 'auto', mb: 0.5 }}
+                            />
+                        ) : (
+                            <Typography
+                                variant={isMobile ? "caption" : "body2"}
+                                color="text.secondary"
+                                sx={{ mb: 0.5 }}
+                            >
+                                {restaurant?.reviews} {t('restaurant.review')}
+                            </Typography>
+                        )}
+
+                        {isLoading ? (
+                            <Skeleton
+                                variant="text"
+                                width="70%"
+                                height={16}
+                                sx={{ mx: 'auto' }}
+                            />
+                        ) : (
+                            <Typography
+                                variant={isMobile ? "caption" : "body2"}
+                                sx={{
+                                    color: 'primary.main',
+                                    fontWeight: 'medium',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' }
+                                }}
+                            >
+                                {t('restaurant.viewReviews')} <Box component="span" sx={{ ml: 0.5 }}>›</Box>
+                            </Typography>
+                        )}
                     </Box>
                 </Box>
             </Paper>
@@ -385,7 +474,7 @@ const RestaurantPage = () => {
             <Box sx={{ mb: 4 }}>
                 <TextField
                     fullWidth
-                    placeholder="Search food..."
+                    placeholder={t('restaurant.search')}
                     variant="outlined"
                     value={searchTerm}
                     onChange={handleSearchChange}
@@ -403,8 +492,21 @@ const RestaurantPage = () => {
                 />
             </Box>
 
+
             {/* Menu Categories Tabs */}
-            {
+            {isLoading ? (
+                <Box sx={{ mb: 4 }}>
+                    <Skeleton
+                        variant="rectangular"
+                        height={48}
+                        sx={{
+                            borderRadius: 4,
+                            width: '100%'
+                        }}
+                        animation="wave"
+                    />
+                </Box>
+            ) : (
                 categories.length > 0 && !searchTerm && (
                     <Box sx={{ mb: 4 }}>
                         <Paper
@@ -432,91 +534,103 @@ const RestaurantPage = () => {
                         </Paper>
                     </Box>
                 )
-            }
+            )}
 
             {/* Menu Items Grid */}
             <Box>
                 {searchTerm && (
                     <Typography variant="h6" sx={{ mb: 2 }}>
-                        Search Results
+                        {t('restaurant.result')}
                     </Typography>
                 )}
 
-                <Grid container spacing={3}>
-                    {menuItems.map((menuItem) => (
-                        <Grid size={{ xs: 12, sm: 6, md: 3 }} key={menuItem.id}>
-                            <Paper
-                                elevation={0}
-                                sx={{
-                                    borderRadius: 4,
-                                    bgcolor: 'primary.light',
-                                    height: '100%',
-                                    transition: "transform 0.3s",
-                                    "&:hover": {
-                                        transform: "translateY(-5px)",
-                                    },
-                                }}
-                            >
-                                {menuItem.img && (
-                                    <Box
-                                        component="img"
-                                        src={menuItem.img}
-                                        alt={menuItem.name}
-                                        sx={{
-                                            width: "100%",
-                                            height: 160,
-                                            borderTopLeftRadius: 16,
-                                            borderTopRightRadius: 16,
-                                            objectFit: "cover",
-                                        }}
-                                    />
-                                )}
-
-                                <Stack gap={1} sx={{ p: 3 }}>
-                                    <Typography variant="h6" fontWeight="bold" noWrap>
-                                        {menuItem.name}
-                                    </Typography>
-
-                                    {menuItem.description && (
-                                        <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                        >
-                                            {menuItem.description}
-                                        </Typography>
+                {isLoading ? (
+                    // Show loading component for menu items
+                    <Box sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        py: 10
+                    }}>
+                        <Loading size={80} />
+                    </Box>
+                ) : (
+                    <Grid container spacing={3}>
+                        {menuItems.map((menuItem) => (
+                            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={menuItem.id}>
+                                <Paper
+                                    elevation={0}
+                                    sx={{
+                                        borderRadius: 4,
+                                        bgcolor: 'primary.light',
+                                        height: '100%',
+                                        transition: "transform 0.3s",
+                                        "&:hover": {
+                                            transform: "translateY(-5px)",
+                                        },
+                                    }}
+                                >
+                                    {menuItem.img && (
+                                        <Box
+                                            component="img"
+                                            src={menuItem.img}
+                                            alt={menuItem.name}
+                                            sx={{
+                                                width: "100%",
+                                                height: 160,
+                                                borderTopLeftRadius: 16,
+                                                borderTopRightRadius: 16,
+                                                objectFit: "cover",
+                                            }}
+                                        />
                                     )}
 
-                                    <Box
-                                        sx={{
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                            mt: 1
-                                        }}
-                                    >
-                                        <Typography sx={{ fontWeight: 600 }} color="secondary.main" variant="h6">
-                                            {menuItem.price}₺
+                                    <Stack gap={1} sx={{ p: 3 }}>
+                                        <Typography variant="h6" fontWeight="bold" noWrap>
+                                            {menuItem.name}
                                         </Typography>
 
-                                        <Button
-                                            variant="contained"
-                                            onClick={() => handleOpenModal(menuItem)}
-                                            disabled={isAddingToCart}
+                                        {menuItem.description && (
+                                            <Typography
+                                                variant="body2"
+                                                color="text.secondary"
+                                            >
+                                                {menuItem.description}
+                                            </Typography>
+                                        )}
+
+                                        <Box
                                             sx={{
-                                                borderRadius: 8,
-                                                px: 2
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                mt: 1
                                             }}
                                         >
-                                            Add to Cart
-                                        </Button>
-                                    </Box>
-                                </Stack>
-                            </Paper>
-                        </Grid>
-                    ))}
-                </Grid>
+                                            <Typography sx={{ fontWeight: 600 }} color="secondary.main" variant="h6">
+                                                {menuItem.price}₺
+                                            </Typography>
 
-                {menuItems.length === 0 && (
+                                            <Button
+                                                variant="contained"
+                                                onClick={() => handleOpenModal(menuItem)}
+                                                disabled={isAddingToCart}
+                                                sx={{
+                                                    borderRadius: 8,
+                                                    px: 2
+                                                }}
+                                            >
+                                                {t('restaurant.add')}
+                                            </Button>
+                                        </Box>
+                                    </Stack>
+                                </Paper>
+                            </Grid>
+                        ))}
+                    </Grid>
+                )}
+
+                {!isLoading && menuItems.length === 0 && (
                     <Box sx={{ textAlign: 'center', py: 6 }}>
                         <Typography variant="h6" color="text.secondary">
                             No items found. Try a different search term or category.
