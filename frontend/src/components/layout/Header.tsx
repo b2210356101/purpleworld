@@ -31,6 +31,7 @@ import {
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { logout } from "../../store/slices/authSlice";
 import { viewCart } from "../../utils/api";
+import { useTranslation } from "react-i18next";
 
 interface HeaderProps {
     userType: UserType;
@@ -43,6 +44,7 @@ const Header: React.FC<HeaderProps> = ({
     username,
     profileImage,
 }) => {
+    const { t } = useTranslation();
     const theme = useTheme();
     const navigate = useNavigate();
     const isMobile = useMediaQuery(theme.breakpoints.up("sm"));
@@ -110,6 +112,8 @@ const Header: React.FC<HeaderProps> = ({
 
     // Right side content based on user type
     const renderRightSideContent = () => {
+        const { t } = useTranslation();
+
         if (!isAuthenticated) {
             return (
                 <Stack direction="row">
@@ -119,7 +123,7 @@ const Header: React.FC<HeaderProps> = ({
                         to="/login"
                         endIcon={<LoginIcon />}
                     >
-                        {isMobile ? <>Login</> : <></>}
+                        {isMobile ? <>{t('homepage.hero.login')}</> : <></>}
                     </Button>
                     <Button
                         color="inherit"
@@ -127,7 +131,7 @@ const Header: React.FC<HeaderProps> = ({
                         to="/register"
                         endIcon={<PersonAddIcon />}
                     >
-                        {isMobile ? <>Register</> : <></>}
+                        {isMobile ? <>{t('register.common.registerButton')}</> : <></>}
                     </Button>
                 </Stack>
             );
@@ -135,7 +139,7 @@ const Header: React.FC<HeaderProps> = ({
             return (
                 <Box sx={{ display: "flex", alignItems: "center" }}>
                     {isMobile ? (
-                        <Typography sx={{ mr: 1 }}>Hello, {username}!</Typography>
+                        <Typography sx={{ mr: 1 }}>{t('homepage.hero.hello')}, {username}!</Typography>
                     ) : (
                         <></>
                     )}
@@ -182,7 +186,7 @@ const Header: React.FC<HeaderProps> = ({
 
                 <Box component={Link} to="/" sx={{ display: "flex" }}>
                     <img
-                        src="https://i.hizliresim.com/qkl6ett.png"
+                        src="/src/assets/logo.svg"
                         alt="Logo"
                         height="30"
                         style={{
@@ -217,7 +221,7 @@ const Header: React.FC<HeaderProps> = ({
                             }}
                         >
                             <InputBase
-                                placeholder="Search restaurants & foods..."
+                                placeholder={t('restaurant.searchHeader')}
                                 sx={{
                                     color: "white",
                                     width: "100%",

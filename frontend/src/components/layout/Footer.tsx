@@ -3,8 +3,11 @@ import { Box, Container, Grid, Typography, IconButton, List, ListItem, ListItemB
 import InstagramIcon from '@mui/icons-material/Instagram';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
+import { useTranslation } from 'react-i18next';
 
 const Footer = () => {
+    const { t } = useTranslation();
+
     return (
         <Box
             component="footer"
@@ -24,7 +27,7 @@ const Footer = () => {
                             sx={{ display: 'flex', mb: 2 }}
                         >
                             <img
-                                src="https://i.hizliresim.com/qkl6ett.png"
+                                src="/src/assets/logo.svg"
                                 alt="Logo"
                                 height="42"
                                 style={{
@@ -37,7 +40,7 @@ const Footer = () => {
                             color="text.secondary"
                             sx={{ maxWidth: '80%' }}
                         >
-                            Discover local and global cuisines near you. Fast delivery, just a few clicks with Purple World.
+                            {t('footer.description')}
                         </Typography>
                         <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
                             <IconButton size="small">
@@ -59,22 +62,22 @@ const Footer = () => {
                                 fontWeight: 600,
                             }}
                         >
-                            Quick links
+                            {t('footer.quickLinks')}
                         </Typography>
                         <List>
                             <ListItem key={'restaurants'} disablePadding component={Link} to={'/restaurants'} sx={{ color: 'inherit' }}>
                                 <ListItemButton disableGutters sx={{ py: 0 }}>
-                                    <ListItemText secondary={'Restaurants'} />
+                                    <ListItemText secondary={t('footer.restaurants')} />
                                 </ListItemButton>
                             </ListItem>
                             <ListItem key={'cookie'} disablePadding component={Link} to={'/cookie'} sx={{ color: 'inherit' }}>
                                 <ListItemButton disableGutters sx={{ py: 0 }}>
-                                    <ListItemText secondary={'Cookie Policy'} />
+                                    <ListItemText secondary={t('footer.cookiePolicy')} />
                                 </ListItemButton>
                             </ListItem>
                             <ListItem key={'gdpr'} disablePadding component={Link} to={'/gdpr'} sx={{ color: 'inherit' }}>
                                 <ListItemButton disableGutters sx={{ py: 0 }}>
-                                    <ListItemText secondary={'GDPR'} />
+                                    <ListItemText secondary={t('footer.gdpr')} />
                                 </ListItemButton>
                             </ListItem>
                         </List>
@@ -87,7 +90,7 @@ const Footer = () => {
                                 fontWeight: 600,
                             }}
                         >
-                            Get to Know Us
+                            {t('footer.getToKnowUs')}
                         </Typography>
                         <List>
                             <ListItem key={'about'} disablePadding component={Link} to={'/about'} sx={{ color: 'inherit' }}>
@@ -105,12 +108,12 @@ const Footer = () => {
                                 fontWeight: 600,
                             }}
                         >
-                            Contact
+                            {t('footer.contact')}
                         </Typography>
                         <List>
                             <ListItem key={'contact'} disablePadding component={Link} to={'/contact'} sx={{ color: 'inherit' }}>
                                 <ListItemButton disableGutters sx={{ py: 0 }}>
-                                    <ListItemText secondary={'24/7 Support'} />
+                                    <ListItemText secondary={t('footer.support')} />
                                 </ListItemButton>
                             </ListItem>
                         </List>
@@ -130,7 +133,7 @@ const Footer = () => {
                         color="text.secondary"
                         sx={{ fontSize: '12px' }}
                     >
-                        © 2025 <Box component="span" sx={{ fontWeight: 700, color: 'primary.main' }}>Purple World</Box>. All right reserved.
+                        © 2025 <Box component="span" sx={{ fontWeight: 700, color: 'primary.main' }}>Purple World</Box>. {t('footer.copyright')}
                     </Typography>
                 </Box>
             </Container>

@@ -15,12 +15,15 @@ import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import CloseIcon from '@mui/icons-material/Close';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
+import InventoryIcon from '@mui/icons-material/Inventory';
 import { isAuthenticated } from '../../utils/auth';
 import { useAppSelector } from '../../store/hooks';
 import DeliveryDiningIcon from '@mui/icons-material/DeliveryDining';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { setTheme } from '../../store/slices/themeSlice';
+import i18n from '../../i18n';
+import { useTranslation } from 'react-i18next';
 
 interface MenuDrawerProps {
     onClose: () => void;
@@ -29,52 +32,57 @@ interface MenuDrawerProps {
 
 // User-specific menu items
 const getMenuItems = () => {
+    const { t } = useTranslation();
+
     switch (localStorage.getItem('roleType')) {
         case 'CUSTOMER':
             return [
-                { text: 'Home', icon: <HomeIcon />, path: '/' },
-                { text: 'Restaurants', icon: <RestaurantIcon />, path: '/restaurants' },
-                { text: 'Favorites', icon: <FavoriteIcon />, path: '/favorites' },
-                { text: 'My Orders', icon: <ReceiptIcon />, path: '/orders' },
-                { text: 'About Us', icon: <InfoIcon />, path: '/about' },
-                { text: 'Contact', icon: <ContactSupportIcon />, path: '/contact' },
+                { text: t('menu.home'), icon: <HomeIcon />, path: '/' },
+                { text: t('menu.restaurants'), icon: <RestaurantIcon />, path: '/restaurants' },
+                { text: t('menu.favorites'), icon: <FavoriteIcon />, path: '/favorites' },
+                { text: t('menu.myOrders'), icon: <ReceiptIcon />, path: '/orders' },
+                { text: t('menu.aboutUs'), icon: <InfoIcon />, path: '/about' },
+                { text: t('menu.contact'), icon: <ContactSupportIcon />, path: '/contact' },
             ];
         case 'RESTAURANT':
             return [
-                { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-                { text: 'Orders', icon: <ReceiptIcon />, path: '/restaurant/orders' },
-                { text: 'Reviews', icon: <ReviewsIcon />, path: '/restaurant/reviews' },
-                { text: 'Menu Management', icon: <MenuBookIcon />, path: '/restaurant/menu' },
-                { text: 'About Us', icon: <InfoIcon />, path: '/about' },
-                { text: 'Contact', icon: <ContactSupportIcon />, path: '/contact' },
+                { text: t('menu.dashboard'), icon: <DashboardIcon />, path: '/' },
+                { text: t('menu.orders'), icon: <ReceiptIcon />, path: '/restaurant/orders' },
+                { text: t('menu.reviews'), icon: <ReviewsIcon />, path: '/restaurant/reviews' },
+                { text: t('menu.menuManagement'), icon: <MenuBookIcon />, path: '/restaurant/menu' },
+                { text: t('menu.stockManagement'), icon: <InventoryIcon />, path: '/restaurant/stock' },
+                { text: t('menu.aboutUs'), icon: <InfoIcon />, path: '/about' },
+                { text: t('menu.contact'), icon: <ContactSupportIcon />, path: '/contact' },
             ];
         case 'COURIER':
             return [
-                { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-                { text: 'About Us', icon: <InfoIcon />, path: '/about' },
-                { text: 'Contact', icon: <ContactSupportIcon />, path: '/contact' },
+                { text: t('menu.dashboard'), icon: <DashboardIcon />, path: '/' },
+                { text: t('menu.orders'), icon: <ReceiptIcon />, path: '/courier/orders' },
+                { text: t('menu.aboutUs'), icon: <InfoIcon />, path: '/about' },
+                { text: t('menu.contact'), icon: <ContactSupportIcon />, path: '/contact' },
             ];
         case 'ADMIN':
             return [
-                { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-                { text: 'User Management', icon: <AccountCircleIcon />, path: '/admin/users' },
-                { text: 'Restaurant Management', icon: <RestaurantIcon />, path: '/admin/restaurants' },
-                { text: 'Courier Management', icon: <DeliveryDiningIcon />, path: '/admin/couriers' },
-                { text: 'Reviews Management', icon: <ReviewsIcon />, path: '/admin/reviews' },
-                { text: 'Promotion Management', icon: <CardGiftcardIcon />, path: '/admin/promotions' },
-                { text: 'Contact', icon: <ContactSupportIcon />, path: '/contact' },
+                { text: t('menu.dashboard'), icon: <DashboardIcon />, path: '/' },
+                { text: t('menu.userManagement'), icon: <AccountCircleIcon />, path: '/admin/users' },
+                { text: t('menu.restaurantManagement'), icon: <RestaurantIcon />, path: '/admin/restaurants' },
+                { text: t('menu.courierManagement'), icon: <DeliveryDiningIcon />, path: '/admin/couriers' },
+                { text: t('menu.reviewsManagement'), icon: <ReviewsIcon />, path: '/admin/reviews' },
+                { text: t('menu.promotionManagement'), icon: <CardGiftcardIcon />, path: '/admin/promotions' },
+                { text: t('menu.contact'), icon: <ContactSupportIcon />, path: '/contact' },
             ];
-        default:
+        default: // GUEST
             return [
-                { text: 'Home', icon: <HomeIcon />, path: '/' },
-                { text: 'Restaurants', icon: <RestaurantIcon />, path: '/restaurants' },
-                { text: 'About Us', icon: <InfoIcon />, path: '/about' },
-                { text: 'Contact', icon: <ContactSupportIcon />, path: '/contact' },
+                { text: t('menu.home'), icon: <HomeIcon />, path: '/' },
+                { text: t('menu.restaurants'), icon: <RestaurantIcon />, path: '/restaurants' },
+                { text: t('menu.aboutUs'), icon: <InfoIcon />, path: '/about' },
+                { text: t('menu.contact'), icon: <ContactSupportIcon />, path: '/contact' },
             ];
     }
 };
 
 const MenuDrawer = ({ onClose, onLogout }: MenuDrawerProps) => {
+    const { t } = useTranslation();
     const menuItems = getMenuItems();
     const isLoggedIn = isAuthenticated();
     const { userInfo } = useAppSelector(state => state.auth);
@@ -96,20 +104,22 @@ const MenuDrawer = ({ onClose, onLogout }: MenuDrawerProps) => {
                 {/* Language Switch */}
                 <ButtonGroup variant="text" sx={{ color: 'white' }}>
                     <Button
-                        // onClick={() => onLanguageChange('tr')}
+                        onClick={() => { i18n.changeLanguage('tr'); onClose(); }}
                         sx={{
-                            fontWeight: 'bold',
-                            bgcolor: 'white',
+                            fontWeight: i18n.language === 'tr' ? 'bold' : 'regular',
+                            bgcolor: i18n.language === 'tr' ? 'white' : 'transparent',
+                            color: i18n.language === 'tr' ? 'primary.main' : 'inherit',
                             px: 1
                         }}
                     >
                         TR
                     </Button>
                     <Button
-                        // onClick={() => onLanguageChange('en')}
+                        onClick={() => { i18n.changeLanguage('en'); onClose(); }}
                         sx={{
-                            fontWeight: 'regular',
-                            color: 'inherit',
+                            fontWeight: i18n.language === 'en' ? 'bold' : 'regular',
+                            bgcolor: i18n.language === 'en' ? 'white' : 'transparent',
+                            color: i18n.language === 'en' ? 'primary.main' : 'inherit',
                             px: 1
                         }}
                     >
@@ -146,7 +156,7 @@ const MenuDrawer = ({ onClose, onLogout }: MenuDrawerProps) => {
                 {!isLoggedIn ? (
                     <>
                         <Typography sx={{ fontSize: 18, fontWeight: 'medium' }}>
-                            Hello!
+                            {t('homepage.hero.hello')}!
                         </Typography>
                         <Button
                             variant="contained"
@@ -158,13 +168,13 @@ const MenuDrawer = ({ onClose, onLogout }: MenuDrawerProps) => {
                                 bgcolor: 'secondary.main',
                             }}
                         >
-                            Login
+                            {t('homepage.hero.login')}
                         </Button>
                     </>
                 ) : (
                     <>
                         <Typography sx={{ fontSize: 18, fontWeight: 'medium' }}>
-                            Hello, {localStorage.getItem('username')}!
+                            {t('homepage.hero.hello')}, {localStorage.getItem('username')}!
                         </Typography>
                         <Button
                             variant="contained"
@@ -176,7 +186,7 @@ const MenuDrawer = ({ onClose, onLogout }: MenuDrawerProps) => {
                                 bgcolor: 'secondary.main',
                             }}
                         >
-                            Edit Profile
+                            {t('menu.editProfile')}
                         </Button>
                     </>
                 )}
@@ -209,7 +219,7 @@ const MenuDrawer = ({ onClose, onLogout }: MenuDrawerProps) => {
                             <ListItemIcon sx={{ color: 'inherit', minWidth: 0, pr: 1 }}>
                                 <Brightness4Icon />
                             </ListItemIcon>
-                            <ListItemText primary={'Dark'} />
+                            <ListItemText primary={t('menu.dark')} />
                         </ListItemButton>
 
                         <ListItemButton
@@ -219,7 +229,7 @@ const MenuDrawer = ({ onClose, onLogout }: MenuDrawerProps) => {
                             <ListItemIcon sx={{ color: 'inherit', minWidth: 0, pr: 1 }}>
                                 <Brightness7Icon />
                             </ListItemIcon>
-                            <ListItemText primary={'Light'} />
+                            <ListItemText primary={t('menu.light')} />
                         </ListItemButton>
                     </ListItem>
                 </List>
@@ -236,7 +246,7 @@ const MenuDrawer = ({ onClose, onLogout }: MenuDrawerProps) => {
                             py: 1.5,
                         }}
                     >
-                        Logout
+                        {t('menu.logout')}
                     </Button>
                 )}
             </Box>
@@ -245,7 +255,3 @@ const MenuDrawer = ({ onClose, onLogout }: MenuDrawerProps) => {
 };
 
 export default MenuDrawer;
-
-function setThemeMode(mode: string): any {
-    throw new Error('Function not implemented.');
-}

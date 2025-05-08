@@ -5,8 +5,6 @@ import {
   IconButton,
   Typography,
   Button,
-  Grid,
-  Stack,
   ButtonGroup,
   CircularProgress,
   Alert,
@@ -26,7 +24,7 @@ import {
   CartGroupResponse,
   CartItemResponse,
 } from "../../types";
-
+import { useTranslation } from "react-i18next";
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -39,6 +37,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   onClose,
   refreshCartCount,
 }) => {
+  const { t } = useTranslation();
   const [cartItems, setCartItems] = useState<CartGroupResponse[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -89,7 +88,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
       setItemTotal(`${data.cartTotal}₺`);
       setTotalAmount(`${data.cartTotal}₺`);
     } catch (err) {
-      setError("Failed to load cart items. Please try again later.");
+      setError(t('cart.error'));
     } finally {
       setLoading(false);
     }
@@ -126,7 +125,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         }}
       >
         <CircularProgress />
-        <Typography mt={2}>Loading your cart...</Typography>
+        <Typography mt={2}>{t('cart.loading')}</Typography>
       </Box>
     );
   }
@@ -140,7 +139,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
           sx={{ mt: 2 }}
           onClick={() => window.location.reload()}
         >
-          Try Again
+          {t('cart.tryAgain')}
         </Button>
       </Box>
     );
@@ -160,7 +159,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
           color="white"
           sx={{ flexGrow: 1, fontSize: 20, fontWeight: 600 }}
         >
-          Your Cart
+          {t('cart.yourCart')}
         </Typography>
         <IconButton sx={{ color: "white" }} onClick={onClose}>
           <CloseIcon />
@@ -172,10 +171,10 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         {cartItems.length === 0 ? (
           <Box sx={{ textAlign: "center", mt: 4 }}>
             <Typography variant="h6" mb={2}>
-              Your cart is empty
+              {t('cart.cartIsEmpty')}
             </Typography>
             <Button variant="contained" sx={{ mt: 2 }} onClick={onClose}>
-              Continue Shopping
+              {t('cart.continueShopping')}
             </Button>
           </Box>
         ) : (
@@ -205,12 +204,12 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         <Box sx={{ mt: "auto" }}>
           <Box sx={{ p: 3, bgcolor: "primary.light" }}>
             <Typography variant="subtitle1" fontWeight={600} mb={1}>
-              Cart Summary
+              {t('cart.cartSummary')}
             </Typography>
             <Box mb={2}>
               <Box display="flex" justifyContent="space-between" mb={1}>
                 <Typography fontWeight={600} fontSize={14}>
-                  Item Total
+                  {t('cart.itemTotal')}
                 </Typography>
                 <Typography fontWeight={600} fontSize={14}>
                   {itemTotal}
@@ -218,7 +217,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
               </Box>
               <Box display="flex" justifyContent="space-between">
                 <Typography fontWeight={600} fontSize={14}>
-                  Discount
+                  {t('cart.discount')}
                 </Typography>
                 <Typography fontWeight={600} fontSize={14} color="green">
                   {discount === "0₺" ? "0₺" : `-${discount}`}
@@ -236,7 +235,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   sx={{ fontSize: "16px", mr: 1, color: "text.secondary" }}
                 />
                 <Typography variant="caption" color="text.secondary">
-                  25 - 35 mins
+                  25 - 35 {t('cart.estimatedTime')}
                 </Typography>
               </Box>
               <Typography variant="h6" fontWeight={700}>
@@ -254,7 +253,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
               sx={{ py: 1.5, borderRadius: 0, bgcolor: "secondary.main" }}
               onClick={onClose}
             >
-              Go to Cart
+              {t('cart.goToCart')}
             </Button>
             <Button
               variant="contained"
@@ -263,7 +262,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
               sx={{ py: 1.5, borderRadius: 0, bgcolor: "primary.main" }}
               onClick={onClose}
             >
-              Pay Now
+              {t('cart.payNow')}
             </Button>
           </ButtonGroup>
         </Box>
