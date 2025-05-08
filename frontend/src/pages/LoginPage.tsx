@@ -7,8 +7,10 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff'
 import { loginUser } from '../utils/api';
 import { useAppDispatch } from "../store/hooks";
 import { login } from "../store/slices/authSlice";
+import { useTranslation } from 'react-i18next';
 
 const LoginPage = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
     const [emailError, setEmailError] = useState(false);
@@ -29,7 +31,7 @@ const LoginPage = () => {
         // Email validation
         if (!email || !/\S+@\S+\.\S+/.test(email)) {
             setEmailError(true);
-            setEmailErrorMessage('Please enter a valid email address.');
+            setEmailErrorMessage(t('login.validEmail'));
             isValid = false;
         } else {
             setEmailError(false);
@@ -68,7 +70,7 @@ const LoginPage = () => {
                 const errorMessage =
                     err?.response?.data?.message ||
                     err?.message ||
-                    'Failed to login';
+                    t('login.loginError');
 
                 setError(errorMessage);
                 setShowError(true);
@@ -120,19 +122,19 @@ const LoginPage = () => {
                 }}>
 
                     <Typography variant="h1" sx={{ fontSize: 36, fontWeight: 600, textAlign: 'center', }}>
-                        Login & Savor the Flavor
+                        {t('login.title')}
                     </Typography>
 
                     {/* Login Form */}
                     <FormControl>
-                        <FormLabel htmlFor="email">Email</FormLabel>
+                        <FormLabel htmlFor="email">{t('login.email')}</FormLabel>
                         <TextField
                             error={emailError}
                             helperText={emailErrorMessage}
                             id="email"
                             type="email"
                             name="email"
-                            placeholder="your@email.com"
+                            placeholder={t('login.emailPlaceholder')}
                             autoComplete="email"
                             autoFocus
                             required
@@ -143,10 +145,10 @@ const LoginPage = () => {
                         />
                     </FormControl>
                     <FormControl>
-                        <FormLabel htmlFor="password">Password</FormLabel>
+                        <FormLabel htmlFor="password">{t('login.password')}</FormLabel>
                         <TextField
                             name="password"
-                            placeholder="••••••"
+                            placeholder={t('login.passwordPlaceholder')}
                             type={showPassword ? "text" : "password"}
                             id="password"
                             autoComplete="current-password"
@@ -179,7 +181,7 @@ const LoginPage = () => {
                             mt: -2,
                         }}
                     >
-                        Forget Password?
+                        {t('login.forgotPassword')}
                         <Phishing fontSize="small" />
                     </Typography>
 
@@ -191,7 +193,7 @@ const LoginPage = () => {
                         disabled={loading}
                         sx={{ py: 2 }}
                     >
-                        {loading ? <CircularProgress size={24} /> : 'Sign in'}
+                        {loading ? <CircularProgress size={24} /> : t('login.signIn')}
                     </Button>
 
                     <Typography
@@ -200,7 +202,7 @@ const LoginPage = () => {
                         color="inherit"
                         sx={{ alignSelf: 'center', textDecoration: 'none' }}
                     >
-                        Don't have an account? Register now.
+                        {t('login.noAccount')}
                     </Typography>
                 </Paper>
             </Container>

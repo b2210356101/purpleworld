@@ -15,15 +15,17 @@ import {
     Typography,
     useTheme,
 } from "@mui/material";
-import {useRef, useState} from "react";
+import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
-import {checkEmailExists, registerCustomer, sendVerificationCode, verifyEmailCode} from "../../utils/api";
+import { checkEmailExists, registerCustomer, sendVerificationCode, verifyEmailCode } from "../../utils/api";
+import { useTranslation } from 'react-i18next';
 
 const RegisterCustomer = () => {
     const theme = useTheme();
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     const [showPassword, setShowPassword] = useState(false);
     const [acceptTerms, setAcceptTerms] = useState(false);
@@ -55,8 +57,6 @@ const RegisterCustomer = () => {
     inputRefs.current = Array(6).fill(null).map((_, i) => inputRefs.current[i] || null);
 
 
-
-
     const handleClickShowPassword = () => setShowPassword(!showPassword);
 
     const validateInputs = (): boolean => {
@@ -78,7 +78,7 @@ const RegisterCustomer = () => {
 
         if (!firstName) {
             setFirstNameError(true);
-            setFirstNameErrorMsg("First name is required.");
+            setFirstNameErrorMsg(t('register.customer.firstNameRequired'));
             isValid = false;
         } else {
             setFirstNameError(false);
@@ -87,7 +87,7 @@ const RegisterCustomer = () => {
 
         if (!lastName) {
             setLastNameError(true);
-            setLastNameErrorMsg("Last name is required.");
+            setLastNameErrorMsg(t('register.customer.lastNameRequired'));
             isValid = false;
         } else {
             setLastNameError(false);
@@ -96,7 +96,7 @@ const RegisterCustomer = () => {
 
         if (!/^\d{10}$/.test(phone)) {
             setPhoneError(true);
-            setPhoneErrorMsg("Enter a valid 10-digit phone number.");
+            setPhoneErrorMsg(t('register.customer.phoneRequired'));
             isValid = false;
         } else {
             setPhoneError(false);
@@ -105,7 +105,7 @@ const RegisterCustomer = () => {
 
         if (!/\S+@\S+\.\S+/.test(email)) {
             setEmailError(true);
-            setEmailErrorMsg("Enter a valid email address.");
+            setEmailErrorMsg(t('register.customer.emailRequired'));
             isValid = false;
         } else {
             setEmailError(false);
@@ -116,9 +116,7 @@ const RegisterCustomer = () => {
             /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*_])[A-Za-z\d!@#$%^&*_]{8,}$/;
         if (!password || !passwordRegex.test(password)) {
             setPasswordError(true);
-            setPasswordErrorMsg(
-                "Password must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one number, and one special character (e.g., !@#$%^&*_)."
-            );
+            setPasswordErrorMsg(t('register.validation.passwordRequirements'));
             isValid = false;
         } else {
             setPasswordError(false);
@@ -127,7 +125,7 @@ const RegisterCustomer = () => {
 
         if (password !== confirmPassword) {
             setConfirmPasswordError(true);
-            setConfirmPasswordErrorMsg("Passwords do not match.");
+            setConfirmPasswordErrorMsg(t('register.validation.passwordsDoNotMatch'));
             isValid = false;
         } else {
             setConfirmPasswordError(false);
@@ -166,7 +164,7 @@ const RegisterCustomer = () => {
             const exists = await checkEmailExists(formDataObj.email);
             if (exists) {
                 setEmailError(true);
-                setEmailErrorMsg("This email is already registered.");
+                setEmailErrorMsg(t('register.validation.emailExists'));
                 return;
             }
 
@@ -178,29 +176,27 @@ const RegisterCustomer = () => {
             const errorMessage = err.response?.data?.message || err.message || "";
             if (errorMessage.includes("already exists")) {
                 setEmailError(true);
-                setEmailErrorMsg("This email is already registered.");
+                setEmailErrorMsg(t('register.validation.emailExists'));
             } else {
-                setGeneralError("Something went wrong. Please try again.");
+                setGeneralError(t('register.validation.generalError'));
             }
         } finally {
             setIsSendingCode(false);
         }
     };
 
-
-
     const handleVerifyAndRegister = async () => {
         setVerificationError("");
 
         if (!formData) {
-            setVerificationError("Missing form data.");
+            setVerificationError(t('register.validation.missingFormData'));
             return;
         }
 
         try {
             const isValid = await verifyEmailCode(formData.email, verificationCode);
             if (!isValid) {
-                setVerificationError("Invalid or expired verification code.");
+                setVerificationError(t('register.validation.invalidVerificationCode'));
                 return;
             }
 
@@ -209,7 +205,7 @@ const RegisterCustomer = () => {
             navigate("/login");
         } catch (err: any) {
             console.error("Final registration error:", err);
-            setVerificationError("Something went wrong during verification or registration.");
+            setVerificationError(t('register.validation.verificationError'));
         }
     };
 
@@ -235,28 +231,24 @@ const RegisterCustomer = () => {
     const handlePaste = (event: React.ClipboardEvent) => {
         event.preventDefault();
         const pastedData = event.clipboardData.getData("text/plain").trim();
-    
+
         // Check if pasted content contains only digits
         if (/^\d+$/.test(pastedData)) {
-          // Take only the first 6 digits (or fewer if the pasted text is shorter)
-          const digits = pastedData.slice(0, 6).split("");
-    
-          // Create a new array with the pasted digits and fill remaining positions with empty strings
-          const newDigits = [...digits, ...Array(6 - digits.length).fill("")];
-    
-          // Update state with new digits
-          setCodeDigits(newDigits);
-          setVerificationCode(newDigits.join(""));
-    
-          // Focus the next empty input field or the last one if all are filled
-          const nextEmptyIndex = digits.length < 6 ? digits.length : 5;
-          inputRefs.current[nextEmptyIndex]?.focus();
+            // Take only the first 6 digits (or fewer if the pasted text is shorter)
+            const digits = pastedData.slice(0, 6).split("");
+
+            // Create a new array with the pasted digits and fill remaining positions with empty strings
+            const newDigits = [...digits, ...Array(6 - digits.length).fill("")];
+
+            // Update state with new digits
+            setCodeDigits(newDigits);
+            setVerificationCode(newDigits.join(""));
+
+            // Focus the next empty input field or the last one if all are filled
+            const nextEmptyIndex = digits.length < 6 ? digits.length : 5;
+            inputRefs.current[nextEmptyIndex]?.focus();
         }
-      };
-
-
-
-
+    };
 
     return (
         <Box
@@ -282,7 +274,7 @@ const RegisterCustomer = () => {
                 textAlign="center"
                 color="primary"
             >
-                Register as a Customer
+                {t('register.customer.title')}
             </Typography>
 
             {generalError && (
@@ -292,7 +284,7 @@ const RegisterCustomer = () => {
             )}
 
             <FormControl>
-                <FormLabel htmlFor="firstName">First Name</FormLabel>
+                <FormLabel htmlFor="firstName">{t('register.common.firstName')}</FormLabel>
                 <TextField
                     id="firstName"
                     name="firstName"
@@ -306,7 +298,7 @@ const RegisterCustomer = () => {
             </FormControl>
 
             <FormControl>
-                <FormLabel htmlFor="lastName">Last Name</FormLabel>
+                <FormLabel htmlFor="lastName">{t('register.common.lastName')}</FormLabel>
                 <TextField
                     id="lastName"
                     name="lastName"
@@ -320,11 +312,11 @@ const RegisterCustomer = () => {
             </FormControl>
 
             <FormControl>
-                <FormLabel htmlFor="phone">Phone Number</FormLabel>
+                <FormLabel htmlFor="phone">{t('register.common.phone')}</FormLabel>
                 <TextField
                     id="phone"
                     name="phone"
-                    placeholder="e.g. 5551234567"
+                    placeholder={t('register.common.phonePlaceholder')}
                     error={phoneError}
                     helperText={phoneErrorMsg}
                     fullWidth
@@ -336,11 +328,11 @@ const RegisterCustomer = () => {
             </FormControl>
 
             <FormControl>
-                <FormLabel htmlFor="email">Email</FormLabel>
+                <FormLabel htmlFor="email">{t('register.common.email')}</FormLabel>
                 <TextField
                     id="email"
                     name="email"
-                    placeholder="e.g. mail@example.com"
+                    placeholder={t('register.common.emailPlaceholder')}
                     type="email"
                     error={emailError}
                     helperText={emailErrorMsg}
@@ -352,11 +344,11 @@ const RegisterCustomer = () => {
             </FormControl>
 
             <FormControl>
-                <FormLabel htmlFor="password">Password</FormLabel>
+                <FormLabel htmlFor="password">{t('register.common.password')}</FormLabel>
                 <TextField
                     id="password"
                     name="password"
-                    placeholder="••••••"
+                    placeholder={t('register.common.passwordPlaceholder')}
                     type={showPassword ? "text" : "password"}
                     error={passwordError}
                     helperText={passwordErrorMsg}
@@ -380,11 +372,11 @@ const RegisterCustomer = () => {
             </FormControl>
 
             <FormControl>
-                <FormLabel htmlFor="confirmPassword">Confirm Password</FormLabel>
+                <FormLabel htmlFor="confirmPassword">{t('register.common.confirmPassword')}</FormLabel>
                 <TextField
                     id="confirmPassword"
                     name="passwordConfirmation"
-                    placeholder="••••••"
+                    placeholder={t('register.common.passwordPlaceholder')}
                     type={showPassword ? "text" : "password"}
                     error={confirmPasswordError}
                     helperText={confirmPasswordErrorMsg}
@@ -420,7 +412,7 @@ const RegisterCustomer = () => {
                     }
                     label={
                         <Typography variant="body2" id="terms-label">
-                            I accept the terms & conditions
+                            {t('register.common.termsAndConditions')}
                         </Typography>
                     }
                 />
@@ -448,10 +440,10 @@ const RegisterCustomer = () => {
                 {isSendingCode ? (
                     <Box display="flex" alignItems="center" gap={1}>
                         <CircularProgress size={16} />
-                        Sending code...
+                        {t('register.common.sendingCode')}
                     </Box>
                 ) : (
-                    "Register"
+                    t('register.common.registerButton')
                 )}
             </Button>
 
@@ -464,7 +456,7 @@ const RegisterCustomer = () => {
                     color: theme.palette.text.primary,
                 }}
             >
-                Already have an account? Login now.
+                {t('register.common.alreadyHaveAccount')}
             </Typography>
             {/* Dialog: Verification Code Popup */}
             <Dialog
@@ -473,7 +465,7 @@ const RegisterCustomer = () => {
                 fullWidth
                 maxWidth="xs"
             >
-                <DialogTitle>Verification Code</DialogTitle>
+                <DialogTitle>{t('register.common.verificationCodeTitle')}</DialogTitle>
                 <DialogContent>
                     {verificationError && (
                         <Typography color="error" variant="body2" sx={{ mb: 1 }}>
@@ -481,34 +473,36 @@ const RegisterCustomer = () => {
                         </Typography>
                     )}
                     <Box display="flex" justifyContent="center" gap={1}>
-                    {codeDigits.map((digit, index) => (
-              <TextField
-                key={index}
-                inputRef={(el) => (inputRefs.current[index] = el)}
-                value={digit}
-                onChange={(e) => handleDigitChange(index, e.target.value)}
-                onKeyDown={(e) => handleKeyDown(index, e)}
-                onPaste={index === 0 ? handlePaste : undefined} // Only add paste handler to first input
-                inputProps={{
-                  maxLength: 1,
-                  style: {
-                    width: "3rem",
-                    height: "3rem",
-                    textAlign: "center",
-                    fontSize: "1.5rem",
-                  },
-                }}
-                variant="outlined"
-              />
-            ))}
+                        {codeDigits.map((digit, index) => (
+                            <TextField
+                                key={index}
+                                inputRef={(el) => (inputRefs.current[index] = el)}
+                                value={digit}
+                                onChange={(e) => handleDigitChange(index, e.target.value)}
+                                onKeyDown={(e) => handleKeyDown(index, e)}
+                                onPaste={index === 0 ? handlePaste : undefined} // Only add paste handler to first input
+                                inputProps={{
+                                    maxLength: 1,
+                                    style: {
+                                        width: "3rem",
+                                        height: "3rem",
+                                        textAlign: "center",
+                                        fontSize: "1.5rem",
+                                    },
+                                }}
+                                variant="outlined"
+                            />
+                        ))}
                     </Box>
                 </DialogContent>
 
 
                 <DialogActions sx={{ pr: 3, pb: 2 }}>
-                    <Button onClick={() => setShowVerificationDialog(false)}>Cancel</Button>
+                    <Button onClick={() => setShowVerificationDialog(false)}>
+                        {t('register.common.cancelButton')}
+                    </Button>
                     <Button variant="contained" onClick={handleVerifyAndRegister}>
-                        Verify & Register
+                        {t('register.common.verifyButton')}
                     </Button>
                 </DialogActions>
             </Dialog>

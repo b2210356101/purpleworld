@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, Suspense, lazy } from 'react';
-import { Box, Typography, Button, Grid, Paper, Snackbar, Alert, CircularProgress } from '@mui/material';
+import { Box, Typography, Button, Grid, Paper, Snackbar, Alert, CircularProgress, Skeleton } from '@mui/material';
 import { ArrowForward } from '@mui/icons-material';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAddress } from '../hooks/useAddress';
@@ -7,6 +7,9 @@ import { useOrders } from '../hooks/useOrders';
 import { useTracking } from '../hooks/useTracking';
 import { Restaurant, CustomerCurrentOrderDTO } from '../types';
 import { getNearestRestaurants, getPopularMenuItems } from '../utils/api';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
+import Loading from '../components/Loading';
 
 // Lazy-loaded components
 const AddAddressModal = lazy(() => import('../components/address/AddAddressModal'));
@@ -22,11 +25,67 @@ const OrderDetailsModal = lazy(() => import('../components/OrderDetailsModal'));
 const PaymentSuccessPopup = lazy(() => import('../components/PaymentSuccessPopUp'));
 const RestaurantCard = lazy(() => import('../components/restaurant/RestaurantCart'));
 
-// Loading fallback component
 const LoadingFallback = () => (
-    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 3 }}>
-        <CircularProgress color="primary" />
+    <Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        p: 3,
+        minHeight: '150px'
+    }}>
+        <Loading size={60} showText={false} />
     </Box>
+);
+
+// Restaurant Card Skeleton
+const RestaurantCardSkeleton = () => (
+    <Paper
+        elevation={2}
+        sx={{
+            p: 0,
+            borderRadius: 4,
+            overflow: 'hidden',
+            height: '100%',
+            transition: "transform 0.2s",
+            "&:hover": {
+                transform: "translateY(-5px)",
+            },
+            display: 'flex',
+            flexDirection: 'column',
+        }}
+    >
+        <Skeleton variant="rectangular" height={160} animation="wave" />
+        <Box sx={{ p: 2 }}>
+            <Skeleton variant="text" width="60%" height={32} animation="wave" />
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', my: 1 }}>
+                <Skeleton variant="text" width="50%" height={24} animation="wave" />
+                <Skeleton variant="text" width="20%" height={24} animation="wave" />
+            </Box>
+            <Skeleton variant="rounded" width="100%" height={28} animation="wave" />
+        </Box>
+    </Paper>
+);
+
+// Popular Food Card Skeleton
+const PopularFoodCardSkeleton = () => (
+    <Paper
+        sx={{
+            borderRadius: 4,
+            overflow: 'hidden',
+            transition: "transform 0.2s",
+            "&:hover": {
+                transform: "translateY(-5px)",
+            }
+        }}
+    >
+        <Skeleton sx={{ borderRadius: 4, width: "100%" }} variant="rectangular" height={180} animation="wave" />
+        <Box sx={{ p: 2 }}>
+            <Skeleton variant="text" width="80%" height={24} animation="wave" />
+            <Skeleton variant="text" width="40%" height={20} animation="wave" />
+            <Skeleton variant="text" width="30%" height={24} animation="wave" />
+            <Skeleton variant="text" width="100%" height={36} animation="wave" />
+        </Box>
+    </Paper>
 );
 
 interface PopularFood {
@@ -39,6 +98,7 @@ interface PopularFood {
 }
 
 const CustomerHomePage = () => {
+    const { t } = useTranslation();
     // Custom hooks
     const address = useAddress();
     const orders = useOrders();
@@ -55,16 +115,15 @@ const CustomerHomePage = () => {
         paymentType: string;
         note?: string;
     } | null>(null);
-    const [isLoading, setIsLoading] = useState({ restaurants: false, popularItems: false });
+    const [isLoading, setIsLoading] = useState({ restaurants: false, popularItems: false, hero: true });
 
     const location = useLocation();
     const navigate = useNavigate();
 
     // Load restaurants - using useCallback to prevent recreating this function on every render
     const loadNearbyRestaurants = useCallback(async () => {
-        if (!address.selectedAddress || isLoading.restaurants) return;
+        if (!address.selectedAddress) return;
 
-        setIsLoading(prev => ({ ...prev, restaurants: true }));
         try {
             const list = await getNearestRestaurants();
             setNearbyRestaurants(
@@ -86,9 +145,8 @@ const CustomerHomePage = () => {
 
     // Load popular menu items - using useCallback
     const loadPopularMenuItems = useCallback(async () => {
-        if (!address.selectedAddress || isLoading.popularItems) return;
+        if (!address.selectedAddress) return;
 
-        setIsLoading(prev => ({ ...prev, popularItems: true }));
         try {
             const items = await getPopularMenuItems();
             setPopularMenuItems(
@@ -111,16 +169,23 @@ const CustomerHomePage = () => {
     // Fetch data when address is selected
     useEffect(() => {
         if (address.selectedAddress) {
-            // Use a small timeout to ensure UI is responsive during initial load
+            setIsLoading({ restaurants: true, popularItems: true, hero: true });
+
             const restaurantTimer = setTimeout(loadNearbyRestaurants, 100);
             const menuItemTimer = setTimeout(loadPopularMenuItems, 200);
+
+            const heroLoadingTimer = setTimeout(() => {
+                setIsLoading(prev => ({ ...prev, hero: false }));
+            }, 500);
 
             return () => {
                 clearTimeout(restaurantTimer);
                 clearTimeout(menuItemTimer);
+                clearTimeout(heroLoadingTimer);
             };
         }
     }, [address.selectedAddress, loadNearbyRestaurants, loadPopularMenuItems]);
+
 
     // Check for orderData in navigation state
     useEffect(() => {
@@ -161,50 +226,62 @@ const CustomerHomePage = () => {
                     onClick={address.handleDialogOpen}
                     size="large"
                 >
-                    Change Address
+                    {t('address.change')}
                 </Button>
             </Paper>
         </Box>
-    ), [address.handleDialogOpen]);
+    ), [address.handleDialogOpen, i18n.language]);
 
     // Memoize the hero section to prevent re-renders
     const heroSection = useMemo(() => (
         <Grid container spacing={6} sx={{ bgcolor: 'primary.main', mt: { xs: 2, md: 6 }, p: 6, alignItems: 'center', justifyContent: 'space-between', borderRadius: 6, color: 'white' }}>
             <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="h4" fontWeight="bold" gutterBottom>
-                    Hello, {localStorage.getItem('username')}!
+                    {t('homepage.hero.hello')}, {localStorage.getItem('username')}!
                 </Typography>
                 <Typography>
-                    What would you like to eat today?<br />
-                    Your favorite flavors are just a click away.
+                    {t('homepage.hero.description1')}<br />
+                    {t('homepage.hero.description2')}
                 </Typography>
 
                 <Button variant="contained" size="large" sx={{ mt: 2, color: 'primary.main', bgcolor: 'white' }} onClick={address.handleDialogOpen}>
-                    Select Address
+                    {t('address.select')}
                 </Button>
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }} sx={{ textAlign: 'right' }}>
-                <Box
-                    component="img"
-                    src="https://i.hizliresim.com/1xcam90.jpeg"
-                    alt="Food Delivery"
-                    sx={{
-                        maxWidth: '100%',
-                        height: 'auto',
-                        borderRadius: 4,
-                        boxShadow: '0px 0px 10px rgba(132, 94, 194, 0.3)'
-                    }}
-                />
+                {isLoading.hero ? (
+                    <Skeleton
+                        variant="rounded"
+                        height={"320px"}
+                        sx={{
+                            borderRadius: 4,
+                            backgroundColor: 'rgba(255,255,255,0.1)',
+                        }}
+                        animation="wave"
+                    />
+                ) : (
+                    <Box
+                        component="img"
+                        src="https://i.hizliresim.com/1xcam90.jpeg"
+                        alt="Food Delivery"
+                        sx={{
+                            maxWidth: '100%',
+                            height: 'auto',
+                            borderRadius: 4,
+                            boxShadow: '0px 0px 10px rgba(132, 94, 194, 0.3)'
+                        }}
+                    />
+                )}
             </Grid>
         </Grid>
-    ), [address.handleDialogOpen]);
+    ), [address.handleDialogOpen, i18n.language, isLoading.hero]);
 
     // Memoize the categories section header
     const categoriesSectionHeader = useMemo(() => (
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="h5" fontWeight="bold">
-                Search by Categories
+                {t('homepage.categories.search')}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Typography
@@ -218,18 +295,18 @@ const CustomerHomePage = () => {
                         alignItems: 'center'
                     }}
                 >
-                    View All
+                    {t('util.view')}
                     <ArrowForward sx={{ fontSize: 16, ml: 1 }} />
                 </Typography>
             </Box>
         </Box>
-    ), []);
+    ), [i18n.language]);
 
     // Memoize the restaurants section header
     const restaurantsSectionHeader = useMemo(() => (
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="h5" fontWeight="bold">
-                Nearest Restaurants
+                {t('homepage.near')}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Typography
@@ -243,12 +320,12 @@ const CustomerHomePage = () => {
                         alignItems: 'center'
                     }}
                 >
-                    View All
+                    {t('util.view')}
                     <ArrowForward sx={{ fontSize: 16, ml: 1 }} />
                 </Typography>
             </Box>
         </Box>
-    ), []);
+    ), [i18n.language]);
 
     // Combined snackbar state for better performance
     const snackbarState = useMemo(() => {
@@ -264,7 +341,7 @@ const CustomerHomePage = () => {
     const handleSnackbarClose = useCallback(() => {
         if (orders.snackbarOpen) orders.setSnackbarOpen(false);
         if (tracking.snackbarOpen) tracking.setSnackbarOpen(false);
-    }, [orders, tracking]);
+    }, [orders, tracking, i18n.language]);
 
     return (
         <Box sx={{ pb: 6 }}>
@@ -272,7 +349,7 @@ const CustomerHomePage = () => {
             {heroSection}
 
             {/* Current Orders Tracking - Lazy loaded */}
-            <Suspense fallback={<LoadingFallback />}>
+            <Suspense>
                 <OrderTracking
                     activeOrderGroups={orders.activeOrderGroups}
                     getOrderSteps={orders.getOrderSteps}
@@ -295,9 +372,7 @@ const CustomerHomePage = () => {
 
             {/* Conditional rendering for restaurant and food sections */}
             {address.selectedAddress ? (
-                isLoading.restaurants && isLoading.popularItems ? (
-                    <LoadingFallback />
-                ) : nearbyRestaurants.length === 0 && popularMenuItems.length === 0 ? (
+                nearbyRestaurants.length === 0 && popularMenuItems.length === 0 && !isLoading.restaurants && !isLoading.popularItems ? (
                     noRestaurantsFoundSection
                 ) : (
                     <>
@@ -306,30 +381,50 @@ const CustomerHomePage = () => {
                             {restaurantsSectionHeader}
 
                             <Grid container spacing={3}>
-                                {nearbyRestaurants.map((restaurant) => (
-                                    <Grid size={{ xs: 12, sm: 6, md: 3 }} key={restaurant.id}>
-                                        <Suspense fallback={<LoadingFallback />}>
-                                            <RestaurantCard restaurant={restaurant} />
-                                        </Suspense>
-                                    </Grid>
-                                ))}
+                                {isLoading.restaurants ? (
+                                    // Show restaurant skeletons while loading
+                                    Array.from(new Array(4)).map((_, index) => (
+                                        <Grid size={{ xs: 12, sm: 6, md: 3 }} key={`restaurant-skeleton-${index}`}>
+                                            <RestaurantCardSkeleton />
+                                        </Grid>
+                                    ))
+                                ) : (
+                                    // Show actual restaurants when loaded
+                                    nearbyRestaurants.map((restaurant) => (
+                                        <Grid size={{ xs: 12, sm: 6, md: 3 }} key={restaurant.id}>
+                                            <Suspense fallback={<RestaurantCardSkeleton />}>
+                                                <RestaurantCard restaurant={restaurant} />
+                                            </Suspense>
+                                        </Grid>
+                                    ))
+                                )}
                             </Grid>
                         </Box>
 
                         {/* Popular Foods */}
                         <Box sx={{ py: 6 }}>
                             <Typography variant="h5" fontWeight="bold" sx={{ mb: 3 }}>
-                                Popular Foods
+                                {t('homepage.popular')}
                             </Typography>
 
                             <Grid container spacing={2}>
-                                {popularMenuItems.map((food) => (
-                                    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }} key={food.id}>
-                                        <Suspense fallback={<LoadingFallback />}>
-                                            <PopularFoodCard food={food} />
-                                        </Suspense>
-                                    </Grid>
-                                ))}
+                                {isLoading.popularItems ? (
+                                    // Show food skeletons while loading
+                                    Array.from(new Array(5)).map((_, index) => (
+                                        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }} key={`food-skeleton-${index}`}>
+                                            <PopularFoodCardSkeleton />
+                                        </Grid>
+                                    ))
+                                ) : (
+                                    // Show actual food items when loaded
+                                    popularMenuItems.map((food) => (
+                                        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }} key={food.id}>
+                                            <Suspense fallback={<PopularFoodCardSkeleton />}>
+                                                <PopularFoodCard food={food} />
+                                            </Suspense>
+                                        </Grid>
+                                    ))
+                                )}
                             </Grid>
                         </Box>
                     </>
@@ -386,9 +481,10 @@ const CustomerHomePage = () => {
                             address.setIsConfirmDialogOpen(false);
                             address.onConfirmProceed?.();
                         }}
-                        title="Change Address?"
-                        message="Changing your address will remove all items in your cart. Are you sure you want to proceed?"
-                        confirmText="Yes, Change Address"
+                        title={t('address.change')}
+                        message={t('address.removeItems')}
+                        confirmText={t('util.yes')}
+                        cancelText={t('util.cancel')}
                     />
                 </Suspense>
             )}
