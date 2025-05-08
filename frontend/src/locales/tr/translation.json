@@ -1,0 +1,237 @@
+{
+    "util": {
+        "view": "Tümünü Gör",
+        "yes": "Evet",
+        "cancel": "İptal",
+        "loading": "Yükleniyor..."
+    },
+    "homepage": {
+        "hero": {
+            "title": "Yemek Teslimat",
+            "hello": "Merhaba",
+            "text": "Bölgenizdeki yüzlerce restoran ve mutfağı keşfedin. Yerel favorilerden uluslararası lezzetlere, Purple World en iyi yiyecek seçeneklerini sadece birkaç tıklamayla doğrudan size getiriyor. Hızlı teslimat, güvenilir hizmet ve kusursuz bir sipariş deneyimi sizi bekliyor.",
+            "login": "Giriş Yap",
+            "description1": "Bugün ne yemek istersin?",
+            "description2": "En sevdiğiniz lezzetler bir tık uzağınızda."
+        },
+        "whyChooseUs": "Neden Biz?",
+        "categories": {
+            "search": "Kategoriye Göre Arama",
+            "pizza": "Pizza",
+            "burger": "Burger",
+            "pasta": "Makarna",
+            "salad": "Salata",
+            "dessert": "Tatlı",
+            "sushi": "Sushi"
+        },
+        "near": "Yakındaki Restoranlar",
+        "popular": "Popüler Yemekler",
+        "features": {
+            "fastDelivery": {
+                "title": "Hızlı Teslimat",
+                "description": "Yemeğinizi dakikalar içinde kapınıza getiriyoruz. Özel kurye ağımız sayesinde sıcak ve taze yemeklerin tadını çıkarın."
+            },
+            "reliableService": {
+                "title": "Güvenilir Hizmet",
+                "description": "Her siparişi takip edin ve teslimat durumunuz hakkında gerçek zamanlı güncellemeler görün. Teslimat sözümüzü her zaman tutarız."
+            },
+            "easyToUse": {
+                "title": "Kullanımı Kolay",
+                "description": "Basit ve kullanıcı dostu arayüzümüzü kullanarak favori restoranlarınızdan sadece birkaç tıklamayla sipariş verin. Karmaşık işlemler yok, sadece lezzetli yemekler."
+            }
+        },
+        "restaurantSection": {
+            "title": "Restoranınızı Purple World Yemek Teslimatına Ekleyin",
+            "description1": "Büyüyen yemek ortakları ağımıza katılarak restoranınızın erişimini genişletin ve gelirinizi artırın. Purple World ile, kapılarına teslim edilecek kaliteli yemek arayan binlerce aç müşteriye erişim kazanacaksınız.",
+            "description2": "Platformumuz, siparişleri yönetmeyi, menünüzü özelleştirmeyi ve performansınızı gerçek zamanlı olarak izlemeyi kolaylaştırır. Teslimat lojistiğini biz hallederiz, böylece siz en iyi yaptığınız şeye odaklanabilirsiniz - müşterilerin daha fazlası için geri gelmesini sağlayan lezzetli yemekler yaratmak.",
+            "addButton": "Şimdi Ekle",
+            "contactButton": "Bize Ulaşın"
+        }
+    },
+    "address": {
+        "address": "Adres",
+        "select": "Adres Seç",
+        "selectNew": "Adresinizi Seçiniz",
+        "saved": "Kayıtlı adresleriniz",
+        "add": "Yeni Adres Ekle",
+        "edit": "Adres Düzenle",
+        "manage": "Adresleri Yönet",
+        "change": "Adres Değiştir",
+        "removeItems": "Adresinizi değiştirdiğinizde sepetinizdeki tüm ürünler kaldırılacaktır. Devam etmek istediğinizden emin misiniz?",
+        "dontHave": "Henüz kayıtlı adresiniz yok. Lütfen yeni bir adres ekleyin.",
+        "field": {
+            "title": "Adres Adı",
+            "full": "Açık Adres",
+            "apartment": "Apartman Adı",
+            "floor": "Kat",
+            "number": "Kapı Numarası",
+            "phone": "Telefon Numarası",
+            "instruction": "Kurye Notu"
+        },
+        "placeholder": {
+            "title": "Evim",
+            "full": "Sokak, mahalle vb.",
+            "apartment": "Barış Apartmanı",
+            "floor": "3",
+            "number": "7",
+            "phone": "5551234567",
+            "instruction": "Kurye için notunuz"
+        },
+        "selectOnMap": "Konumu Haritada İşaretle",
+        "selected": "Seçilen Konum",
+        "build": "Bina Bilgileri",
+        "getLocation": "Konumumu Al",
+        "gettingLocation": "Konum Alınıyor...",
+        "pleaseSelect": "Lütfen Bir Adres Seçin",
+        "selectDescription": "Yakınınızdaki restoranları ve yemekleri görmek için lütfen teslimat adresi seçin."
+    },
+    "menu": {
+        "home": "Ana Sayfa",
+        "restaurants": "Restoranlar",
+        "favorites": "Favoriler",
+        "myOrders": "Siparişlerim",
+        "aboutUs": "Hakkımızda",
+        "contact": "İletişim",
+        "dashboard": "Kontrol Paneli",
+        "orders": "Siparişler",
+        "reviews": "Değerlendirmeler",
+        "menuManagement": "Menü Yönetimi",
+        "stockManagement": "Stok Yönetimi",
+        "userManagement": "Kullanıcı Yönetimi",
+        "restaurantManagement": "Restoran Yönetimi",
+        "courierManagement": "Kurye Yönetimi",
+        "reviewsManagement": "Değerlendirme Yönetimi",
+        "promotionManagement": "Promosyon Yönetimi",
+        "editProfile": "Profili Düzenle",
+        "dark": "Koyu Tema",
+        "light": "Aydınlık Tema",
+        "logout": "Çıkış Yap"
+    },
+    "cart": {
+        "yourCart": "Sepetiniz",
+        "cartIsEmpty": "Sepetiniz boş",
+        "continueShopping": "Alışverişe Devam Et",
+        "cartSummary": "Sepet Özeti",
+        "itemTotal": "Ürün Toplamı",
+        "discount": "İndirim",
+        "estimatedTime": "dakika",
+        "goToCart": "Sepete Git",
+        "payNow": "Şimdi Öde",
+        "loading": "Sepetiniz yükleniyor...",
+        "error": "Sepet öğeleri yüklenemedi. Lütfen daha sonra tekrar deneyin.",
+        "tryAgain": "Tekrar Dene",
+        "updateError": "Sepet öğesi güncellenemedi."
+    },
+    "restaurant": {
+        "searchHeader": "Yemek & Restoran Ara...",
+        "view": "Restoranı Görüntüle",
+        "add": "Sepete Ekle",
+        "selectRemove": "Çıkarılacak Malzemeleri Seçin",
+        "quantity": "Miktar",
+        "favorite": "Favorilere Ekle",
+        "min": "Minimum Sipariş Tutarı",
+        "delivery": "{{min}}-{{max}} Dakikada Teslimat",
+        "search": "Yemeklerde ara...",
+        "result": "Arama Sonuçları",
+        "review": "yorum",
+        "viewReviews": "Yorumları Gör"
+    },
+    "login": {
+        "title": "Giriş Yap & Lezzeti Keşfet",
+        "email": "E-posta",
+        "emailPlaceholder": "ornek@email.com",
+        "password": "Şifre",
+        "passwordPlaceholder": "••••••",
+        "forgotPassword": "Şifremi Unuttum?",
+        "signIn": "Giriş Yap",
+        "noAccount": "Hesabınız yok mu? Şimdi kaydolun.",
+        "validEmail": "Lütfen geçerli bir e-posta adresi girin.",
+        "loginError": "Giriş yapılamadı"
+    },
+    "register": {
+        "common": {
+            "customer": "Müşteri",
+            "restaurant": "Restoran",
+            "courier": "Kurye",
+            "firstName": "Ad",
+            "lastName": "Soyad",
+            "phone": "Telefon Numarası",
+            "phonePlaceholder": "ör. 5551234567",
+            "email": "E-posta",
+            "emailPlaceholder": "ör. mail@ornek.com",
+            "password": "Şifre",
+            "passwordPlaceholder": "••••••",
+            "confirmPassword": "Şifre Onayı",
+            "termsAndConditions": "Şartları ve koşulları kabul ediyorum",
+            "registerButton": "Kayıt Ol",
+            "sendingCode": "Kod gönderiliyor...",
+            "alreadyHaveAccount": "Zaten hesabın var mı? Şimdi giriş yap.",
+            "verificationCodeTitle": "Doğrulama Kodu",
+            "verifyButton": "Doğrula ve Kayıt Ol",
+            "cancelButton": "İptal"
+        },
+        "validation": {
+            "requiredFirstName": "Lütfen adınızı girin.",
+            "requiredLastName": "Lütfen soyadınızı girin.",
+            "validPhone": "Lütfen geçerli bir telefon numarası girin.",
+            "validEmail": "Lütfen geçerli bir e-posta adresi girin.",
+            "emailExists": "Bu e-posta adresi zaten kayıtlı.",
+            "passwordRequirements": "Şifre en az 8 karakter olmalı ve en az bir büyük harf, bir küçük harf, bir rakam ve bir özel karakter (!@#$%^&*_) içermelidir.",
+            "passwordsDoNotMatch": "Şifreler eşleşmiyor.",
+            "generalError": "Bir şeyler yanlış gitti. Lütfen tekrar deneyin.",
+            "missingFormData": "Form verileri eksik.",
+            "invalidVerificationCode": "Geçersiz veya süresi dolmuş doğrulama kodu.",
+            "verificationError": "Doğrulama veya kayıt sırasında bir sorun oluştu.",
+            "sendCodeError": "Doğrulama kodu gönderilirken bir sorun oluştu."
+        },
+        "customer": {
+            "title": "Müşteri Olarak Kayıt Ol",
+            "firstNameRequired": "Ad alanı zorunludur.",
+            "lastNameRequired": "Soyad alanı zorunludur.",
+            "phoneRequired": "Geçerli bir 10 haneli telefon numarası girin.",
+            "emailRequired": "Geçerli bir e-posta adresi girin."
+        },
+        "restaurant": {
+            "title": "Restoranınızı Kaydedin",
+            "managerName": "Yönetici Adı",
+            "managerLastName": "Yönetici Soyadı",
+            "managerPhone": "Yönetici Telefonu",
+            "restaurantName": "Restoran Adı",
+            "restaurantAddress": "Restoran Adresi",
+            "addressPlaceholder": "ör. 123 Ana Cadde",
+            "taxId": "Vergi Numarası",
+            "taxIdPlaceholder": "ör. 1234567890",
+            "taxIdExists": "Bu vergi numarası zaten kayıtlı.",
+            "buildingNumber": "Bina Numarası",
+            "apartmentNumber": "Daire Numarası",
+            "profileImage": "Profil Resmi Yükle",
+            "profilePreview": "Önizleme:",
+            "locationTitle": "Restoran Konumunu Seç",
+            "myLocation": "Konumum",
+            "selectedLocation": "Seçilen Konum:",
+            "locationError": "Lütfen haritada bir konum seçin.",
+            "locationServiceError": "Konumunuz alınamıyor. Lütfen konum servislerini etkinleştirin.",
+            "geolocationNotSupported": "Bu tarayıcı konum servislerini desteklemiyor.",
+            "validTaxId": "Lütfen geçerli bir 10 haneli vergi numarası girin."
+        },
+        "courier": {
+            "title": "Kurye Olarak Kayıt Ol",
+            "ssn": "TC Kimlik Numarası",
+            "ssnPlaceholder": "12345678901",
+            "validSsn": "Lütfen geçerli bir 11 haneli TC Kimlik numarası girin.",
+            "ssnExists": "Bu TC Kimlik numarası zaten kayıtlı."
+        }
+    },
+    "footer": {
+        "description": "Yakınınızdaki yerel ve global mutfakları keşfedin. Purple World ile hızlı teslimat, sadece birkaç tıklama.",
+        "quickLinks": "Hızlı bağlantılar",
+        "restaurants": "Restoranlar",
+        "cookiePolicy": "Çerez Politikası",
+        "gdpr": "KVKK",
+        "getToKnowUs": "Bizi Tanıyın",
+        "aboutUs": "Hakkımızda",
+        "contact": "İletişim",
+        "support": "7/24 Destek",
+        "copyright": "Tüm hakları saklıdır."
+    }
+}

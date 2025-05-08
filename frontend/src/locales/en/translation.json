@@ -1,0 +1,238 @@
+{
+    "util": {
+        "view": "View All",
+        "yes": "Yes",
+        "cancel": "Cancel",
+        "loading": "Loading..."
+    },
+    "homepage": {
+        "hero": {
+            "title": "Food Delivery",
+            "hello": "Hello",
+            "text": "Discover hundreds of restaurants and cuisines in your area. From local favorites to international delights, Purple World brings the best food options directly to you with just a few clicks. Fast delivery, reliable service, and a seamless ordering experience await.",
+            "login": "Login Now",
+            "description1": "What would you like to eat today?",
+            "description2": "Your favorite flavors are just a click away.",
+            "address": "Select Address"
+        },
+        "whyChooseUs": "Why Choose Us?",
+        "categories": {
+            "search": "Search by Categories",
+            "pizza": "Pizza",
+            "burger": "Burger",
+            "pasta": "Pasta",
+            "salad": "Salad",
+            "dessert": "Dessert",
+            "sushi": "Sushi"
+        },
+        "near": "Nearest Restaurants",
+        "popular": "Popular Foods",
+        "features": {
+            "fastDelivery": {
+                "title": "Fast Delivery",
+                "description": "Get your food delivered to your doorstep in minutes. Enjoy hot and fresh meals thanks to our dedicated courier network."
+            },
+            "reliableService": {
+                "title": "Reliable Service",
+                "description": "Track every order and see real-time updates on your delivery status. We always keep our delivery promise."
+            },
+            "easyToUse": {
+                "title": "Easy to Use",
+                "description": "Order from your favorite restaurants with just a few clicks using our simple and user-friendly interface. No complicated processes, just delicious food."
+            }
+        },
+        "restaurantSection": {
+            "title": "Add Your Restaurant to Purple World Food Delivery",
+            "description1": "Expand your restaurant's reach and boost your revenue by joining our growing network of food partners. With Purple World, you'll gain access to thousands of hungry customers looking for quality food delivered right to their doorstep.",
+            "description2": "Our platform makes it easy to manage orders, customize your menu, and track your performance in real-time. We handle the delivery logistics so you can focus on what you do best - creating delicious food that keeps customers coming back for more.",
+            "addButton": "Add Now",
+            "contactButton": "Contact Us"
+        }
+    },
+    "address": {
+        "address": "Address",
+        "select": "Select Address",
+        "selectNew": "Select Your Addresses",
+        "saved": "Your saved addresses",
+        "add": "Add New Address",
+        "edit": "Edit Address",
+        "manage": "Manage Address",
+        "change": "Change Address",
+        "removeItems": "Changing your address will remove all items in your cart. Are you sure you want to proceed?",
+        "dontHave": "You don't have any saved addresses yet. Please add a new address.",
+        "field": {
+            "title": "Address Title",
+            "full": "Full Address",
+            "apartment": "Apartment/Building Name",
+            "floor": "Floor",
+            "number": "Door Number",
+            "phone": "Phone Number",
+            "instruction": "Delivery Instructions"
+        },
+        "placeholder": {
+            "title": "My Home",
+            "full": "Street name, neighborhood, etc.",
+            "apartment": "Barış Apartment",
+            "floor": "3",
+            "number": "7",
+            "phone": "5551234567",
+            "instruction": "Special instructions for courier"
+        },
+        "selectOnMap": "Select Location on Map",
+        "selected": "Selected Location",
+        "build": "Building Details",
+        "getLocation": "Get My Location",
+        "gettingLocation": "Getting Location...",
+        "pleaseSelect": "Please Select an Address",
+        "selectDescription": "To view restaurants and foods near you, please select a delivery address."
+    },
+    "menu": {
+        "home": "Home",
+        "restaurants": "Restaurants",
+        "favorites": "Favorites",
+        "myOrders": "My Orders",
+        "aboutUs": "About Us",
+        "contact": "Contact",
+        "dashboard": "Dashboard",
+        "orders": "Orders",
+        "reviews": "Reviews",
+        "menuManagement": "Menu Management",
+        "stockManagement": "Stock Management",
+        "userManagement": "User Management",
+        "restaurantManagement": "Restaurant Management",
+        "courierManagement": "Courier Management",
+        "reviewsManagement": "Reviews Management",
+        "promotionManagement": "Promotion Management",
+        "editProfile": "Edit Profile",
+        "dark": "Dark Theme",
+        "light": "Light Theme",
+        "logout": "Logout"
+    },
+    "cart": {
+        "yourCart": "Your Cart",
+        "cartIsEmpty": "Your cart is empty",
+        "continueShopping": "Continue Shopping",
+        "cartSummary": "Cart Summary",
+        "itemTotal": "Item Total",
+        "discount": "Discount",
+        "estimatedTime": "mins",
+        "goToCart": "Go to Cart",
+        "payNow": "Pay Now",
+        "loading": "Loading your cart...",
+        "error": "Failed to load cart items. Please try again later.",
+        "tryAgain": "Try Again",
+        "updateError": "Failed to update cart item."
+    },
+    "restaurant": {
+        "searchHeader": "Search restaurants & foods...",
+        "view": "View Restaurant",
+        "add": "Add to Cart",
+        "selectRemove": "Select Ingredients to Remove",
+        "quantity": "Quantity",
+        "favorite": "Add Favorites",
+        "min": "Minimum Order",
+        "delivery": "Delivery in {{min}}-{{max}} mins",
+        "search": "Search food...",
+        "result": "Search Results",
+        "review": "reviews",
+        "viewReviews": "View Reviews"
+    },
+    "login": {
+        "title": "Login & Savor the Flavor",
+        "email": "Email",
+        "emailPlaceholder": "your@email.com",
+        "password": "Password",
+        "passwordPlaceholder": "••••••",
+        "forgotPassword": "Forget Password?",
+        "signIn": "Sign in",
+        "noAccount": "Don't have an account? Register now.",
+        "validEmail": "Please enter a valid email address.",
+        "loginError": "Failed to login"
+    },
+    "register": {
+        "common": {
+            "customer": "Customer",
+            "restaurant": "Restaurant",
+            "courier": "Courier",
+            "firstName": "First Name",
+            "lastName": "Last Name",
+            "phone": "Phone Number",
+            "phonePlaceholder": "e.g. 5551234567",
+            "email": "Email",
+            "emailPlaceholder": "e.g. mail@example.com",
+            "password": "Password",
+            "passwordPlaceholder": "••••••",
+            "confirmPassword": "Confirm Password",
+            "termsAndConditions": "I accept the terms & conditions",
+            "registerButton": "Register",
+            "sendingCode": "Sending code...",
+            "alreadyHaveAccount": "Already have an account? Login now.",
+            "verificationCodeTitle": "Verification Code",
+            "verifyButton": "Verify & Register",
+            "cancelButton": "Cancel"
+        },
+        "validation": {
+            "requiredFirstName": "Please enter your first name.",
+            "requiredLastName": "Please enter your last name.",
+            "validPhone": "Please enter a valid phone number.",
+            "validEmail": "Please enter a valid email address.",
+            "emailExists": "This email is already registered.",
+            "passwordRequirements": "Password must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one number, and one special character (e.g., !@#$%^&*_).",
+            "passwordsDoNotMatch": "Passwords do not match.",
+            "generalError": "Something went wrong. Please try again.",
+            "missingFormData": "Missing form data.",
+            "invalidVerificationCode": "Invalid or expired verification code.",
+            "verificationError": "Something went wrong during verification or registration.",
+            "sendCodeError": "Something went wrong while sending the verification code."
+        },
+        "customer": {
+            "title": "Register as a Customer",
+            "firstNameRequired": "First name is required.",
+            "lastNameRequired": "Last name is required.",
+            "phoneRequired": "Enter a valid 10-digit phone number.",
+            "emailRequired": "Enter a valid email address."
+        },
+        "restaurant": {
+            "title": "Register Your Restaurant",
+            "managerName": "Manager Name",
+            "managerLastName": "Manager Last Name",
+            "managerPhone": "Manager Phone",
+            "restaurantName": "Restaurant Name",
+            "restaurantAddress": "Restaurant Address",
+            "addressPlaceholder": "e.g. 123 Main St",
+            "taxId": "Tax ID",
+            "taxIdPlaceholder": "e.g. 1234567890",
+            "taxIdExists": "This Tax ID is already registered.",
+            "buildingNumber": "Building Number",
+            "apartmentNumber": "Apartment Number",
+            "profileImage": "Upload Profile Image",
+            "profilePreview": "Preview:",
+            "locationTitle": "Select Restaurant Location",
+            "myLocation": "My Location",
+            "selectedLocation": "Selected Location:",
+            "locationError": "Please select a location on the map.",
+            "locationServiceError": "Unable to get your current location. Please enable location services.",
+            "geolocationNotSupported": "Geolocation is not supported by this browser.",
+            "validTaxId": "Please enter a valid 10-digit Tax ID."
+        },
+        "courier": {
+            "title": "Register as a Courier",
+            "ssn": "SSN Number",
+            "ssnPlaceholder": "12345678901",
+            "validSsn": "Please enter a valid 11-digit SSN number.",
+            "ssnExists": "This SSN is already registered."
+        }
+    },
+    "footer": {
+        "description": "Discover local and global cuisines near you. Fast delivery, just a few clicks with Purple World.",
+        "quickLinks": "Quick links",
+        "restaurants": "Restaurants",
+        "cookiePolicy": "Cookie Policy",
+        "gdpr": "GDPR",
+        "getToKnowUs": "Get to Know Us",
+        "aboutUs": "About Us",
+        "contact": "Contact",
+        "support": "24/7 Support",
+        "copyright": "All right reserved."
+    }
+}
