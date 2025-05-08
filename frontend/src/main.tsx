@@ -7,6 +7,7 @@ import { CssBaseline } from '@mui/material';
 import { createAppTheme } from './theme';
 import { Provider, useSelector } from 'react-redux';
 import { RootState, store } from './store';
+import './i18n';
 
 const ThemeWrapper = ({ children }: { children: React.ReactNode }) => {
     const mode = useSelector((state: RootState) => state.theme.mode);
