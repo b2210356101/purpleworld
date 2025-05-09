@@ -21,10 +21,12 @@ import {
     Email,
     Send,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 type InquiryType = 'general' | 'complaint' | 'suggestion' | 'restaurant' | 'courier';
 
 const ContactPage: React.FC = () => {
+    const { t } = useTranslation();
     const [name, setName] = useState<string>('');
     const [email, setEmail] = useState<string>('');
     const [subject, setSubject] = useState<string>('');
@@ -58,10 +60,6 @@ const ContactPage: React.FC = () => {
         }, 1000);
     };
 
-    const handleCloseSnackbar = () => {
-        setShowSuccess(false);
-    };
-
     return (
         <Box>
             {/* Contact Information & Form Section */}
@@ -75,10 +73,10 @@ const ContactPage: React.FC = () => {
                     }}>
                         <Box sx={{ bgcolor: 'primary.main', color: 'white', p: 3 }}>
                             <Typography variant="h5" fontWeight="bold">
-                                Get in Touch
+                                {t('contact.info.title')}
                             </Typography>
                             <Typography variant="body2">
-                                We'd love to hear from you
+                                {t('contact.info.subtitle')}
                             </Typography>
                         </Box>
 
@@ -100,10 +98,10 @@ const ContactPage: React.FC = () => {
                                     </Box>
                                     <Box>
                                         <Typography variant="subtitle2" fontWeight="bold">
-                                            Our Location
+                                            {t('contact.info.location.title')}
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary">
-                                            123 Food Street, Hungry City, 06800
+                                            {t('contact.info.location.address')}
                                         </Typography>
                                     </Box>
                                 </Box>
@@ -124,10 +122,10 @@ const ContactPage: React.FC = () => {
                                     </Box>
                                     <Box>
                                         <Typography variant="subtitle2" fontWeight="bold">
-                                            Phone Number
+                                            {t('contact.info.phone.title')}
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary">
-                                            +90 (312) 123 45677
+                                            {t('contact.info.phone.number')}
                                         </Typography>
                                     </Box>
                                 </Box>
@@ -148,10 +146,10 @@ const ContactPage: React.FC = () => {
                                     </Box>
                                     <Box>
                                         <Typography variant="subtitle2" fontWeight="bold">
-                                            Email Address
+                                            {t('contact.info.email.title')}
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary">
-                                            support@purpleworld.tr
+                                            {t('contact.info.email.address')}
                                         </Typography>
                                     </Box>
                                 </Box>
@@ -159,13 +157,13 @@ const ContactPage: React.FC = () => {
 
                             <Box sx={{ mt: 4, p: 3, bgcolor: 'primary.light', borderRadius: 3 }}>
                                 <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-                                    Business Hours
+                                    {t('contact.info.hours.title')}
                                 </Typography>
                                 <Typography variant="body2">
-                                    Monday - Friday: 9:00 AM - 8:00 PM
+                                    {t('contact.info.hours.weekdays')}
                                 </Typography>
                                 <Typography variant="body2">
-                                    Saturday - Sunday: 10:00 AM - 6:00 PM
+                                    {t('contact.info.hours.weekends')}
                                 </Typography>
                             </Box>
                         </Box>
@@ -176,10 +174,10 @@ const ContactPage: React.FC = () => {
                 <Grid size={{ xs: 12, md: 8 }}>
                     <Paper sx={{ borderRadius: 4, p: 4, }}>
                         <Typography variant="h5" fontWeight="bold" gutterBottom>
-                            Send Us a Message
+                            {t('contact.form.title')}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            Fill out the form below and we'll get back to you as soon as possible
+                            {t('contact.form.subtitle')}
                         </Typography>
 
                         {showSuccess && (
@@ -188,7 +186,7 @@ const ContactPage: React.FC = () => {
                                 sx={{ mb: 3 }}
                                 onClose={() => setShowSuccess(false)}
                             >
-                                Your message has been successfully sent! We will get back to you soon.
+                                {t('contact.form.successMessage')}
                             </Alert>
                         )}
 
@@ -199,7 +197,7 @@ const ContactPage: React.FC = () => {
                                         required
                                         fullWidth
                                         id="name"
-                                        label="Your Name"
+                                        label={t('contact.form.fields.name')}
                                         name="name"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
@@ -213,7 +211,7 @@ const ContactPage: React.FC = () => {
                                         required
                                         fullWidth
                                         id="email"
-                                        label="Email Address"
+                                        label={t('contact.form.fields.email')}
                                         name="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
@@ -227,7 +225,7 @@ const ContactPage: React.FC = () => {
                                     <TextField
                                         fullWidth
                                         id="subject"
-                                        label="Subject"
+                                        label={t('contact.form.fields.subject')}
                                         name="subject"
                                         value={subject}
                                         onChange={(e) => setSubject(e.target.value)}
@@ -238,19 +236,19 @@ const ContactPage: React.FC = () => {
                                 </Grid>
                                 <Grid size={{ xs: 12, sm: 6 }}>
                                     <FormControl fullWidth margin="normal" disabled={isSubmitting}>
-                                        <InputLabel id="inquiry-type-label">Inquiry Type</InputLabel>
+                                        <InputLabel id="inquiry-type-label">{t('contact.form.fields.inquiryType')}</InputLabel>
                                         <Select
                                             labelId="inquiry-type-label"
                                             id="inquiry-type"
                                             value={inquiryType}
-                                            label="Inquiry Type"
+                                            label={t('contact.form.fields.inquiryType')}
                                             onChange={handleInquiryTypeChange}
                                         >
-                                            <MenuItem value="general">General Inquiry</MenuItem>
-                                            <MenuItem value="complaint">Complaint</MenuItem>
-                                            <MenuItem value="suggestion">Suggestion</MenuItem>
-                                            <MenuItem value="restaurant">Restaurant Related</MenuItem>
-                                            <MenuItem value="courier">Courier Related</MenuItem>
+                                            <MenuItem value="general">{t('contact.form.inquiryTypes.general')}</MenuItem>
+                                            <MenuItem value="complaint">{t('contact.form.inquiryTypes.complaint')}</MenuItem>
+                                            <MenuItem value="suggestion">{t('contact.form.inquiryTypes.suggestion')}</MenuItem>
+                                            <MenuItem value="restaurant">{t('contact.form.inquiryTypes.restaurant')}</MenuItem>
+                                            <MenuItem value="courier">{t('contact.form.inquiryTypes.courier')}</MenuItem>
                                         </Select>
                                     </FormControl>
                                 </Grid>
@@ -259,7 +257,7 @@ const ContactPage: React.FC = () => {
                                         required
                                         fullWidth
                                         id="message"
-                                        label="Your Message"
+                                        label={t('contact.form.fields.message')}
                                         name="message"
                                         value={message}
                                         onChange={(e) => setMessage(e.target.value)}
@@ -283,10 +281,10 @@ const ContactPage: React.FC = () => {
                                         {isSubmitting ? (
                                             <>
                                                 <CircularProgress size={24} color="inherit" sx={{ mr: 1 }} />
-                                                Sending...
+                                                {t('contact.form.sending')}
                                             </>
                                         ) : (
-                                            'Send Message'
+                                            t('contact.form.sendButton')
                                         )}
                                     </Button>
                                 </Grid>
@@ -301,10 +299,10 @@ const ContactPage: React.FC = () => {
                 <Paper sx={{ borderRadius: 4, overflow: 'hidden' }}>
                     <Box sx={{ bgcolor: 'primary.main', color: 'white', p: 3 }}>
                         <Typography variant="h5" fontWeight="bold">
-                            Our Location
+                            {t('contact.info.location.mapTitle')}
                         </Typography>
                         <Typography variant="body2">
-                            Visit us at Hacettepe Atatepe Otoparkı
+                            {t('contact.info.location.mapSubtitle')}
                         </Typography>
                     </Box>
 

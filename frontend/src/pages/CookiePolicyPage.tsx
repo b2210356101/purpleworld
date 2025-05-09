@@ -21,28 +21,23 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import BlockIcon from '@mui/icons-material/Block';
 import InfoIcon from '@mui/icons-material/Info';
+import { useTranslation } from 'react-i18next';
 
-/**
- * Cookie Policy Page Component
- * 
- * This component provides information about how HU-FDS uses cookies and 
- * other tracking technologies, including options for managing cookie preferences.
- */
+// ai-gen start (claude)
 const CookiePolicyPage: React.FC = () => {
+    const { t } = useTranslation();
+
     return (
         <>
             <Box sx={{ mb: 4, display: 'flex', gap: 2 }}>
                 <CookieIcon color="primary" sx={{ fontSize: 40 }} />
                 <Typography variant="h4" component="h1" gutterBottom>
-                    Cookie Policy
+                    {t('cookiePolicy.title')}
                 </Typography>
             </Box>
 
             <Typography variant="body1">
-                At Hungry Users Food Delivery System (HU-FDS), we use cookies and similar tracking technologies
-                to enhance your browsing experience, analyze site traffic, personalize content, and improve the
-                quality of our services. This Cookie Policy explains how we use these technologies, what types
-                of cookies we use, and how you can control your cookie preferences.
+                {t('cookiePolicy.introduction')}
             </Typography>
 
             <Divider sx={{ my: 4 }} />
@@ -50,13 +45,10 @@ const CookiePolicyPage: React.FC = () => {
             <Box sx={{ mb: 4 }}>
                 <Typography variant="h5" component="h2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <InfoIcon color="primary" />
-                    What Are Cookies?
+                    {t('cookiePolicy.whatAreCookies.title')}
                 </Typography>
                 <Typography variant="body1">
-                    Cookies are small text files that are stored on your device (computer, tablet, or mobile phone)
-                    when you visit a website. They allow the website to recognize your device and remember some
-                    information about your visit, such as your preferences and settings. Cookies are widely used to make
-                    websites work more efficiently and provide valuable information to website owners.
+                    {t('cookiePolicy.whatAreCookies.description')}
                 </Typography>
             </Box>
 
@@ -65,10 +57,10 @@ const CookiePolicyPage: React.FC = () => {
                     <Box sx={{ mb: 3 }}>
                         <Typography variant="h5" component="h2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <StorageIcon color="primary" />
-                            Types of Cookies We Use
+                            {t('cookiePolicy.typesOfCookies.title')}
                         </Typography>
                         <Typography variant="body1">
-                            We use different types of cookies for various purposes:
+                            {t('cookiePolicy.typesOfCookies.description')}
                         </Typography>
                         <List>
                             <ListItem>
@@ -76,8 +68,8 @@ const CookiePolicyPage: React.FC = () => {
                                     <CheckCircleOutlineIcon color="primary" />
                                 </ListItemIcon>
                                 <ListItemText
-                                    primary="Essential Cookies"
-                                    secondary="These cookies are necessary for the website to function properly and cannot be switched off in our systems"
+                                    primary={t('cookiePolicy.typesOfCookies.essential')}
+                                    secondary={t('cookiePolicy.typesOfCookies.essentialDesc')}
                                 />
                             </ListItem>
                             <ListItem>
@@ -85,8 +77,8 @@ const CookiePolicyPage: React.FC = () => {
                                     <CheckCircleOutlineIcon color="primary" />
                                 </ListItemIcon>
                                 <ListItemText
-                                    primary="Performance Cookies"
-                                    secondary="These cookies allow us to count visits and traffic sources so we can measure and improve the performance of our site"
+                                    primary={t('cookiePolicy.typesOfCookies.performance')}
+                                    secondary={t('cookiePolicy.typesOfCookies.performanceDesc')}
                                 />
                             </ListItem>
                             <ListItem>
@@ -94,8 +86,8 @@ const CookiePolicyPage: React.FC = () => {
                                     <CheckCircleOutlineIcon color="primary" />
                                 </ListItemIcon>
                                 <ListItemText
-                                    primary="Functional Cookies"
-                                    secondary="These cookies enable the website to provide enhanced functionality and personalization"
+                                    primary={t('cookiePolicy.typesOfCookies.functional')}
+                                    secondary={t('cookiePolicy.typesOfCookies.functionalDesc')}
                                 />
                             </ListItem>
                             <ListItem>
@@ -103,8 +95,8 @@ const CookiePolicyPage: React.FC = () => {
                                     <CheckCircleOutlineIcon color="primary" />
                                 </ListItemIcon>
                                 <ListItemText
-                                    primary="Targeting Cookies"
-                                    secondary="These cookies may be set through our site by our advertising partners to build a profile of your interests"
+                                    primary={t('cookiePolicy.typesOfCookies.targeting')}
+                                    secondary={t('cookiePolicy.typesOfCookies.targetingDesc')}
                                 />
                             </ListItem>
                         </List>
@@ -115,34 +107,34 @@ const CookiePolicyPage: React.FC = () => {
                     <Box sx={{ mb: 3 }}>
                         <Typography variant="h5" component="h2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <SecurityIcon color="primary" />
-                            How We Use Cookies
+                            {t('cookiePolicy.howWeUse.title')}
                         </Typography>
                         <Typography variant="body1">
-                            We use cookies for the following purposes:
+                            {t('cookiePolicy.howWeUse.description')}
                         </Typography>
                         <List>
                             <ListItem>
                                 <ListItemText
-                                    primary="Authentication"
-                                    secondary="To recognize you when you log in to use our services"
+                                    primary={t('cookiePolicy.howWeUse.authentication')}
+                                    secondary={t('cookiePolicy.howWeUse.authenticationDesc')}
                                 />
                             </ListItem>
                             <ListItem>
                                 <ListItemText
-                                    primary="Preferences"
-                                    secondary="To remember information about your preferences and settings"
+                                    primary={t('cookiePolicy.howWeUse.preferences')}
+                                    secondary={t('cookiePolicy.howWeUse.preferencesDesc')}
                                 />
                             </ListItem>
                             <ListItem>
                                 <ListItemText
-                                    primary="Analytics"
-                                    secondary="To understand how users interact with our website, which pages are visited most often, and identify any issues with our service"
+                                    primary={t('cookiePolicy.howWeUse.analytics')}
+                                    secondary={t('cookiePolicy.howWeUse.analyticsDesc')}
                                 />
                             </ListItem>
                             <ListItem>
                                 <ListItemText
-                                    primary="Security"
-                                    secondary="To detect and prevent fraudulent activity and ensure the security of your account"
+                                    primary={t('cookiePolicy.howWeUse.security')}
+                                    secondary={t('cookiePolicy.howWeUse.securityDesc')}
                                 />
                             </ListItem>
                         </List>
@@ -153,58 +145,49 @@ const CookiePolicyPage: React.FC = () => {
             <Stack gap={2} sx={{ mt: 4 }}>
                 <Typography variant="h5" component="h2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <SettingsIcon color="primary" />
-                    Managing Your Cookie Preferences
+                    {t('cookiePolicy.managingPreferences.title')}
                 </Typography>
 
                 <Accordion>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Typography variant="subtitle1" fontWeight="medium">Cookie Consent Tool</Typography>
+                        <Typography variant="subtitle1" fontWeight="medium">{t('cookiePolicy.managingPreferences.consentTool')}</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
                         <Typography variant="body1">
-                            When you first visit our website, you will be presented with a cookie banner that allows you to
-                            accept or decline non-essential cookies. You can change your preferences at any time by clicking
-                            the "Cookie Settings" link in the footer of our website.
+                            {t('cookiePolicy.managingPreferences.consentToolDesc')}
                         </Typography>
                     </AccordionDetails>
                 </Accordion>
 
                 <Accordion>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Typography variant="subtitle1" fontWeight="medium">Browser Settings</Typography>
+                        <Typography variant="subtitle1" fontWeight="medium">{t('cookiePolicy.managingPreferences.browserSettings')}</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
                         <Typography variant="body1">
-                            Most web browsers allow you to control cookies through their settings preferences. You can typically
-                            find these settings in the "Options" or "Preferences" menu of your browser. To understand these
-                            settings, the following links may be helpful:
+                            {t('cookiePolicy.managingPreferences.browserSettingsDesc')}
                         </Typography>
                     </AccordionDetails>
                 </Accordion>
 
                 <Accordion>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Typography variant="subtitle1" fontWeight="medium">Disabling Cookies</Typography>
+                        <Typography variant="subtitle1" fontWeight="medium">{t('cookiePolicy.managingPreferences.disablingCookies')}</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
                         <Typography variant="body1">
-                            Please note that if you choose to disable cookies, you may not be able to access certain parts of
-                            our website or some features may not function properly. In particular, you will not be able to
-                            use features that require authentication, such as placing orders or accessing your account information.
+                            {t('cookiePolicy.managingPreferences.disablingCookiesDesc')}
                         </Typography>
                     </AccordionDetails>
                 </Accordion>
 
                 <Accordion>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Typography variant="subtitle1" fontWeight="medium">Third-Party Cookies</Typography>
+                        <Typography variant="subtitle1" fontWeight="medium">{t('cookiePolicy.managingPreferences.thirdPartyCookies')}</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
                         <Typography variant="body1">
-                            Some cookies are placed by third parties on our behalf. These third parties may include analytics
-                            providers, advertising networks, and social media platforms. We do not have control over these
-                            third-party cookies. You can manage your preferences for third-party cookies through your browser
-                            settings or using the opt-out mechanisms provided by these third parties.
+                            {t('cookiePolicy.managingPreferences.thirdPartyCookiesDesc')}
                         </Typography>
                     </AccordionDetails>
                 </Accordion>
@@ -213,67 +196,59 @@ const CookiePolicyPage: React.FC = () => {
             <Box sx={{ mt: 4 }}>
                 <Typography variant="h5" component="h2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <BlockIcon color="primary" />
-                    Do Not Track Signals
+                    {t('cookiePolicy.doNotTrack.title')}
                 </Typography>
                 <Typography variant="body1">
-                    Some browsers have a "Do Not Track" feature that signals to websites you visit that you do not want to
-                    have your online activity tracked. Due to the lack of a common industry or legal standard for interpreting
-                    these signals, our website does not currently respond to "Do Not Track" signals. However, you can use the
-                    cookie management options described above to control how your information is collected through cookies.
+                    {t('cookiePolicy.doNotTrack.description')}
                 </Typography>
             </Box>
 
             <Box sx={{ mt: 4 }}>
                 <Typography variant="h5" component="h2" gutterBottom>
-                    Other Tracking Technologies
+                    {t('cookiePolicy.otherTechnologies.title')}
                 </Typography>
                 <Typography variant="body1">
-                    In addition to cookies, we may use other similar technologies such as web beacons (pixel tags),
-                    device identifiers, and tracking URLs to identify you and track your usage patterns. These
-                    technologies work similarly to cookies by storing information locally on your device or by
-                    identifying your browser or device.
+                    {t('cookiePolicy.otherTechnologies.description')}
                 </Typography>
             </Box>
 
             <Box sx={{ mt: 4 }}>
                 <Typography variant="h5" component="h2" gutterBottom>
-                    Changes to Our Cookie Policy
+                    {t('cookiePolicy.changes.title')}
                 </Typography>
                 <Typography variant="body1">
-                    We may update this Cookie Policy from time to time to reflect changes in our practices or for
-                    other operational, legal, or regulatory reasons. We will post the updated policy on our website
-                    and change the "Last Updated" date. We encourage you to review this policy periodically to stay
-                    informed about our use of cookies.
+                    {t('cookiePolicy.changes.description')}
                 </Typography>
             </Box>
 
             <Box sx={{ mt: 4 }}>
                 <Typography variant="h5" component="h2" gutterBottom>
-                    Contact Us
+                    {t('cookiePolicy.contactUs.title')}
                 </Typography>
                 <Typography variant="body1">
-                    If you have any questions about our Cookie Policy or how we use cookies, please contact us:
+                    {t('cookiePolicy.contactUs.description')}
                 </Typography>
                 <Box sx={{ ml: 2 }}>
                     <Typography variant="body1">
-                        <strong>Email:</strong> info@purpleworld.tr
+                        <strong>{t('cookiePolicy.contactUs.email')}:</strong> info@purpleworld.tr
                     </Typography>
                     <Typography variant="body1">
-                        <strong>Address:</strong> Hacettepe Atatepe Otoparkı, Purple World, Ankara / Türkiye
+                        <strong>{t('cookiePolicy.contactUs.address')}:</strong> Hacettepe Atatepe Otoparkı, Purple World, Ankara / Türkiye
                     </Typography>
                     <Typography variant="body1">
-                        <strong>Phone:</strong> +90 123 456 7890
+                        <strong>{t('cookiePolicy.contactUs.phone')}:</strong> +90 123 456 7890
                     </Typography>
                 </Box>
             </Box>
 
             <Box sx={{ mt: 4, bgcolor: 'primary.light', p: 2, borderRadius: 1 }}>
                 <Typography variant="body2" color="text.secondary">
-                    Last Updated: April 29, 2025
+                    {t('cookiePolicy.lastUpdated')}
                 </Typography>
             </Box>
         </>
     );
+    // ai-gen end
 };
 
 export default CookiePolicyPage;

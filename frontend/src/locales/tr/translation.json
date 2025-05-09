@@ -222,6 +222,262 @@
             "ssnExists": "Bu TC Kimlik numarası zaten kayıtlı."
         }
     },
+    "contact": {
+        "info": {
+            "title": "İletişime Geçin",
+            "subtitle": "Sizden haber almaktan mutluluk duyarız",
+            "location": {
+                "title": "Adresimiz",
+                "address": "123 Yemek Sokak, Aç Şehir, 06800",
+                "mapTitle": "Konumumuz",
+                "mapSubtitle": "Hacettepe Atatepe Otoparkı'nda bizi ziyaret edin"
+            },
+            "phone": {
+                "title": "Telefon Numarası",
+                "number": "+90 (312) 123 45677"
+            },
+            "email": {
+                "title": "E-posta Adresi",
+                "address": "support@purpleworld.tr"
+            },
+            "hours": {
+                "title": "Çalışma Saatleri",
+                "weekdays": "Pazartesi - Cuma: 09:00 - 20:00",
+                "weekends": "Cumartesi - Pazar: 10:00 - 18:00"
+            }
+        },
+        "form": {
+            "title": "Bize Mesaj Gönderin",
+            "subtitle": "Aşağıdaki formu doldurun, en kısa sürede size geri döneceğiz",
+            "successMessage": "Mesajınız başarıyla gönderildi! En kısa sürede size geri döneceğiz.",
+            "fields": {
+                "name": "Adınız",
+                "email": "E-posta Adresi",
+                "subject": "Konu",
+                "inquiryType": "Başvuru Türü",
+                "message": "Mesajınız"
+            },
+            "inquiryTypes": {
+                "general": "Genel Soru",
+                "complaint": "Şikayet",
+                "suggestion": "Öneri",
+                "restaurant": "Restoran İle İlgili",
+                "courier": "Kurye İle İlgili"
+            },
+            "sendButton": "Mesaj Gönder",
+            "sending": "Gönderiliyor..."
+        }
+    },
+    "notFound": {
+        "code": "404",
+        "title": "Ups! Sayfa bulunamadı",
+        "description": "Aradığınız sayfayı bulamadık. Bu sayfa görünüşe göre başka bir yere teslim edilmiş.",
+        "buttonText": "Ana Sayfaya Dön"
+    },
+    "about": {
+        "ourStory": {
+            "title": "Hikayemiz",
+            "intro": "Purple World Yemek Teslimatı, basit bir fikirle başladı: müşteriler, restoranlar ve kuryeler dahil olmak üzere herkes için daha iyi bir yemek teslimat deneyimi yaratmak.",
+            "sectionTitle": "Yerelden Ulusala",
+            "paragraph1": "Ankara'da küçük bir operasyon olarak başlayan şirketimiz, artık Türkiye genelinde binlerce restoranı aç müşterilerle buluşturan ulusal bir hizmete dönüştü.",
+            "paragraph2": "Platformumuzu, yemek siparişini mümkün olduğunca basit ve keyifli hale getiren, aynı zamanda restoranların teslimatlarını verimli bir şekilde yönetmelerini ve kuryelerimizin kazançlarını en üst düzeye çıkarmalarını sağlayan bir teknoloji odağıyla inşa ettik.",
+            "paragraph3": "Bugün, Türkiye'nin en hızlı büyüyen yemek teslimat platformu olmaktan gurur duyuyoruz ve önümüzdeki yıllarda hizmetlerimizi daha da genişletme planlarımız var."
+        },
+        "stats": {
+            "title": "Sayılarla Purple World",
+            "subtitle": "Türkiye'deki yemek teslimat ekosistemi üzerindeki etkimiz",
+            "orders": "Teslim Edilen Sipariş",
+            "restaurants": "Restoran Ortağı",
+            "cities": "Hizmet Verilen Şehir",
+            "rating": "Müşteri Puanı"
+        },
+        "team": {
+            "title": "Ekibimizle Tanışın",
+            "subtitle": "Purple World Yemek Teslimatı'nın arkasındaki tutkulu bireyler",
+            "members": [
+                {
+                    "name": "Beste Özdemir",
+                    "position": "Geliştirici, Mimar",
+                    "bio": "Beste, sistem mimarisini tasarlar ve temel işlevleri geliştirir, platformumuzun performans, ölçeklenebilirlik ve güvenlik için optimize edilmesini sağlar."
+                },
+                {
+                    "name": "Azra Sena Kansu",
+                    "position": "Geliştirici, Yönetici",
+                    "bio": "Azra, geliştirme girişimlerine öncülük eder ve ekip iş akışlarını yönetir, kritik kullanıcı odaklı özelliklere katkıda bulunurken verimli işbirliğini sağlar."
+                },
+                {
+                    "name": "Sinan Doğan",
+                    "position": "Geliştirici, Test Uzmanı",
+                    "bio": "Sinan, önemli ön uç bileşenlerini geliştirir ve platformumuzun en yüksek kalite standartlarını karşılamasını sağlamak için kapsamlı test stratejileri uygular."
+                },
+                {
+                    "name": "Ezgi Ekin",
+                    "position": "Geliştirici, Analist",
+                    "bio": "Ezgi, kullanıcı gereksinimlerini analiz eder ve ilgili özellikleri geliştirir, iş ihtiyaçlarını teslimat platformumuz için teknik çözümlere dönüştürür."
+                },
+                {
+                    "name": "M. Kaan Çevik",
+                    "position": "Geliştirici, Konfigürasyon Yöneticisi",
+                    "bio": "Kaan, konfigürasyon yönetimini ele alır ve arka uç hizmetleri geliştirir, geliştirme ve üretim ortamları arasında sistem bütünlüğünü korur."
+                }
+            ]
+        },
+        "joinUs": {
+            "title": "Purple World Ailesine Katılın",
+            "paragraph1": "İster müşteri tabanınızı genişletmek isteyen bir restoran, ister esnek iş arayan bir sürücü, ister ekibimize katılmak isteyen bir yemek tutkununa olun, sizden haber almak isteriz.",
+            "paragraph2": "Purple World'de, Türkiye'deki yemek teslimat deneyimini dönüştürme vizyonumuzu paylaşan tutkulu bireyler ve işletmeler arıyoruz.",
+            "addRestaurant": "Restoranınızı Ekleyin",
+            "contactUs": "Bize Ulaşın"
+        }
+    },
+    "gdpr": {
+        "title": "KVKK Uyumluluğu",
+        "introduction": "Purple World olarak, gizliliğinizi korumaya ve kişisel verilerinizin Kişisel Verilerin Korunması Kanunu (KVKK) uyarınca işlenmesini sağlamaya büyük önem veriyoruz. Bu sayfa, veri koruma yaklaşımımızı ve KVKK kapsamındaki haklarınızı özetlemektedir.",
+        "dataWeCollect": {
+            "title": "Topladığımız Veriler",
+            "description": "Aşağıdaki kişisel veri kategorilerini topluyoruz ve işliyoruz:",
+            "accountInfo": "Hesap Bilgileri",
+            "accountInfoDesc": "İsim, e-posta adresi, telefon numarası ve kullanıcı kimlik bilgileri",
+            "deliveryInfo": "Teslimat Bilgileri",
+            "deliveryInfoDesc": "Teslimat adresleri, teslimat tercihleri ve konum verileri",
+            "paymentInfo": "Ödeme Bilgileri",
+            "paymentInfoDesc": "Ödeme yöntemi bilgileri (güvenli ödeme işlemcileri aracılığıyla işlenir)",
+            "usageData": "Kullanım Verileri",
+            "usageDataDesc": "Sipariş geçmişi, restoran tercihleri, incelemeler ve puanlamalar"
+        },
+        "legalBasis": {
+            "title": "İşleme Hukuki Dayanağı",
+            "description": "Kişisel verilerinizi aşağıdaki yasal dayanaklara göre işliyoruz:",
+            "contractPerformance": "Sözleşme Performansı",
+            "contractPerformanceDesc": "Sizinle olan hizmet sözleşmemizi yerine getirmek için gerekli işlemler",
+            "legitimateInterests": "Meşru Menfaatler",
+            "legitimateInterestsDesc": "Hizmetlerimizi iyileştirme, güvenliği sağlama ve iş analitiği",
+            "consent": "Onay",
+            "consentDesc": "Pazarlama iletişimleri ve isteğe bağlı özellikler (açık onay verdiğiniz durumlarda)",
+            "legalObligations": "Yasal Yükümlülükler",
+            "legalObligationsDesc": "Geçerli yasa ve yönetmeliklere uyum"
+        },
+        "yourRights": {
+            "title": "KVKK Kapsamındaki Haklarınız",
+            "rightToAccess": "Erişim Hakkı",
+            "rightToAccessDesc": "Hakkınızda tuttuğumuz kişisel verilerin bir kopyasını talep etme hakkına sahipsiniz. Bu bilgilere hesabınıza giriş yaparak veya Veri Koruma Görevlimizle iletişime geçerek erişebilirsiniz. Bu bilgileri talebinizden itibaren 30 gün içinde sağlayacağız.",
+            "rightToRectification": "Düzeltme Hakkı",
+            "rightToRectificationDesc": "Hakkınızda tuttuğumuz herhangi bir kişisel verinin yanlış veya eksik olduğunu düşünüyorsanız, bilgilerinizi doğrudan hesap ayarlarınız aracılığıyla güncelleyebilir veya bu bilgileri düzeltmek için bizimle iletişime geçebilirsiniz.",
+            "rightToErasure": "Silme Hakkı",
+            "rightToErasureDesc": "Belirli koşullar altında, örneğin verilerin toplandığı amaçlar için artık gerekli olmadığında, kişisel verilerinizin silinmesini talep etme hakkına sahipsiniz. Hesabınızı profil ayarları üzerinden silebilir veya verilerinizin silinmesini talep etmek için bizimle iletişime geçebilirsiniz.",
+            "rightToDataPortability": "Veri Taşınabilirliği Hakkı",
+            "rightToDataPortabilityDesc": "Kişisel verilerinizi yapılandırılmış, yaygın olarak kullanılan ve makine tarafından okunabilir bir formatta alma ve bu verileri bizden engelleme olmaksızın başka bir kontrolöre iletme hakkına sahipsiniz. Taşınabilirlik amaçları için verilerinizin bir kopyasını istediğiniz zaman talep edebilirsiniz.",
+            "rightToObject": "İtiraz Hakkı",
+            "rightToObjectDesc": "Meşru menfaatlere veya doğrudan pazarlama amaçlarına dayalı olarak kişisel verilerinizin işlenmesine itiraz etme hakkına sahipsiniz. Veri işlemeye itiraz etmek istiyorsanız, lütfen Veri Koruma Görevlimizle iletişime geçin.",
+            "rightToRestriction": "İşlemenin Kısıtlanması Hakkı",
+            "rightToRestrictionDesc": "Verilerin doğruluğunu tartıştığınız veya işleme yasadışı olduğu gibi belirli koşullar altında kişisel verilerinizin işlenmesini kısıtlamamızı talep edebilirsiniz."
+        },
+        "dataRetention": {
+            "title": "Veri Saklama",
+            "description": "Kişisel verilerinizi yalnızca toplandığı amaçları yerine getirmek için gerekli olan süre boyunca, yasal, muhasebe veya raporlama gereklilikleri dahil olmak üzere saklıyoruz. Farklı veri türleri farklı süreler boyunca saklanabilir:",
+            "accountInfo": "Hesap Bilgileri",
+            "accountInfoDesc": "Hesabınız aktif olduğu sürece saklanır; hesap kapatıldıktan sonra 30 gün içinde silinir veya anonimleştirilir",
+            "orderHistory": "Sipariş Geçmişi",
+            "orderHistoryDesc": "İş analitiği ve müşteri hizmetleri amaçları için 3 yıl boyunca saklanır",
+            "paymentInfo": "Ödeme Bilgileri",
+            "paymentInfoDesc": "İşlemleri gerçekleştirmek ve geri ödemeleri yönetmek için gerekli olduğu sürece saklanır"
+        },
+        "dataSecurity": {
+            "title": "Veri Güvenliği",
+            "description": "Kişisel verilerinizi yetkisiz veya yasadışı işleme, kazara kayıp, yok olma veya zarara karşı korumak için uygun teknik ve organizasyonel önlemler uyguluyoruz. Bu önlemler şunları içerir:",
+            "encryption": "Şifreleme",
+            "encryptionDesc": "Cihazınız ve sunucularımız arasındaki tüm veri aktarımı SSL/TLS protokolleri kullanılarak şifrelenir",
+            "accessControls": "Erişim Kontrolleri",
+            "accessControlsDesc": "Kullanıcı verilerine erişen tüm personel için sıkı erişim kontrolleri ve kimlik doğrulama mekanizmaları",
+            "securityAssessments": "Düzenli Güvenlik Değerlendirmeleri",
+            "securityAssessmentsDesc": "Güvenlik açıklarını belirlemek ve gidermek için periyodik güvenlik değerlendirmeleri ve penetrasyon testleri",
+            "dataBreachProcedures": "Veri İhlali Prosedürleri",
+            "dataBreachProceduresDesc": "Kapsamlı veri ihlali tespiti, raporlama ve bildirim prosedürleri"
+        },
+        "internationalTransfers": {
+            "title": "Uluslararası Veri Transferleri",
+            "description": "HU-FDS öncelikle verileri Türkiye sınırları içinde işler ve depolar. Ancak, verilerin Türkiye dışına aktarılması durumunda, Kişisel Verileri Koruma Kurumu tarafından onaylanan Standart Sözleşme Maddeleri veya diğer yasal transfer mekanizmaları gibi uygun güvenlik önlemlerinin alınmasını sağlarız."
+        },
+        "cookies": {
+            "title": "Çerezler ve İzleme Teknolojileri",
+            "description": "Platformumuz, tarama deneyiminizi geliştirmek, site trafiğini analiz etmek ve içeriği kişiselleştirmek için çerezler ve benzer izleme teknolojilerini kullanır. Çerez tercihlerinizi tarayıcı ayarlarınız veya sitemizi ilk ziyaret ettiğinizde görünen çerez onay aracımız aracılığıyla yönetebilirsiniz."
+        },
+        "dpoContact": {
+            "title": "Veri Koruma Görevlisi İletişim",
+            "description": "Veri koruma uygulamalarımız hakkında sorularınız varsa veya KVKK haklarınızı kullanmak istiyorsanız, lütfen Veri Koruma Görevlimizle iletişime geçin:",
+            "email": "E-posta",
+            "address": "Adres",
+            "phone": "Telefon"
+        },
+        "complaints": {
+            "title": "Şikayetler",
+            "description": "Endişelerinize verdiğimiz yanıttan memnun değilseniz, ikamet ettiğiniz ülkedeki ilgili veri koruma denetim makamına şikayette bulunma hakkına sahipsiniz."
+        },
+        "lastUpdated": "Son Güncelleme: 29 Nisan 2025"
+    },
+    "cookiePolicy": {
+        "title": "Çerez Politikası",
+        "introduction": "Purple World olarak, tarama deneyiminizi geliştirmek, site trafiğini analiz etmek, içeriği kişiselleştirmek ve hizmetlerimizin kalitesini artırmak için çerezleri ve benzer izleme teknolojilerini kullanıyoruz. Bu Çerez Politikası, bu teknolojileri nasıl kullandığımızı, hangi tür çerezleri kullandığımızı ve çerez tercihlerinizi nasıl kontrol edebileceğinizi açıklar.",
+        "whatAreCookies": {
+            "title": "Çerezler Nedir?",
+            "description": "Çerezler, bir web sitesini ziyaret ettiğinizde cihazınıza (bilgisayar, tablet veya cep telefonu) kaydedilen küçük metin dosyalarıdır. Web sitesinin cihazınızı tanımasına ve tercihleriniz ve ayarlarınız gibi ziyaretinizle ilgili bazı bilgileri hatırlamasına olanak tanırlar. Çerezler, web sitelerinin daha verimli çalışması ve web sitesi sahiplerine değerli bilgiler sağlamak için yaygın olarak kullanılır."
+        },
+        "typesOfCookies": {
+            "title": "Kullandığımız Çerez Türleri",
+            "description": "Çeşitli amaçlar için farklı çerez türleri kullanıyoruz:",
+            "essential": "Zorunlu Çerezler",
+            "essentialDesc": "Bu çerezler, web sitesinin düzgün çalışması için gereklidir ve sistemlerimizde kapatılamazlar",
+            "performance": "Performans Çerezleri",
+            "performanceDesc": "Bu çerezler, sitemizin performansını ölçmek ve iyileştirmek için ziyaretleri ve trafik kaynaklarını saymamıza olanak tanır",
+            "functional": "İşlevsel Çerezler",
+            "functionalDesc": "Bu çerezler, web sitesinin gelişmiş işlevsellik ve kişiselleştirme sağlamasına olanak tanır",
+            "targeting": "Hedefleme Çerezleri",
+            "targetingDesc": "Bu çerezler, reklam ortaklarımız tarafından ilgi alanlarınızın profilini oluşturmak için sitemiz aracılığıyla ayarlanabilir"
+        },
+        "howWeUse": {
+            "title": "Çerezleri Nasıl Kullanıyoruz",
+            "description": "Çerezleri aşağıdaki amaçlar için kullanıyoruz:",
+            "authentication": "Kimlik Doğrulama",
+            "authenticationDesc": "Hizmetlerimizi kullanmak için giriş yaptığınızda sizi tanımak için",
+            "preferences": "Tercihler",
+            "preferencesDesc": "Tercihleriniz ve ayarlarınız hakkında bilgileri hatırlamak için",
+            "analytics": "Analitik",
+            "analyticsDesc": "Kullanıcıların web sitemizle nasıl etkileşim kurduğunu, hangi sayfaların en sık ziyaret edildiğini anlamak ve hizmetimizle ilgili sorunları tespit etmek için",
+            "security": "Güvenlik",
+            "securityDesc": "Dolandırıcılık faaliyetlerini tespit etmek ve önlemek ve hesabınızın güvenliğini sağlamak için"
+        },
+        "managingPreferences": {
+            "title": "Çerez Tercihlerinizi Yönetme",
+            "consentTool": "Çerez Onay Aracı",
+            "consentToolDesc": "Web sitemizi ilk ziyaret ettiğinizde, zorunlu olmayan çerezleri kabul etmenize veya reddetmenize olanak tanıyan bir çerez banner'ı sunulacaktır. Tercihlerinizi istediğiniz zaman web sitemizin altbilgisindeki \"Çerez Ayarları\" bağlantısına tıklayarak değiştirebilirsiniz.",
+            "browserSettings": "Tarayıcı Ayarları",
+            "browserSettingsDesc": "Çoğu web tarayıcısı, ayarlar tercihleri aracılığıyla çerezleri kontrol etmenize olanak tanır. Bu ayarları genellikle tarayıcınızın \"Seçenekler\" veya \"Tercihler\" menüsünde bulabilirsiniz. Bu ayarları anlamak için aşağıdaki bağlantılar yararlı olabilir:",
+            "disablingCookies": "Çerezleri Devre Dışı Bırakma",
+            "disablingCookiesDesc": "Çerezleri devre dışı bırakmayı seçerseniz, web sitemizin belirli bölümlerine erişemeyebileceğinizi veya bazı özelliklerin düzgün çalışmayabileceğini lütfen unutmayın. Özellikle, sipariş vermek veya hesap bilgilerinize erişmek gibi kimlik doğrulama gerektiren özellikleri kullanamazsınız.",
+            "thirdPartyCookies": "Üçüncü Taraf Çerezleri",
+            "thirdPartyCookiesDesc": "Bazı çerezler, bizim adımıza üçüncü taraflarca yerleştirilir. Bu üçüncü taraflar arasında analitik sağlayıcılar, reklam ağları ve sosyal medya platformları bulunabilir. Bu üçüncü taraf çerezleri üzerinde kontrolümüz yoktur. Üçüncü taraf çerezleri için tercihlerinizi tarayıcı ayarlarınız aracılığıyla veya bu üçüncü taraflarca sağlanan devre dışı bırakma mekanizmalarını kullanarak yönetebilirsiniz."
+        },
+        "doNotTrack": {
+            "title": "İzleme Yapma Sinyalleri",
+            "description": "Bazı tarayıcıların, ziyaret ettiğiniz web sitelerine çevrimiçi etkinliğinizin izlenmesini istemediğinizi belirten bir \"İzleme Yapma\" özelliği vardır. Bu sinyalleri yorumlamak için ortak bir endüstri veya yasal standart olmaması nedeniyle, web sitemiz şu anda \"İzleme Yapma\" sinyallerine yanıt vermemektedir. Ancak, bilgilerinizin çerezler aracılığıyla nasıl toplandığını kontrol etmek için yukarıda açıklanan çerez yönetimi seçeneklerini kullanabilirsiniz."
+        },
+        "otherTechnologies": {
+            "title": "Diğer İzleme Teknolojileri",
+            "description": "Çerezlere ek olarak, sizi tanımlamak ve kullanım modellerinizi izlemek için web işaretçileri (piksel etiketleri), cihaz tanımlayıcıları ve izleme URL'leri gibi diğer benzer teknolojileri kullanabiliriz. Bu teknolojiler, bilgileri cihazınızda yerel olarak depolayarak veya tarayıcınızı veya cihazınızı tanımlayarak çerezlere benzer şekilde çalışır."
+        },
+        "changes": {
+            "title": "Çerez Politikamızdaki Değişiklikler",
+            "description": "Uygulamalarımızdaki değişiklikleri yansıtmak veya diğer operasyonel, yasal veya düzenleyici nedenlerle zaman zaman bu Çerez Politikasını güncelleyebiliriz. Güncellenmiş politikayı web sitemizde yayınlayacak ve \"Son Güncelleme\" tarihini değiştireceğiz. Çerez kullanımımız hakkında bilgilendirilmek için bu politikayı periyodik olarak incelemenizi öneririz."
+        },
+        "contactUs": {
+            "title": "Bize Ulaşın",
+            "description": "Çerez Politikamız veya çerezleri nasıl kullandığımız hakkında sorularınız varsa, lütfen bizimle iletişime geçin:",
+            "email": "E-posta",
+            "address": "Adres",
+            "phone": "Telefon"
+        },
+        "lastUpdated": "Son Güncelleme: 29 Nisan 2025"
+    },
     "footer": {
         "description": "Yakınınızdaki yerel ve global mutfakları keşfedin. Purple World ile hızlı teslimat, sadece birkaç tıklama.",
         "quickLinks": "Hızlı bağlantılar",

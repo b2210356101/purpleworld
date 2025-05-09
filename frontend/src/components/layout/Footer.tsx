@@ -27,7 +27,7 @@ const Footer = () => {
                             sx={{ display: 'flex', mb: 2 }}
                         >
                             <img
-                                src="/src/assets/logo.svg"
+                                src="https://i.hizliresim.com/qkl6ett.png"
                                 alt="Logo"
                                 height="42"
                                 style={{
@@ -95,7 +95,7 @@ const Footer = () => {
                         <List>
                             <ListItem key={'about'} disablePadding component={Link} to={'/about'} sx={{ color: 'inherit' }}>
                                 <ListItemButton disableGutters sx={{ py: 0 }}>
-                                    <ListItemText secondary={'About Us'} />
+                                    <ListItemText secondary={t('footer.aboutUs')} />
                                 </ListItemButton>
                             </ListItem>
                         </List>
