@@ -12,7 +12,6 @@ import {
     Button,
     Chip,
     Pagination,
-    CircularProgress,
     Alert,
     Snackbar,
     Dialog,
@@ -32,6 +31,7 @@ import {
     unbanCourier
 } from '../utils/api';
 import { CourierResponseForAdmin } from '../types';
+import Loading from '../components/Loading';
 
 // Styled component for the page header
 const PageHeader = styled(Typography)(({ theme }) => ({
@@ -326,7 +326,7 @@ const AdminCourierManagementPage: React.FC = () => {
                         {loading ? (
                             <TableRow>
                                 <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
-                                    <CircularProgress size={24} />
+                                    <Loading />
                                 </TableCell>
                             </TableRow>
                         ) : couriers.length === 0 ? (
@@ -526,7 +526,7 @@ const AdminCourierManagementPage: React.FC = () => {
                                             minWidth: '80px',
                                             textAlign: 'center',
                                             color: 'white',
-                                            bgcolor:  getStatusChipColor(selectedCourier.status) as any
+                                            bgcolor: getStatusChipColor(selectedCourier.status) as any
                                         }}
                                     />
                                 </Box>
@@ -539,7 +539,7 @@ const AdminCourierManagementPage: React.FC = () => {
                             </Stack>
                         </DialogContent>
                         <DialogActions>
-                            <Button onClick={handleCloseDetailsDialog} sx={{color: 'secondary.main'}}>
+                            <Button onClick={handleCloseDetailsDialog} sx={{ color: 'secondary.main' }}>
                                 Close
                             </Button>
 
@@ -550,7 +550,7 @@ const AdminCourierManagementPage: React.FC = () => {
                                         handleBanCourier(selectedCourier.id);
                                         handleCloseDetailsDialog();
                                     }}
-                                    sx={{bgcolor:'secondary.dark'}}
+                                    sx={{ bgcolor: 'secondary.dark' }}
                                     variant="contained"
                                 >
                                     Ban Courier
@@ -562,7 +562,7 @@ const AdminCourierManagementPage: React.FC = () => {
                                         handleApproveCourier(selectedCourier.id);
                                         handleCloseDetailsDialog();
                                     }}
-                                    sx={{bgcolor:'green'}}
+                                    sx={{ bgcolor: 'green' }}
                                     variant="contained"
                                 >
                                     Approve
@@ -576,7 +576,7 @@ const AdminCourierManagementPage: React.FC = () => {
                                             handleRejectCourier(selectedCourier.id);
                                             handleCloseDetailsDialog();
                                         }}
-                                        sx={{bgcolor:'secondary.light'}}
+                                        sx={{ bgcolor: 'secondary.light' }}
                                         variant="contained"
                                     >
                                         Reject
@@ -586,7 +586,7 @@ const AdminCourierManagementPage: React.FC = () => {
                                             handleApproveCourier(selectedCourier.id);
                                             handleCloseDetailsDialog();
                                         }}
-                                        sx={{bgcolor:'primary'}}
+                                        sx={{ bgcolor: 'primary' }}
                                         variant="contained"
                                     >
                                         Approve
@@ -600,7 +600,7 @@ const AdminCourierManagementPage: React.FC = () => {
                                         handleUnbanCourier(selectedCourier.id);
                                         handleCloseDetailsDialog();
                                     }}
-                                    sx={{bgcolor:'teal'}}
+                                    sx={{ bgcolor: 'teal' }}
                                     variant="contained"
                                 >
                                     Unban Courier

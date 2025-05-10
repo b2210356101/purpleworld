@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { GoogleMap, Marker, useJsApiLoader, Polyline } from "@react-google-maps/api";
 import { getNextLocation, getFullRoute } from "../utils/api";
 import RestaurantMarker from "../assets/restaurant-location.png";
-import {Box, CircularProgress, Typography} from "@mui/material";
+import { Box, CircularProgress, Typography } from "@mui/material";
+import Loading from "./Loading";
 
 const containerStyle = {
     width: "100%",
@@ -43,6 +44,7 @@ const GoogleMapComponent = ({ orderId }: { orderId: number }) => {
                 setPosition(newPosition);
                 setPolyline(prev => [...prev, newPosition]);
 
+                // Harita merkezini sadece ilk kez ayarla
                 if (!mapCenter) {
                     setMapCenter(newPosition);
                 }
@@ -86,14 +88,7 @@ const GoogleMapComponent = ({ orderId }: { orderId: number }) => {
                 textAlign: "center",
             }}
         >
-            <CircularProgress color="primary" />
-            <Typography
-                variant="subtitle1"
-                color="primary"
-                sx={{ mt: 2, fontWeight: 500 }}
-            >
-                Loading map...
-            </Typography>
+            <Loading text="Loading map..." />
         </Box>
     );
 };

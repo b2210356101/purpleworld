@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Box, Typography, Paper, Grid, Divider, CircularProgress } from "@mui/material";
 import { getAdminStats } from "../utils/api"; // Yeni API fonksiyonu
 import { AdminStats } from "../types";
-import {useNavigate} from "react-router-dom"; // Tip tanımı burada
+import { useNavigate } from "react-router-dom"; // Tip tanımı burada
+import Loading from "../components/Loading";
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -42,11 +43,7 @@ const AdminDashboard = () => {
 
             <Divider sx={{ my: 4 }} />
 
-            {loading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', my: 6 }}>
-                    <CircularProgress />
-                </Box>
-            ) : (
+            {loading ? <Loading /> : (
                 <Grid
                     container
                     spacing={3}
@@ -54,20 +51,20 @@ const AdminDashboard = () => {
                     alignItems="stretch"
                     sx={{ maxWidth: 1000, mx: 'auto' }}
                 >
-                    <Grid size={{xs:12,sm:6,md:3}}>
-                        <Paper  onClick={() => navigate("/admin/restaurants")}
-                                sx={{
-                                    p: 4,
-                                    textAlign: 'center',
-                                    borderRadius: 3,
-                                    cursor: "pointer",
-                                    transition: "0.3s ease",
-                                    "&:hover": {
-                                        boxShadow: 6,
-                                        transform: "scale(1.03)",
-                                        backgroundColor: "primary.light"
-                                    }
-                                }}
+                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                        <Paper onClick={() => navigate("/admin/restaurants")}
+                            sx={{
+                                p: 4,
+                                textAlign: 'center',
+                                borderRadius: 3,
+                                cursor: "pointer",
+                                transition: "0.3s ease",
+                                "&:hover": {
+                                    boxShadow: 6,
+                                    transform: "scale(1.03)",
+                                    backgroundColor: "primary.light"
+                                }
+                            }}
                         >
                             <Typography variant="h4" fontWeight="bold" color="primary">
                                 {stats.totalRestaurants}
@@ -78,20 +75,20 @@ const AdminDashboard = () => {
                         </Paper>
                     </Grid>
 
-                    <Grid size={{xs:12,sm:6,md:3}}>
+                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                         <Paper onClick={() => navigate("/admin/couriers")}
-                               sx={{
-                                   p: 4,
-                                   textAlign: 'center',
-                                   borderRadius: 3,
-                                   cursor: "pointer",
-                                   transition: "0.3s ease",
-                                   "&:hover": {
-                                       boxShadow: 6,
-                                       transform: "scale(1.03)",
-                                       backgroundColor: "primary.light"
-                                   }
-                               }}
+                            sx={{
+                                p: 4,
+                                textAlign: 'center',
+                                borderRadius: 3,
+                                cursor: "pointer",
+                                transition: "0.3s ease",
+                                "&:hover": {
+                                    boxShadow: 6,
+                                    transform: "scale(1.03)",
+                                    backgroundColor: "primary.light"
+                                }
+                            }}
                         >
                             <Typography variant="h4" fontWeight="bold" color="primary">
                                 {stats.totalCouriers}
@@ -102,7 +99,7 @@ const AdminDashboard = () => {
                         </Paper>
                     </Grid>
 
-                    <Grid size={{xs:12,sm:6,md:3}}>
+                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                         <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 3 }}>
                             <Typography variant="h4" fontWeight="bold" color={stats.totalPendingApprovals > 0 ? 'warning.main' : 'primary'}>
                                 {stats.totalPendingApprovals}
@@ -113,7 +110,7 @@ const AdminDashboard = () => {
                         </Paper>
                     </Grid>
 
-                    <Grid size={{xs:12,sm:6,md:3}}>
+                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                         <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 3 }}>
                             <Typography variant="h4" fontWeight="bold" color={stats.totalCoupons > 0 ? 'success.main' : 'primary'}>
                                 {stats.totalCoupons}

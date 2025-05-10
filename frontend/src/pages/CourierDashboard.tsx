@@ -15,6 +15,7 @@ import {
 import { useEffect, useState } from "react";
 import { CourierOrder, Stat } from "../types";
 import { deliveredOrder, getCourierOrders, getCourierStats, markOrderAsPickedUp, updateCourierAvailability } from "../utils/api";
+import Loading from "../components/Loading";
 
 const CourierDashboard = () => {
     const [stats, setStats] = useState<Stat[]>([]);
@@ -323,9 +324,7 @@ const CourierDashboard = () => {
                         </Paper>
                     )}
 
-                    {isLoading && (
-                        <Typography>Loading orders...</Typography>
-                    )}
+                    {isLoading && <Loading />}
 
                     {!isLoading && currentOrders.length === 0 && (
                         <Paper sx={{ borderRadius: 4, p: 4, textAlign: 'center' }}>

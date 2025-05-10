@@ -12,7 +12,6 @@ import {
   Button,
   Chip,
   Pagination,
-  CircularProgress,
   Alert,
   Snackbar,
   Dialog,
@@ -32,6 +31,7 @@ import {
   unbanRestaurant
 } from '../utils/api';
 import { RestaurantResponseForAdmin } from '../types';
+import Loading from '../components/Loading';
 
 // Styled component for the page header
 const PageHeader = styled(Typography)(({ theme }) => ({
@@ -327,7 +327,7 @@ const AdminRestaurantManagementPage: React.FC = () => {
             {loading ? (
               <TableRow>
                 <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
-                  <CircularProgress size={24} />
+                  <Loading />
                 </TableCell>
               </TableRow>
             ) : restaurants.length === 0 ? (
