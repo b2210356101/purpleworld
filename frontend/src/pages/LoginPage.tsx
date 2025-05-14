@@ -20,7 +20,7 @@ const LoginPage = () => {
     const [error, setError] = useState('');
     const [showError, setShowError] = useState(false);
     const [loginDisabled, setLoginDisabled] = useState(false);
-    
+
     const lastEmail = useRef('');
     const lastPassword = useRef('');
 
@@ -30,17 +30,17 @@ const LoginPage = () => {
         if (loginDisabled) {
             const emailInput = document.getElementById('email') as HTMLInputElement;
             const passwordInput = document.getElementById('password') as HTMLInputElement;
-            
+
             const currentEmail = emailInput?.value || '';
             const currentPassword = passwordInput?.value || '';
-            
+
             // Re-enable login button if either email or password has changed
             if (currentEmail !== lastEmail.current || currentPassword !== lastPassword.current) {
                 setLoginDisabled(false);
                 setShowError(false); // Hide error when input changes
             }
         }
-        
+
         // Reset email validation errors when email field changes
         if (event.target.id === 'email' && emailError) {
             setEmailError(false);
@@ -103,11 +103,11 @@ const LoginPage = () => {
 
                 setError(errorMessage);
                 setShowError(true);
-                
+
                 // Disable login button until credentials change
                 setLoginDisabled(true);
             }
-             finally {
+            finally {
                 setLoading(false);
             }
         }
@@ -159,8 +159,8 @@ const LoginPage = () => {
 
                     {/* Error Alert */}
                     {showError && (
-                        <Alert 
-                            severity="error" 
+                        <Alert
+                            severity="error"
                             onClose={() => setShowError(false)}
                         >
                             {error}
