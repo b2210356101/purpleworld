@@ -8,9 +8,9 @@ export interface UserInfo {
 export interface Restaurant {
     id: number;
     restaurantName: string;
-    distanceInKm?: number;
+    distanceInKm: number;
     profileImg?: string;
-    rating?: number;
+    rating: number;
     reviews?: number;
     items?: {
         id: number;
@@ -107,7 +107,7 @@ export interface RemovableElementDTO {
 export interface AddToCartRequest {
     menuItemId: number;
     quantity: number;
-    removableElements: RemovableElementDTO[]; 
+    removableElements: RemovableElementDTO[];
 }
 
 export interface Category {
@@ -149,37 +149,37 @@ export interface OrderItemDTO {
     quantity: number;
     price: number;
     removables: string | null;
-  }
-  
-  export interface OrderGroupDTO {
+}
+
+export interface OrderGroupDTO {
     orderGroupId: number;
     restaurantName: string;
     restaurantTotal: number;
-    img : string;
+    img: string;
     note: string | null;
     status: string;
     customerId: number;
     customerName: string;
-    orderedDate: string 
+    orderedDate: string
     preperationDate: string | null;
     takenOverDate: string | null;
     deliveredDate: string | null;
     rejectionDate: string | null;
     orderItems: OrderItemDTO[] | null;
-    
-  }
 
-  export interface OrderDTO {
+}
+
+export interface OrderDTO {
     orderId: number;
     totalPrice: number;
     paymentType: string;
     note: string | null;
-    orderedDate: string; 
+    orderedDate: string;
     status: string;
     orderGroups: OrderGroupDTO[];
-  }
+}
 
-  export interface RestaurantResponseForAdmin {
+export interface RestaurantResponseForAdmin {
     id: number;
     restaurantName: string;
     joinDate: string;
@@ -194,8 +194,8 @@ export interface OrderItemDTO {
     manager_Name: string;
     manager_Last_Name: string;
     tax_Id: string;
-  }
-  export interface CourierResponseForAdmin {
+}
+export interface CourierResponseForAdmin {
     id: number;
     firstName: string;
     lastName: string;
@@ -203,12 +203,12 @@ export interface OrderItemDTO {
     phoneNumber: string;
     status: 'APPROVED' | 'REJECTED' | 'BANNED' | 'PENDING';
     ssn: string;
-  }
+}
 
 export interface CustomerOrderSummaryDTO {
     orderId: number;
     status: string; // "IN_PROGRESS", "COMPLETED", "REJECTED"
-    orderedDate: string; 
+    orderedDate: string;
     orderGroups: CustomerCurrentOrderDTO[];
 }
 
@@ -220,8 +220,8 @@ export interface CustomerCurrentOrderDTO {
     itemCount: number;
     totalPrice: number;
     status: string; // "PREPARING", "ON_THE_WAY", "DELIVERED", etc.
-    orderedDate: string; 
-    estimatedDeliveryTime: string; 
+    orderedDate: string;
+    estimatedDeliveryTime: string;
     distanceInKm: number;
 }
 
@@ -256,7 +256,7 @@ export interface OrderDetails {
     addressName: string;
     addressFull: string;
     addressCity: string;
-    date : string;
+    date: string;
     items: OrderItemDTO[];
 }
 
@@ -299,4 +299,21 @@ export interface AdminStats {
     totalCouriers: number;
     totalPendingApprovals: number;
     totalCoupons: number;
+}
+
+export interface SearchResult {
+    restaurantId: number;
+    restaurantName: string;
+    profileImg: string;
+    distanceInKm: number;
+    rating?: number;
+    reviews?: number;
+    matchedItems: {
+        id: number;
+        name: string;
+        price: number;
+        description: string;
+        img: string;
+        removableElements: string[] | null;
+    }[];
 }

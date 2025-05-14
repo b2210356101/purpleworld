@@ -16,6 +16,9 @@
             "address": "Select Address"
         },
         "whyChooseUs": "Why Choose Us?",
+        "category": {
+            "title": "{{category}} Category"
+        },
         "categories": {
             "search": "Search by Categories",
             "pizza": "Pizza",
@@ -124,12 +127,13 @@
         "updateError": "Failed to update cart item."
     },
     "restaurant": {
-        "searchHeader": "Search restaurants & foods...",
+        "searchHeader": "Search for restaurants or foods...",
         "view": "View Restaurant",
         "add": "Add to Cart",
         "selectRemove": "Select Ingredients to Remove",
         "quantity": "Quantity",
-        "favorite": "Add Favorites",
+        "addToFavorites": "Add to Favorites",
+        "removeFromFavorites": "Remove From Favorites",
         "min": "Minimum Order",
         "delivery": "Delivery in {{min}}-{{max}} mins",
         "search": "Search food...",
@@ -222,6 +226,32 @@
             "validSsn": "Please enter a valid 11-digit SSN number.",
             "ssnExists": "This SSN is already registered."
         }
+    },
+    "search": {
+        "results": "Search Results",
+        "resultsFound": "results found",
+        "placeholder": "Search for restaurants or foods...",
+        "button": "Search",
+        "filter": "Filter",
+        "sortBy": "Sort By",
+        "byRating": "Highest Rating",
+        "byDistance": "Nearest",
+        "byName": "A-Z",
+        "byPrice": "Price",
+        "filterOptions": "Filter Options",
+        "cuisine": "Cuisine",
+        "price": "Price Range",
+        "distance": "Distance",
+        "applyFilters": "Apply Filters",
+        "restaurants": "Restaurants",
+        "foods": "Foods",
+        "all": "All",
+        "matchingItems": "matching items",
+        "showItems": "Show Items",
+        "hide": "Hide",
+        "noResults": "No Results Found",
+        "tryDifferent": "Try a different search term or browse restaurants below.",
+        "backToHome": "Back to Home"
     },
     "contact": {
         "info": {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, Suspense, lazy } from 'react';
-import { Box, Typography, Button, Grid, Paper, Snackbar, Alert, CircularProgress, Skeleton } from '@mui/material';
+import { Box, Typography, Button, Grid, Paper, Snackbar, Alert, Skeleton } from '@mui/material';
 import { ArrowForward } from '@mui/icons-material';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAddress } from '../hooks/useAddress';
@@ -10,6 +10,8 @@ import { getNearestRestaurants, getPopularMenuItems } from '../utils/api';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import Loading from '../components/Loading';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { fetchCartCountAsync } from '../store/slices/cartSlice';
 
 // Lazy-loaded components
 const AddAddressModal = lazy(() => import('../components/address/AddAddressModal'));
@@ -103,6 +105,8 @@ const CustomerHomePage = () => {
     const address = useAddress();
     const orders = useOrders();
     const tracking = useTracking();
+    const dispatch = useAppDispatch();
+    const { isAuthenticated } = useAppSelector((state) => state.auth);
 
     const [nearbyRestaurants, setNearbyRestaurants] = useState<Restaurant[]>([]);
     const [popularMenuItems, setPopularMenuItems] = useState<PopularFood[]>([]);
@@ -166,6 +170,12 @@ const CustomerHomePage = () => {
         }
     }, [address.selectedAddress]);
 
+    useEffect(() => {
+        if (isAuthenticated) {
+            dispatch(fetchCartCountAsync());
+        }
+    }, [dispatch, isAuthenticated]);
+
     // Fetch data when address is selected
     useEffect(() => {
         if (address.selectedAddress) {
@@ -192,18 +202,17 @@ const CustomerHomePage = () => {
         if (location.state?.orderData) {
             setOrderData(location.state.orderData);
             setIsPaymentSuccessOpen(true);
-            window.dispatchEvent(new CustomEvent("cart-updated"));
-            // Clear the navigation state to prevent popup on refresh
+            dispatch(fetchCartCountAsync());
             navigate("/", { replace: true, state: {} });
         }
-    }, [location.state, navigate]);
+    }, [location.state, navigate, dispatch]);
 
     // Memoize the handler to prevent unnecessary re-renders
     const handlePaymentSuccessClose = useCallback(() => {
-        window.dispatchEvent(new CustomEvent("cart-updated"));
+        dispatch(fetchCartCountAsync());
         setIsPaymentSuccessOpen(false);
         setOrderData(null);
-    }, []);
+    }, [dispatch]);
 
     // Memoize the track order handler
     const handleTrackOrderClick = useCallback(async (orderGroup: CustomerCurrentOrderDTO): Promise<void> => {
@@ -263,7 +272,7 @@ const CustomerHomePage = () => {
                 ) : (
                     <Box
                         component="img"
-                        src="https://i.hizliresim.com/1xcam90.jpeg"
+                        src="src/assets/hero-customer.jpeg"
                         alt="Food Delivery"
                         sx={{
                             maxWidth: '100%',
@@ -446,6 +455,7 @@ const CustomerHomePage = () => {
                         onClose={address.handleDialogClose}
                         addresses={address.addresses}
                         selectedAddress={address.selectedAddress}
+                        pendingAddressId={address.pendingAddressId}
                         handleAddressChange={address.handleAddressChange}
                         handleSaveAddresses={address.handleSaveAddresses}
                         handleAddNewAddress={address.handleAddNewAddress}

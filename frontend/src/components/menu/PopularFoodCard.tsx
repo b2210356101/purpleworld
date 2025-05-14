@@ -1,10 +1,13 @@
-import { Box, Paper, Stack, Typography, Button } from "@mui/material";
+import { Box, Typography, Button, Card, CardMedia, CardContent } from "@mui/material";
 import LocationOn from "@mui/icons-material/LocationOn";
+import AddIcon from '@mui/icons-material/Add';
 import RemoveIngredientsModal from "../cart/RemoveIngredientsModal";
 import { useState } from "react";
-import { addToCart, getIngredients } from "../../utils/api";
-import { Ingredient, Restaurant, RemovableElementDTO } from "../../types";
+import { getIngredients } from "../../utils/api";
+import { Ingredient, Restaurant } from "../../types";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import FoodImageModal from "./FoodImageModal";
 
 interface Food {
     id: number;
@@ -16,11 +19,13 @@ interface Food {
 }
 
 const PopularFoodCard: React.FC<{ food: Food }> = ({ food }) => {
+    const { t } = useTranslation();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [ingredients, setIngredients] = useState<Ingredient[]>([]);
     const [quantity, setQuantity] = useState<number>(1);
     const [selectedIngredients, setSelectedIngredients] = useState<Ingredient[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
     const fetchIngredients = async (menuItemId: number) => {
         try {
@@ -48,93 +53,95 @@ const PopularFoodCard: React.FC<{ food: Food }> = ({ food }) => {
         }
     };
 
-    // Handler for adding to cart
-    const handleAddToCart = async () => {
-        setIsLoading(true);
-        try {
-            // Convert selected ingredients to the expected DTO format
-            const removableElements: RemovableElementDTO[] = selectedIngredients.map(ingredient => ({
-                id: ingredient.id,
-                name: ingredient.name
-            }));
-
-            console.log("[PopularFoodCard] Adding to cart with removable elements:", removableElements);
-
-            const res = await addToCart({
-                menuItemId: food.id,
-                quantity,
-                removableElements: removableElements // Now sending array of objects
-            });
-
-            window.dispatchEvent(new Event("cart-updated"));
-            console.log("Added to cart:", res);
-            setIsModalOpen(false);
-
-            // Reset state after successful add
-            setSelectedIngredients([]);
-            setQuantity(1);
-        } catch (err) {
-            console.error("Failed to add to cart", err);
-        } finally {
-            setIsLoading(false);
-        }
+    const handleOpenImageModal = (event: React.MouseEvent) => {
+        event.stopPropagation();
+        setIsImageModalOpen(true);
     };
 
     return (
         <>
-            <Paper
-                sx={{
-                    borderRadius: 4,
-                    transition: "transform 0.3s",
-                    "&:hover": {
-                        transform: "translateY(-5px)",
-                    },
-                }}
-            >
-                <Box
-                    component="img"
-                    src={food.image}
-                    alt={food.name}
-                    sx={{
-                        width: "100%",
-                        borderRadius: 4,
-                        aspectRatio: "1",
-                        objectFit: "cover",
-                    }}
-                />
+            <Card sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                borderRadius: 3,
+                overflow: 'hidden',
+                transition: "transform 0.3s, box-shadow 0.3s",
+                "&:hover": {
+                    transform: "translateY(-3px)",
+                    boxShadow: '0px 0px 10px rgba(132, 94, 194, 0.4)',
+                },
+            }}>
+                <Box sx={{ position: 'relative', cursor: 'pointer' }} onClick={handleOpenImageModal}>
+                    <CardMedia
+                        component="img"
+                        src={food.image}
+                        alt={food.name}
+                        sx={{
+                            width: "100%",
+                            borderRadius: 4,
+                            aspectRatio: "1",
+                            objectFit: "cover",
+                            transition: 'transform 0.3s ease',
+                            '&:hover': {
+                                transform: 'scale(1.03)',
+                            }
+                        }}
+                    />
+                </Box>
 
-                <Stack gap={1} sx={{ p: 2 }}>
-                    <Typography variant="h6" fontWeight="medium" noWrap>
+                <CardContent sx={{
+                    flexGrow: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    px: { xs: 1.5, sm: 2 },
+                }}>
+                    <Typography
+                        sx={{ mb: 1, fontWeight: 'bold' }}
+                    >
                         {food.name}
                     </Typography>
 
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
                         <LocationOn sx={{ color: "secondary.main", fontSize: 16, mr: 0.5 }} />
                         <Typography component={Link} to={`/restaurants/${food.restaurant.id}`} variant="body2" color="text.secondary" sx={{ textDecoration: 'none', }} noWrap>
                             {food.restaurant.restaurantName}
                         </Typography>
                     </Box>
 
-                    <Typography sx={{ fontWeight: 600 }} color="secondary.main">
-                        {food.price}
-                    </Typography>
-
-                    <Button
-                        fullWidth
-                        variant="contained"
-                        onClick={handleOpenModal}
-                        disabled={isLoading}
-                    >
-                        {isLoading ? 'Loading...' : 'Add to Cart'}
-                    </Button>
-                </Stack>
-            </Paper>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography
+                            variant="h6"
+                            fontWeight="bold"
+                            color="primary.main"
+                        >
+                            {food.price}
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            sx={{
+                                minWidth: 0,
+                                width: { xs: 28, sm: 32 },
+                                height: { xs: 28, sm: 32 },
+                                borderRadius: '50%',
+                                p: 0
+                            }}
+                            onClick={handleOpenModal}
+                            disabled={isLoading}
+                        >
+                            <AddIcon />
+                        </Button>
+                    </Box>
+                </CardContent>
+            </Card>
 
             {isModalOpen && (
                 <RemoveIngredientsModal
                     open={true}
-                    onClose={() => setIsModalOpen(false)}
-                    onAddToCart={handleAddToCart}
+                    onClose={() => {
+                        setIsModalOpen(false);
+                        setSelectedIngredients([]);
+                        setQuantity(1);
+                    }}
                     foodName={food.name}
                     foodImage={food.image}
                     ingredients={ingredients}
@@ -144,8 +151,17 @@ const PopularFoodCard: React.FC<{ food: Food }> = ({ food }) => {
                     setQuantity={setQuantity}
                     selectedIngredients={selectedIngredients}
                     setSelectedIngredients={setSelectedIngredients}
+                    menuItemId={food.id}
                 />
             )}
+
+            {/* Image modal */}
+            <FoodImageModal
+                open={isImageModalOpen}
+                onClose={() => setIsImageModalOpen(false)}
+                imageUrl={food.image}
+                foodName={food.name}
+            />
         </>
     );
 };

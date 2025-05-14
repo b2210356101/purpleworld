@@ -6,6 +6,7 @@ import {
 } from '@mui/material';
 import { Address } from '../../types';
 import { MyLocation } from '@mui/icons-material';
+import { t } from 'i18next';
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyBkEQfPxLwjzhWwPshlQAdIuWTHlk80Vls";
 let googleMapsScriptLoaded = false;
@@ -308,14 +309,14 @@ const AddAddressModal: React.FC<AddAddressModalProps> = ({
                 }
             }}
         >
-            <DialogTitle>{isEditMode ? "Edit Address" : "Add New Address"}</DialogTitle>
+            <DialogTitle>{isEditMode ? t('address.edit') : t('address.add')}</DialogTitle>
             <DialogContent>
                 <Box sx={{ mb: 3, mt: 1 }}>
                     <TextField
                         fullWidth
                         name="name"
-                        label="Address Title"
-                        placeholder="e.g. My Home, Office"
+                        label={t('address.field.title')}
+                        placeholder={t('address.placeholder.title')}
                         variant="outlined"
                         value={address.name}
                         onChange={handleChange}
@@ -328,7 +329,7 @@ const AddAddressModal: React.FC<AddAddressModalProps> = ({
                     {/* Google Maps Container */}
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                         <Typography variant="subtitle1" gutterBottom>
-                            Select Location on Map
+                            {t('address.selectOnMap')}
                         </Typography>
 
                         <Button
@@ -337,7 +338,7 @@ const AddAddressModal: React.FC<AddAddressModalProps> = ({
                             size="small"
                             disabled={locating}
                         >
-                            {locating ? 'Getting location...' : 'Get My location'}
+                            {locating ? t('address.gettingLocation') : t('address.getLocation')}
                         </Button>
                     </Box>
 
@@ -354,7 +355,7 @@ const AddAddressModal: React.FC<AddAddressModalProps> = ({
 
                     {location ? (
                         <Typography fontSize={14} color="text.secondary">
-                            Selected Location: {location.lat.toFixed(5)},{" "}
+                            {t('address.selected')}: {location.lat.toFixed(5)},{" "}
                             {location.lng.toFixed(5)}
                         </Typography>
                     ) : (
@@ -368,8 +369,8 @@ const AddAddressModal: React.FC<AddAddressModalProps> = ({
                     <TextField
                         fullWidth
                         name="fullAddress"
-                        label="Full Address"
-                        placeholder="Street name, neighborhood, etc."
+                        label={t('address.field.full')}
+                        placeholder={t('address.placeholder.full')}
                         variant="outlined"
                         multiline
                         rows={2}
@@ -382,7 +383,7 @@ const AddAddressModal: React.FC<AddAddressModalProps> = ({
                     />
 
                     <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
-                        Building Details
+                        {t('address.build')}
                     </Typography>
 
                     <Grid container spacing={2}>
@@ -390,8 +391,8 @@ const AddAddressModal: React.FC<AddAddressModalProps> = ({
                             <TextField
                                 fullWidth
                                 name="apartmentNumber"
-                                label="Apartment/Building Name"
-                                placeholder="e.g. Asistan Evleri"
+                                label={t('address.field.apartment')}
+                                placeholder={t('address.placeholder.apartment')}
                                 variant="outlined"
                                 value={address.apartmentNumber}
                                 onChange={handleChange}
@@ -405,8 +406,8 @@ const AddAddressModal: React.FC<AddAddressModalProps> = ({
                             <TextField
                                 fullWidth
                                 name="floor"
-                                label="Floor"
-                                placeholder="e.g. 3"
+                                label={t('address.field.floor')}
+                                placeholder={t('address.placeholder.floor')}
                                 variant="outlined"
                                 value={address.floor}
                                 onChange={handleChange}
@@ -420,8 +421,8 @@ const AddAddressModal: React.FC<AddAddressModalProps> = ({
                             <TextField
                                 fullWidth
                                 name="buildingNumber"
-                                label="Door Number"
-                                placeholder="e.g. 7"
+                                label={t('address.field.number')}
+                                placeholder={t('address.placeholder.number')}
                                 variant="outlined"
                                 value={address.buildingNumber}
                                 onChange={handleChange}
@@ -436,8 +437,8 @@ const AddAddressModal: React.FC<AddAddressModalProps> = ({
                     <TextField
                         fullWidth
                         name="phoneNumber"
-                        label="Phone Number"
-                        placeholder="e.g. 5551234567"
+                        label={t('address.field.phone')}
+                        placeholder={t('address.placeholder.phone')}
                         variant="outlined"
                         value={address.phoneNumber}
                         onChange={handleChange}
@@ -452,8 +453,8 @@ const AddAddressModal: React.FC<AddAddressModalProps> = ({
                     <TextField
                         fullWidth
                         name="deliveryNote"
-                        label="Delivery Instructions (optional)"
-                        placeholder="Special instructions for courier"
+                        label={t('address.field.instruction')}
+                        placeholder={t('address.placeholder.instruction')}
                         variant="outlined"
                         multiline
                         rows={2}
@@ -465,7 +466,7 @@ const AddAddressModal: React.FC<AddAddressModalProps> = ({
             </DialogContent>
             <DialogActions sx={{ p: 3 }}>
                 <Button onClick={handleClose} color="secondary">
-                    Cancel
+                    {t('util.cancel')}
                 </Button>
                 <Button
                     onClick={handleSubmit}
@@ -473,7 +474,7 @@ const AddAddressModal: React.FC<AddAddressModalProps> = ({
                     variant="contained"
                     color="primary"
                 >
-                    {isEditMode ? "Update Address" : "Add Address"}
+                    {isEditMode ? t('address.edit') : t('address.add')}
                 </Button>
             </DialogActions>
         </Dialog>

@@ -1,6 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Address } from '../types';
-import { getCustomerAddresses, getCurrentAddress, saveAddress, updateAddress, setCurrentAddress, deleteAddress } from '../utils/api';
+import {
+    getCustomerAddresses,
+    getCurrentAddress,
+    saveAddress,
+    updateAddress,
+    setCurrentAddress,
+    deleteAddress
+} from '../utils/api';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { fetchCartCountAsync } from '../store/slices/cartSlice';
 
 interface ApiAddress {
     addressId: number;
@@ -19,6 +28,7 @@ interface ApiAddress {
 export const useAddress = () => {
     const [addresses, setAddresses] = useState<Address[]>([]);
     const [selectedAddress, setSelectedAddress] = useState<number | null>(null);
+    const [pendingAddressId, setPendingAddressId] = useState<number | null>(null);
     const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
     const [isNewAddressDialogOpen, setIsNewAddressDialogOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -26,6 +36,10 @@ export const useAddress = () => {
     const [error, setError] = useState<string | null>(null);
     const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
     const [onConfirmProceed, setOnConfirmProceed] = useState<(() => void) | null>(null);
+
+    // Use Redux dispatch and selector
+    const dispatch = useAppDispatch();
+    const cartCount = useAppSelector((state) => state.cart.count);
 
     // Keep track of if the hook is mounted to prevent state updates on unmounted component
     const isMounted = useRef(true);
@@ -71,8 +85,10 @@ export const useAddress = () => {
 
                 if (currentAddressData) {
                     setSelectedAddress(currentAddressData.addressId);
+                    setPendingAddressId(currentAddressData.addressId);
                 } else {
                     setSelectedAddress(null);
+                    setPendingAddressId(null);
                 }
             }
         } catch (err) {
@@ -84,8 +100,16 @@ export const useAddress = () => {
     }, []);
 
     // Memoize dialog handlers
-    const handleDialogOpen = useCallback(() => setIsAddressDialogOpen(true), []);
-    const handleDialogClose = useCallback(() => setIsAddressDialogOpen(false), []);
+    const handleDialogOpen = useCallback(() => {
+        setIsAddressDialogOpen(true);
+        setPendingAddressId(selectedAddress);
+    }, [selectedAddress]);
+
+    const handleDialogClose = useCallback(() => {
+        setIsAddressDialogOpen(false);
+        setPendingAddressId(selectedAddress);
+        setError(null);
+    }, [selectedAddress]);
 
     // Memoize address action handlers
     const handleAddNewAddress = useCallback(() => {
@@ -115,7 +139,7 @@ export const useAddress = () => {
             try {
                 await updateAddress(address, location);
                 await fetchAddresses();
-                window.dispatchEvent(new CustomEvent("cart-updated"));
+                dispatch(fetchCartCountAsync());
                 setIsNewAddressDialogOpen(false);
                 setIsEditMode(false);
                 setAddressToEdit(null);
@@ -126,27 +150,31 @@ export const useAddress = () => {
 
         setOnConfirmProceed(() => proceedWithUpdate);
         setIsConfirmDialogOpen(true);
-    }, [fetchAddresses]);
+    }, [fetchAddresses, dispatch]);
 
     const proceedWithAddressChange = useCallback(async () => {
-        if (!selectedAddress) return;
+        if (!pendingAddressId) return;
 
         try {
-            await setCurrentAddress(selectedAddress);
+            setSelectedAddress(pendingAddressId);
+            await setCurrentAddress(pendingAddressId);
             handleDialogClose();
-            window.dispatchEvent(new CustomEvent("cart-updated"));
+            dispatch(fetchCartCountAsync());
         } catch (error) {
             setError('Failed to set current address. Please try again.');
         }
-    }, [selectedAddress, handleDialogClose]);
+    }, [pendingAddressId, handleDialogClose, dispatch]);
 
     const handleSaveAddresses = useCallback(async () => {
-        if (!selectedAddress) {
+        if (!pendingAddressId) {
             setError('Please select an address first');
             return;
         }
 
-        const cartCount = Number(localStorage.getItem("cartCount") || "0");
+        if (pendingAddressId === selectedAddress) {
+            handleDialogClose();
+            return;
+        }
 
         if (cartCount > 0) {
             setOnConfirmProceed(() => proceedWithAddressChange);
@@ -155,10 +183,10 @@ export const useAddress = () => {
         }
 
         await proceedWithAddressChange();
-    }, [selectedAddress, proceedWithAddressChange]);
+    }, [pendingAddressId, selectedAddress, proceedWithAddressChange, handleDialogClose, cartCount]);
 
     const handleAddressChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        setSelectedAddress(Number(event.target.value));
+        setPendingAddressId(Number(event.target.value));
     }, []);
 
     const handleDeleteAddress = useCallback((addressId: number) => {
@@ -166,7 +194,7 @@ export const useAddress = () => {
             try {
                 await deleteAddress(addressId);
                 await fetchAddresses();
-                window.dispatchEvent(new CustomEvent("cart-updated"));
+                dispatch(fetchCartCountAsync());
             } catch (error) {
                 console.error('Failed to delete address:', error);
                 alert('Failed to delete address. Please try again.');
@@ -175,7 +203,7 @@ export const useAddress = () => {
 
         setOnConfirmProceed(() => proceedWithDelete);
         setIsConfirmDialogOpen(true);
-    }, [fetchAddresses]);
+    }, [fetchAddresses, dispatch]);
 
     // Fetch addresses on mount, but only once
     useEffect(() => {
@@ -194,6 +222,7 @@ export const useAddress = () => {
     return {
         addresses,
         selectedAddress,
+        pendingAddressId,
         isAddressDialogOpen,
         isNewAddressDialogOpen,
         isEditMode,
@@ -214,5 +243,6 @@ export const useAddress = () => {
         setIsConfirmDialogOpen,
         setIsNewAddressDialogOpen,
         setAddressToEdit,
+        setPendingAddressId,
     };
 };

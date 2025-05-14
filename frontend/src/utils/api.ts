@@ -10,12 +10,13 @@ import {
     MenuResponse, PlaceOrderRequest, PlaceOrderResponse,
     Restaurant, TrackingInfoResponseDTO, OrderGroupDTO,
     RestaurantResponseForAdmin, CourierResponseForAdmin,
-    OrderItemDTO, CustomerOrderSummaryDTO, OrderDetailsData, OrderDetails, Stat,
+    CustomerOrderSummaryDTO, OrderDetails, Stat,
     CourierOrder,
     CourierStats, AdminStats,
+    SearchResult,
 } from '../types';
 
-const API_URL = 'https://purpleworld-production.up.railway.app';
+const API_URL = '/api';
 
 // ai-gen start (claude 3.7)
 /**
@@ -726,6 +727,23 @@ export const getAdminStats = async (): Promise<AdminStats> => {
         const response = await api.get('/admin/stats');
         return response.data;
     } catch (error) {
+        if (error instanceof AxiosError && error.response) {
+            const errData = error.response.data as BackendErrorResponse;
+            throw errData;
+        }
+        throw error;
+    }
+};
+
+// Search for restaurants by query
+export const searchRestaurants = async (query: string): Promise<SearchResult[]> => {
+    try {
+        const response = await api.get(`/search`, {
+            params: { q: query }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error searching restaurants:', error);
         if (error instanceof AxiosError && error.response) {
             const errData = error.response.data as BackendErrorResponse;
             throw errData;

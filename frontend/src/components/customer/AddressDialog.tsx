@@ -18,12 +18,14 @@ import { Add, Edit } from '@mui/icons-material';
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Link } from 'react-router-dom';
 import { Address } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 interface AddressDialogProps {
     open: boolean;
     onClose: () => void;
     addresses: Address[];
     selectedAddress: number | null;
+    pendingAddressId: number | null;
     handleAddressChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
     handleSaveAddresses: () => void;
     handleAddNewAddress: () => void;
@@ -37,6 +39,7 @@ const AddressDialog: React.FC<AddressDialogProps> = ({
     onClose,
     addresses,
     selectedAddress,
+    pendingAddressId,
     handleAddressChange,
     handleSaveAddresses,
     handleAddNewAddress,
@@ -44,23 +47,25 @@ const AddressDialog: React.FC<AddressDialogProps> = ({
     handleDeleteAddress,
     error
 }) => {
+    const { t } = useTranslation();
+
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-            <DialogTitle>Select Your Addresses</DialogTitle>
+            <DialogTitle>{t('address.selectNew')}</DialogTitle>
             <DialogContent>
                 {error ? (
                     <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
                 ) : addresses.length === 0 ? (
                     <Alert severity="warning" sx={{ mb: 2 }}>
-                        You don't have any saved addresses yet. Please add a new address.
+                        {t('address.dontHave')}
                     </Alert>
                 ) : (
                     <Box sx={{ mb: 2 }}>
                         <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                            Your saved addresses
+                            {t('address.saved')}
                         </Typography>
                         <RadioGroup
-                            value={selectedAddress}
+                            value={pendingAddressId} 
                             onChange={handleAddressChange}
                         >
                             {addresses.map((address, index) => (
@@ -103,7 +108,7 @@ const AddressDialog: React.FC<AddressDialogProps> = ({
                             fullWidth
                             onClick={handleAddNewAddress}
                         >
-                            Add New Address
+                            {t('address.add')}
                         </Button>
                     </Grid>
                     <Grid size={{ xs: 12, md: 6 }}>
@@ -114,22 +119,22 @@ const AddressDialog: React.FC<AddressDialogProps> = ({
                             fullWidth
                             sx={{ color: 'secondary.main', borderColor: 'secondary.main' }}
                         >
-                            Manage Addresses
+                            {t('address.manage')}
                         </Button>
                     </Grid>
                 </Grid>
             </DialogContent>
             <DialogActions sx={{ p: 3 }}>
                 <Button onClick={onClose} color="secondary">
-                    Cancel
+                    {t('util.cancel')}
                 </Button>
                 <Button
                     onClick={handleSaveAddresses}
-                    disabled={!selectedAddress && addresses.length > 0}
+                    disabled={!pendingAddressId && addresses.length > 0}
                     variant="contained"
                     color="primary"
                 >
-                    Select Address
+                    {t('address.select')}
                 </Button>
             </DialogActions>
         </Dialog>

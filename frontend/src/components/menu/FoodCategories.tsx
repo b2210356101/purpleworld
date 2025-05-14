@@ -1,6 +1,7 @@
 import { Box, Card, Grid, Typography } from "@mui/material";
 import { LocalPizza, Fastfood, Restaurant, Spa, Cake, SetMeal } from "@mui/icons-material";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 interface FoodCategory {
     id: string;
@@ -11,16 +12,17 @@ interface FoodCategory {
 
 
 const FoodCategories = () => {
+    const { t } = useTranslation();
+
     // Food categories
     const foodCategories: FoodCategory[] = [
-        { id: 'pizza', name: 'Pizza', icon: <LocalPizza fontSize="large" /> },
-        { id: 'burger', name: 'Burger', icon: <Fastfood fontSize="large" /> },
-        { id: 'pasta', name: 'Pasta', icon: <Restaurant fontSize="large" /> },
-        { id: 'salad', name: 'Salad', icon: <Spa fontSize="large" /> },
-        { id: 'desserts', name: 'Desserts', icon: <Cake fontSize="large" /> },
-        { id: 'sushi', name: 'Sushi', icon: <SetMeal fontSize="large" /> },
+        { id: 'pizza', name: t('homepage.categories.pizza'), icon: <LocalPizza fontSize="large" /> },
+        { id: 'burger', name: t('homepage.categories.burger'), icon: <Fastfood fontSize="large" /> },
+        { id: 'pasta', name: t('homepage.categories.pasta'), icon: <Restaurant fontSize="large" /> },
+        { id: 'salad', name: t('homepage.categories.salad'), icon: <Spa fontSize="large" /> },
+        { id: 'desserts', name: t('homepage.categories.dessert'), icon: <Cake fontSize="large" /> },
+        { id: 'sushi', name: t('homepage.categories.sushi'), icon: <SetMeal fontSize="large" /> },
     ];
-
 
     return (
         <Grid container spacing={4} sx={{ justifyContent: "space-between" }}>

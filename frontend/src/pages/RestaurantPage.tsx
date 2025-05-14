@@ -10,19 +10,24 @@ import {
     TextField,
     Button,
     Stack,
-    Snackbar,
-    Alert,
     useTheme,
     useMediaQuery,
-    Skeleton
+    Skeleton,
+    IconButton,
+    Tooltip,
+    Card,
+    CardMedia,
+    CardContent
 } from '@mui/material';
 import { useParams } from 'react-router-dom';
-import { Search as SearchIcon, Favorite } from '@mui/icons-material';
-import { getIngredients, addToCart, getRestaurantMenuForCustomer, getRestaurantDetails } from '../utils/api';
-import { MenuItem, Restaurant, Ingredient, RemovableElementDTO } from '../types';
+import AddIcon from '@mui/icons-material/Add';
+import { Search as SearchIcon, Favorite, FavoriteBorder } from '@mui/icons-material';
+import { getIngredients, getRestaurantMenuForCustomer, getRestaurantDetails } from '../utils/api';
+import { MenuItem, Restaurant, Ingredient } from '../types';
 import RemoveIngredientsModal from "../components/cart/RemoveIngredientsModal";
 import Loading from '../components/Loading';
 import { useTranslation } from 'react-i18next';
+import FoodImageModal from '../components/menu/FoodImageModal';
 
 const RestaurantPage = () => {
     const { t } = useTranslation();
@@ -44,14 +49,13 @@ const RestaurantPage = () => {
     const [quantity, setQuantity] = useState<number>(1);
     const [selectedIngredients, setSelectedIngredients] = useState<Ingredient[]>([]);
     const [isAddingToCart, setIsAddingToCart] = useState(false);
-    const [snackbarOpen, setSnackbarOpen] = useState(false);
-    const [snackbarMessage, setSnackbarMessage] = useState('');
-    const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
-    const [isLoading, setIsLoading] = useState(true); // Add loading state
+    const [isLoading, setIsLoading] = useState(true);
+    const [isFavorite, setIsFavorite] = useState(false);
+    const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
-            setIsLoading(true); // Set loading to true when starting to fetch data
+            setIsLoading(true);
             try {
                 // Fetch restaurant details
                 const restaurantsData = await getRestaurantDetails(restaurantId);
@@ -70,11 +74,8 @@ const RestaurantPage = () => {
                 }
             } catch (error) {
                 console.error('Error fetching restaurant data:', error);
-                setSnackbarMessage('Failed to load restaurant data. Please try again.');
-                setSnackbarSeverity('error');
-                setSnackbarOpen(true);
             } finally {
-                setIsLoading(false); 
+                setIsLoading(false);
             }
         };
 
@@ -121,6 +122,12 @@ const RestaurantPage = () => {
         setMenuItems(filteredItems);
     };
 
+    // Toggle favorite status
+    const toggleFavorite = () => {
+        setIsFavorite(!isFavorite);
+        // API to add/remove from favorites
+    };
+
     // Fetch ingredients and open modal
     const handleOpenModal = async (menuItem: MenuItem) => {
         setSelectedFood(menuItem);
@@ -139,61 +146,16 @@ const RestaurantPage = () => {
             setIsModalOpen(true);
         } catch (error) {
             console.error('Error fetching ingredients:', error);
-            setSnackbarMessage('Failed to load ingredients. Please try again.');
-            setSnackbarSeverity('error');
-            setSnackbarOpen(true);
         } finally {
             setIsAddingToCart(false);
         }
     };
 
-    // Add item to cart
-    const handleAddToCart = async () => {
-        if (!selectedFood) return;
-
-        setIsAddingToCart(true);
-        try {
-            // Convert selected ingredients to DTO format
-            const removableElements: RemovableElementDTO[] = selectedIngredients.map(ingredient => ({
-                id: ingredient.id,
-                name: ingredient.name
-            }));
-
-            // Add to cart
-            await addToCart({
-                menuItemId: selectedFood.id,
-                quantity,
-                removableElements
-            });
-
-            // Notify other components about cart update
-            window.dispatchEvent(new Event("cart-updated"));
-
-            // Close modal and show success message
-            setIsModalOpen(false);
-            setSnackbarMessage('Item added to cart successfully!');
-            setSnackbarSeverity('success');
-            setSnackbarOpen(true);
-
-            // Reset states
-            setSelectedFood(null);
-            setSelectedIngredients([]);
-            setQuantity(1);
-        } catch (error) {
-            console.error('Error adding to cart:', error);
-            setSnackbarMessage('Failed to add item to cart. Please try again.');
-            setSnackbarSeverity('error');
-            setSnackbarOpen(true);
-        } finally {
-            setIsAddingToCart(false);
-        }
+    const handleOpenImageModal = (menuItem: MenuItem, event: React.MouseEvent) => {
+        event.stopPropagation();
+        setSelectedFood(menuItem);
+        setIsImageModalOpen(true);
     };
-
-    const handleSnackbarClose = () => {
-        setSnackbarOpen(false);
-    };
-
-    // We'll continue rendering the page even while loading
 
     return (
         <Box sx={{ pb: 6 }}>
@@ -210,32 +172,35 @@ const RestaurantPage = () => {
                     minHeight: { xs: 280, md: 240 }
                 }}
             >
-                {/* Add Favorites Button */}
-                <Box
-                    sx={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        borderBottomRightRadius: { xs: 8, sm: 12, md: 16 },
-                        bgcolor: 'rgba(255,255,255,0.9)',
-                        px: { xs: 1.5, sm: 2 },
-                        py: { xs: 0.5, sm: 1 },
-                        display: 'flex',
-                        alignItems: 'center',
-                    }}
+                {/* Favorite Button */}
+                <Tooltip
+                    title={isFavorite ? t('restaurant.removeFromFavorites') : t('restaurant.addToFavorites')}
+                    arrow
+                    placement="bottom-end"
                 >
-                    <Typography
-                        variant={isMobile ? "caption" : "button"}
+                    <IconButton
+                        onClick={toggleFavorite}
+                        aria-label={isFavorite ? t('restaurant.removeFromFavorites') : t('restaurant.addToFavorites')}
                         sx={{
-                            color: '#FF5E78',
-                            display: 'flex',
-                            alignItems: 'center',
-                            fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.875rem' }
+                            position: 'absolute',
+                            top: 16,
+                            right: 16,
+                            bgcolor: isFavorite ? 'secondary.main' : 'rgba(255,255,255,0.9)',
+                            color: isFavorite ? 'white' : 'secondary.main',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                            zIndex: 2,
+                            transition: 'all 0.3s ease',
+                            width: 48,
+                            height: 48,
+                            '&:hover': {
+                                bgcolor: isFavorite ? 'secondary.dark' : 'white',
+                                transform: 'scale(1.1)',
+                            },
                         }}
                     >
-                        {t('restaurant.favorite')} <Favorite fontSize='small' sx={{ ml: 0.5 }} />
-                    </Typography>
-                </Box>
+                        {isFavorite ? <Favorite fontSize="medium" /> : <FavoriteBorder fontSize="medium" />}
+                    </IconButton>
+                </Tooltip>
 
                 <Box sx={{
                     p: { xs: 1, sm: 2, md: 3 },
@@ -372,14 +337,14 @@ const RestaurantPage = () => {
                         )}
                     </Box>
 
-                    {/* Rating Box - Bottom right of the image */}
+                    {/* Rating Box - Bottom left of the image */}
                     <Box
                         sx={{
                             position: 'absolute',
                             left: { xs: 'auto', md: -40 },
                             right: { xs: -8, md: 'auto' },
                             bottom: { xs: -8, md: -20 },
-                            bgcolor: 'white',
+                            bgcolor: 'background.default',
                             borderRadius: { xs: 2, md: 3 },
                             width: { xs: 100, sm: 110, md: 125 },
                             p: { xs: 0.5, sm: 1 },
@@ -492,7 +457,6 @@ const RestaurantPage = () => {
                 />
             </Box>
 
-
             {/* Menu Categories Tabs */}
             {isLoading ? (
                 <Box sx={{ mb: 4 }}>
@@ -558,73 +522,83 @@ const RestaurantPage = () => {
                     <Grid container spacing={3}>
                         {menuItems.map((menuItem) => (
                             <Grid size={{ xs: 12, sm: 6, md: 3 }} key={menuItem.id}>
-                                <Paper
-                                    elevation={0}
-                                    sx={{
-                                        borderRadius: 4,
-                                        bgcolor: 'primary.light',
-                                        height: '100%',
-                                        transition: "transform 0.3s",
-                                        "&:hover": {
-                                            transform: "translateY(-5px)",
-                                        },
-                                    }}
-                                >
+                                <Card sx={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    borderRadius: 3,
+                                    overflow: 'hidden',
+                                    transition: "transform 0.3s, box-shadow 0.3s",
+                                    "&:hover": {
+                                        transform: "translateY(-3px)",
+                                        boxShadow: '0px 0px 10px rgba(132, 94, 194, 0.4)',
+                                    },
+                                }}>
                                     {menuItem.img && (
-                                        <Box
-                                            component="img"
-                                            src={menuItem.img}
-                                            alt={menuItem.name}
-                                            sx={{
-                                                width: "100%",
-                                                height: 160,
-                                                borderTopLeftRadius: 16,
-                                                borderTopRightRadius: 16,
-                                                objectFit: "cover",
-                                            }}
-                                        />
+                                        <Box sx={{ position: 'relative', cursor: 'pointer' }} onClick={(e) => handleOpenImageModal(menuItem, e)}
+                                        >
+                                            <CardMedia
+                                                component="img"
+                                                src={menuItem.img}
+                                                alt={menuItem.name}
+                                                sx={{
+                                                    width: "100%",
+                                                    borderRadius: 4,
+                                                    aspectRatio: "1",
+                                                    objectFit: "cover",
+                                                    transition: 'transform 0.3s ease',
+                                                    '&:hover': {
+                                                        transform: 'scale(1.03)',
+                                                    }
+                                                }}
+                                            />
+                                        </Box>
                                     )}
 
-                                    <Stack gap={1} sx={{ p: 3 }}>
-                                        <Typography variant="h6" fontWeight="bold" noWrap>
+                                    <CardContent sx={{
+                                        flexGrow: 1,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        px: { xs: 1.5, sm: 2 },
+                                    }}>
+                                        <Typography
+                                            sx={{ mb: 1, fontWeight: 'bold' }}
+                                        >
                                             {menuItem.name}
                                         </Typography>
 
-                                        {menuItem.description && (
-                                            <Typography
-                                                variant="body2"
-                                                color="text.secondary"
-                                            >
-                                                {menuItem.description}
-                                            </Typography>
-                                        )}
-
-                                        <Box
-                                            sx={{
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center',
-                                                mt: 1
-                                            }}
+                                        <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                            sx={{ mb: 1 }}
                                         >
-                                            <Typography sx={{ fontWeight: 600 }} color="secondary.main" variant="h6">
+                                            {menuItem.description}
+                                        </Typography>
+
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <Typography
+                                                variant="h6"
+                                                fontWeight="bold"
+                                                color="primary.main"
+                                            >
                                                 {menuItem.price}₺
                                             </Typography>
-
                                             <Button
                                                 variant="contained"
+                                                sx={{
+                                                    minWidth: 0,
+                                                    width: { xs: 28, sm: 32 },
+                                                    height: { xs: 28, sm: 32 },
+                                                    borderRadius: '50%',
+                                                    p: 0
+                                                }}
                                                 onClick={() => handleOpenModal(menuItem)}
                                                 disabled={isAddingToCart}
-                                                sx={{
-                                                    borderRadius: 8,
-                                                    px: 2
-                                                }}
                                             >
-                                                {t('restaurant.add')}
+                                                <AddIcon />
                                             </Button>
                                         </Box>
-                                    </Stack>
-                                </Paper>
+                                    </CardContent>
+                                </Card>
                             </Grid>
                         ))}
                     </Grid>
@@ -644,8 +618,11 @@ const RestaurantPage = () => {
                 isModalOpen && selectedFood && (
                     <RemoveIngredientsModal
                         open={isModalOpen}
-                        onClose={() => setIsModalOpen(false)}
-                        onAddToCart={handleAddToCart}
+                        onClose={() => {
+                            setIsModalOpen(false);
+                            setSelectedIngredients([]);
+                            setQuantity(1);
+                        }}
                         foodName={selectedFood.name}
                         foodImage={selectedFood.img || ''}
                         ingredients={ingredients}
@@ -655,25 +632,18 @@ const RestaurantPage = () => {
                         setQuantity={setQuantity}
                         selectedIngredients={selectedIngredients}
                         setSelectedIngredients={setSelectedIngredients}
+                        menuItemId={selectedFood.id}
                     />
                 )
             }
 
-            {/* Snackbar for notifications */}
-            <Snackbar
-                open={snackbarOpen}
-                autoHideDuration={6000}
-                onClose={handleSnackbarClose}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-            >
-                <Alert
-                    onClose={handleSnackbarClose}
-                    severity={snackbarSeverity}
-                    sx={{ width: '100%' }}
-                >
-                    {snackbarMessage}
-                </Alert>
-            </Snackbar>
+            {/* Image modal */}
+            {selectedFood && <FoodImageModal
+                open={isImageModalOpen}
+                onClose={() => setIsImageModalOpen(false)}
+                imageUrl={selectedFood.img}
+                foodName={selectedFood.name}
+            />}
         </Box >
     );
 };

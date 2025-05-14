@@ -1,5 +1,5 @@
-import { Box, Button, Container, FormControl, FormLabel, IconButton, InputAdornment, Paper, TextField, Typography, CircularProgress, Snackbar, Alert } from "@mui/material";
-import { useState } from "react";
+import { Box, Button, Container, FormControl, FormLabel, IconButton, InputAdornment, Paper, TextField, Typography, CircularProgress, Alert } from "@mui/material";
+import { useState, useRef } from "react";
 import { Link, useNavigate } from 'react-router-dom';
 import Phishing from "@mui/icons-material/Phishing";
 import Visibility from '@mui/icons-material/Visibility'
@@ -19,8 +19,34 @@ const LoginPage = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [showError, setShowError] = useState(false);
+    const [loginDisabled, setLoginDisabled] = useState(false);
+    
+    const lastEmail = useRef('');
+    const lastPassword = useRef('');
 
     const handleClickShowPassword = () => setShowPassword(!showPassword);
+
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (loginDisabled) {
+            const emailInput = document.getElementById('email') as HTMLInputElement;
+            const passwordInput = document.getElementById('password') as HTMLInputElement;
+            
+            const currentEmail = emailInput?.value || '';
+            const currentPassword = passwordInput?.value || '';
+            
+            // Re-enable login button if either email or password has changed
+            if (currentEmail !== lastEmail.current || currentPassword !== lastPassword.current) {
+                setLoginDisabled(false);
+                setShowError(false); // Hide error when input changes
+            }
+        }
+        
+        // Reset email validation errors when email field changes
+        if (event.target.id === 'email' && emailError) {
+            setEmailError(false);
+            setEmailErrorMessage('');
+        }
+    };
 
     const validateInputs = (): boolean => {
         const emailInput = document.getElementById('email') as HTMLInputElement;
@@ -49,6 +75,9 @@ const LoginPage = () => {
             const email = (form.elements.namedItem('email') as HTMLInputElement).value;
             const password = (form.elements.namedItem('password') as HTMLInputElement).value;
 
+            lastEmail.current = email;
+            lastPassword.current = password;
+
             try {
                 setLoading(true);
 
@@ -74,6 +103,9 @@ const LoginPage = () => {
 
                 setError(errorMessage);
                 setShowError(true);
+                
+                // Disable login button until credentials change
+                setLoginDisabled(true);
             }
              finally {
                 setLoading(false);
@@ -125,6 +157,16 @@ const LoginPage = () => {
                         {t('login.title')}
                     </Typography>
 
+                    {/* Error Alert */}
+                    {showError && (
+                        <Alert 
+                            severity="error" 
+                            onClose={() => setShowError(false)}
+                        >
+                            {error}
+                        </Alert>
+                    )}
+
                     {/* Login Form */}
                     <FormControl>
                         <FormLabel htmlFor="email">{t('login.email')}</FormLabel>
@@ -142,6 +184,7 @@ const LoginPage = () => {
                             variant="standard"
                             margin="dense"
                             color={emailError ? 'error' : 'primary'}
+                            onChange={handleInputChange}
                         />
                     </FormControl>
                     <FormControl>
@@ -190,7 +233,7 @@ const LoginPage = () => {
                         fullWidth
                         variant="contained"
                         size="large"
-                        disabled={loading}
+                        disabled={loading || loginDisabled}
                         sx={{ py: 2 }}
                     >
                         {loading ? <CircularProgress size={24} /> : t('login.signIn')}
@@ -206,13 +249,6 @@ const LoginPage = () => {
                     </Typography>
                 </Paper>
             </Container>
-
-            {/* Error Snackbar */}
-            <Snackbar open={showError} autoHideDuration={6000} onClose={() => setShowError(false)}>
-                <Alert onClose={() => setShowError(false)} severity="error">
-                    {error}
-                </Alert>
-            </Snackbar>
         </Container >
     );
 };

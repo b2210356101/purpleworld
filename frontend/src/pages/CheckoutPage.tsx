@@ -4,14 +4,13 @@ import {
   Container,
   Typography,
   Paper,
-  Button,
   TextField,
-  Divider,
   InputAdornment,
   useTheme,
   Snackbar,
   Alert,
   CircularProgress,
+  Divider,
 } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
@@ -296,13 +295,14 @@ const CheckoutPage: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h5" fontWeight={700} mb={4}>
+    <Container sx={{ py:4 }}>
+      <Typography variant="h5" fontWeight={700} mb={1}>
         Secure Checkout
       </Typography>
-      <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={6}>
+      <Divider sx={{ mb: 3 }} />
+      <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={20}>
         {/* LEFT */}
-        <Box flex={1}>
+        <Box flex={3}>
           {/* address */}
           <Typography fontWeight={600} fontSize={16} mb={1} component="div">
             <LocationOnIcon

@@ -23,6 +23,8 @@ import CustomerOrdersPage from '../pages/CustomerOrdersPage';
 import GDPRPage from '../pages/GDPRPage';
 import CookiePolicyPage from '../pages/CookiePolicyPage';
 import RestaurantPage from '../pages/RestaurantPage';
+import SearchResultsPage from '../pages/SearchResultPage';
+import RestaurantsPage from '../pages/RestaurantsPage';
 
 
 
@@ -125,6 +127,18 @@ const router = createBrowserRouter([
                     {
                         path: 'register',
                         element: <RegisterPage />
+                    },
+                    {
+                        path: 'restaurants',
+                        element: <RestaurantsPage />
+                    },
+                    {
+                        path: 'search',
+                        element: <SearchResultsPage />
+                    },
+                    {
+                        path: 'category/:categoryName',
+                        element: <SearchResultsPage />
                     },
                     {
                         path: 'contact',

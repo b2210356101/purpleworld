@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Typography, Button, Grid } from '@mui/material';
 import { LocationOn } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 interface AddressSectionProps {
     selectedAddress: number | null;
@@ -11,15 +12,17 @@ const AddressSection: React.FC<AddressSectionProps> = ({
     selectedAddress,
     handleDialogOpen
 }) => {
+    const { t } = useTranslation();
+
     return (
         <Box sx={{ py: 6, textAlign: 'center' }}>
             {!selectedAddress && (
                 <Box sx={{ p: 5, borderRadius: 4, maxWidth: 600, mx: 'auto' }}>
                     <Typography variant="h5" color="primary" gutterBottom>
-                        Please Select an Address
+                        {t('address.pleaseSelect')}
                     </Typography>
                     <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-                        To view restaurants and foods near you, please select a delivery address.
+                        {t('address.selectDescription')}
                     </Typography>
                     <Button
                         variant="contained"
@@ -27,7 +30,7 @@ const AddressSection: React.FC<AddressSectionProps> = ({
                         startIcon={<LocationOn />}
                         size="large"
                     >
-                        Select Address
+                        {t('address.select')}
                     </Button>
                 </Box>
             )}

@@ -26,12 +26,11 @@ import MenuDrawer from "./MenuDrawer";
 import CartDrawer from "./CartDrawer";
 import {
     UserType,
-    ViewCartResponse,
 } from "../../types";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { logout } from "../../store/slices/authSlice";
-import { viewCart } from "../../utils/api";
 import { useTranslation } from "react-i18next";
+import { fetchCartCountAsync } from "../../store/slices/cartSlice";
 
 interface HeaderProps {
     userType: UserType;
@@ -51,48 +50,22 @@ const Header: React.FC<HeaderProps> = ({
 
     const [mobileOpen, setMobileOpen] = useState(false);
     const [cartOpen, setCartOpen] = useState(false);
-    const [cartCount, setCartCount] = useState<number>(0); // Dynamic cart count
 
     const dispatch = useAppDispatch();
     const { isAuthenticated } = useAppSelector((state) => state.auth);
+    const { count: cartCount } = useAppSelector((state) => state.cart);
 
     const location = useLocation();
     const isCartPage = location.pathname === "/cart";
 
+    const [searchText, setSearchText] = useState('');
+
     // Fetch cart count on mount and when cart drawer closes
     useEffect(() => {
-        const handleCartUpdated = () => {
-            fetchCartCount();
-        };
-
         if (userType === "CUSTOMER" && isAuthenticated) {
-            fetchCartCount();
+            dispatch(fetchCartCountAsync());
         }
-
-        window.addEventListener("cart-updated", handleCartUpdated);
-
-        return () => {
-            window.removeEventListener("cart-updated", handleCartUpdated);
-        };
-    }, [userType, isAuthenticated]);
-
-    const fetchCartCount = async () => {
-        try {
-            const data: ViewCartResponse = await viewCart();
-            // Calculate total quantity of items in the cart
-            const totalItems = data.groups.reduce((sum, group) => {
-                return (
-                    sum +
-                    group.items.reduce((itemSum, item) => itemSum + item.quantity, 0)
-                );
-            }, 0);
-            setCartCount(totalItems);
-            localStorage.setItem("cartCount", totalItems.toString());
-        } catch (err) {
-            console.error("Failed to fetch cart count:", err);
-            setCartCount(0); // Reset to 0 on error to avoid misleading count
-        }
-    };
+    }, [userType, isAuthenticated, dispatch]);
 
     const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
 
@@ -100,7 +73,7 @@ const Header: React.FC<HeaderProps> = ({
         setCartOpen(!cartOpen);
         // Refresh cart count when closing the drawer to sync with updates
         if (cartOpen) {
-            fetchCartCount();
+            dispatch(fetchCartCountAsync());
         }
     };
 
@@ -166,6 +139,15 @@ const Header: React.FC<HeaderProps> = ({
         }
     };
 
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (searchText.trim().length >= 2) {
+            navigate(`/search?q=${encodeURIComponent(searchText.trim())}`);
+            setSearchText('')
+        }
+    };
+
     // Show search bar only for guest and customer
     const shouldShowSearchBar =
         isMobile && (!isAuthenticated || userType === "CUSTOMER");
@@ -186,7 +168,7 @@ const Header: React.FC<HeaderProps> = ({
 
                 <Box component={Link} to="/" sx={{ display: "flex" }}>
                     <img
-                        src="https://i.hizliresim.com/qkl6ett.png"
+                        src="/src/assets/logo.svg"
                         alt="Logo"
                         height="30"
                         style={{
@@ -199,6 +181,8 @@ const Header: React.FC<HeaderProps> = ({
                 {/* Search section - Only for guest and customer */}
                 {shouldShowSearchBar ? (
                     <Box
+                        component="form"
+                        onSubmit={handleSearch}
                         sx={{
                             flexGrow: 1,
                             display: "flex",
@@ -213,7 +197,7 @@ const Header: React.FC<HeaderProps> = ({
                                 "&:hover": {
                                     backgroundColor: "rgba(255, 255, 255, 0.25)",
                                 },
-                                width: "300px",
+                                width: "330px",
                                 display: "flex",
                                 alignItems: "center",
                                 px: 2,
@@ -222,6 +206,8 @@ const Header: React.FC<HeaderProps> = ({
                         >
                             <InputBase
                                 placeholder={t('restaurant.searchHeader')}
+                                value={searchText}
+                                onChange={(e) => setSearchText(e.target.value)}
                                 sx={{
                                     color: "white",
                                     width: "100%",
@@ -231,7 +217,12 @@ const Header: React.FC<HeaderProps> = ({
                                     },
                                 }}
                             />
-                            <SearchIcon sx={{ color: "white", ml: 1 }} />
+                            <IconButton
+                                type="submit"
+                                sx={{ color: "white", p: 0.5 }}
+                            >
+                                <SearchIcon />
+                            </IconButton>
                         </Box>
                     </Box>
                 ) : (
@@ -274,7 +265,7 @@ const Header: React.FC<HeaderProps> = ({
                         <CartDrawer
                             isOpen={cartOpen}
                             onClose={handleCartDrawerToggle}
-                            refreshCartCount={fetchCartCount}
+                            refreshCartCount={() => dispatch(fetchCartCountAsync())}
                         />
                     </Drawer>
                 )}

@@ -27,7 +27,7 @@ const Footer = () => {
                             sx={{ display: 'flex', mb: 2 }}
                         >
                             <img
-                                src="https://i.hizliresim.com/qkl6ett.png"
+                                src="/src/assets/logo.svg"
                                 alt="Logo"
                                 height="42"
                                 style={{

@@ -15,6 +15,9 @@
             "description2": "En sevdiğiniz lezzetler bir tık uzağınızda."
         },
         "whyChooseUs": "Neden Biz?",
+        "category": {
+            "title": "{{category}} Kategorisi"
+        },
         "categories": {
             "search": "Kategoriye Göre Arama",
             "pizza": "Pizza",
@@ -123,12 +126,13 @@
         "updateError": "Sepet öğesi güncellenemedi."
     },
     "restaurant": {
-        "searchHeader": "Yemek & Restoran Ara...",
+        "searchHeader": "Restoran veya yemek ara...",
         "view": "Restoranı Görüntüle",
         "add": "Sepete Ekle",
         "selectRemove": "Çıkarılacak Malzemeleri Seçin",
         "quantity": "Miktar",
-        "favorite": "Favorilere Ekle",
+        "addToFavorites": "Favorilere Ekle",
+        "removeFromFavorites": "Favorilerden Çıkar",
         "min": "Minimum Sipariş Tutarı",
         "delivery": "{{min}}-{{max}} Dakikada Teslimat",
         "search": "Yemeklerde ara...",
@@ -221,6 +225,32 @@
             "validSsn": "Lütfen geçerli bir 11 haneli TC Kimlik numarası girin.",
             "ssnExists": "Bu TC Kimlik numarası zaten kayıtlı."
         }
+    },
+    "search": {
+        "results": "Arama Sonuçları",
+        "resultsFound": "sonuç bulundu",
+        "placeholder": "Restoran veya yemek ara...",
+        "button": "Ara",
+        "filter": "Filtrele",
+        "sortBy": "Sırala",
+        "byRating": "En Yüksek Puan",
+        "byDistance": "En Yakın",
+        "byName": "A-Z",
+        "byPrice": "Fiyat",
+        "filterOptions": "Filtreleme Seçenekleri",
+        "cuisine": "Mutfak",
+        "price": "Fiyat Aralığı",
+        "distance": "Mesafe",
+        "applyFilters": "Filtrele",
+        "restaurants": "Restoranlar",
+        "foods": "Yemekler",
+        "all": "Tümü",
+        "matchingItems": "eşleşen ürün",
+        "showItems": "Ürünleri Göster",
+        "hide": "Gizle",
+        "noResults": "Sonuç Bulunamadı",
+        "tryDifferent": "Farklı bir arama terimi deneyin veya aşağıdaki restoranları inceleyin.",
+        "backToHome": "Ana Sayfaya Dön"
     },
     "contact": {
         "info": {
