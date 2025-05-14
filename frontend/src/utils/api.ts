@@ -16,7 +16,7 @@ import {
     SearchResult,
 } from '../types';
 
-const API_URL = '/api';
+const API_URL = 'https://purpleworld-production.up.railway.app';
 
 // ai-gen start (claude 3.7)
 /**
