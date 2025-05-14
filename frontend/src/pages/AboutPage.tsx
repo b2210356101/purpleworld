@@ -37,7 +37,7 @@ const AboutPage: React.FC = () => {
                 <Grid container spacing={4} sx={{ mt: 4, alignItems: 'center', }}>
                     <Grid size={{ xs: 12, md: 6 }}>
                         <Box component="img"
-                            src="src/assets/about.jpg"
+                            src="https://i.hizliresim.com/19zypoe.png"
                             alt="Restaurant Partner"
                             sx={{
                                 width: '100%',
