@@ -13,7 +13,9 @@ import {
     CustomerOrderSummaryDTO, OrderDetails, Stat,
     CourierOrder,
     CourierStats, AdminStats,
-    SearchResult,
+    MenuItemAvailabilityRequest,
+    PageResponse,
+    SearchResult, ReviewRequest,ReviewDTO
 } from '../types';
 
 const API_URL = 'https://purpleworld-production.up.railway.app';
@@ -241,13 +243,19 @@ export const getCurrentAddress = async (): Promise<CurrentAddress | null> => {
 
 
 // Restaurant and Menu Services
-export const getNearestRestaurants = async (): Promise<Restaurant[]> => {
-    const response = await api.get('/customer/nearest-restaurants');
+// Get nearest restaurants
+export const getNearestRestaurants = async (page = 0, size = 4): Promise<PageResponse<Restaurant>> => {
+    const response = await api.get('/customer/nearest-restaurants', {
+        params: { page, size }
+    });
     return response.data;
 };
 
-export const getPopularMenuItems = async (): Promise<MenuItem[]> => {
-    const response = await api.get('/customer/popular-foods');
+// Get popular menu items
+export const getPopularMenuItems = async (page = 0, size = 10): Promise<PageResponse<MenuItem>> => {
+    const response = await api.get('/customer/popular-foods', {
+        params: { page, size }
+    });
     return response.data;
 };
 
@@ -295,8 +303,22 @@ export const removeItemFromCart = async (itemId: number) => {
 // Menu Management Services
 
 // Fetches the restaurant's menu information
-export const getRestaurantMenu = async (): Promise<MenuResponse> => {
-    const response = await api.get('/restaurant/menu');
+export const getRestaurantMenu = async (
+    page = 0,
+    size = 10,
+    search = "",
+    sort = "name",
+    direction = "asc"
+): Promise<MenuResponse> => {
+    const response = await api.get('/restaurant/menu', {
+        params: {
+            page,
+            size,
+            search,
+            sort,
+            direction
+        }
+    });
     return response.data;
 };
 
@@ -354,6 +376,22 @@ export const addRemovableElement = async (menuItemId: number, elementName: strin
 export const deleteRemovableElement = async (elementId: number) => {
     const response = await api.delete(`/restaurant/menu/removable-elements/${elementId}`);
     return response.data;
+};
+
+// Update Item Stock
+export const updateMenuItemAvailability = async (
+    itemId: number,
+    data: MenuItemAvailabilityRequest
+): Promise<void> => {
+    try {
+        await api.put(`/restaurant/menu/items/${itemId}/availability`, data);
+    } catch (error) {
+        if (error instanceof AxiosError && error.response) {
+            const errData = error.response.data as { error: string; message: string };
+            throw errData;
+        }
+        throw error;
+    }
 };
 
 
@@ -749,6 +787,129 @@ export const searchRestaurants = async (query: string): Promise<SearchResult[]> 
             throw errData;
         }
         throw error;
+    }
+};
+
+/**
+ * Send the “forgot password” email with reset link
+ */
+export const requestPasswordReset = async (email: string): Promise<void> => {
+    try {
+        await api.post('/auth/forgot-password', { email });
+    } catch (err) {
+        if (err instanceof AxiosError && err.response) {
+            throw err.response.data;
+        }
+        throw err;
+    }
+};
+
+/**
+ * Complete the reset by providing the token from the link and your new password
+ */
+export const resetPassword = async (
+    token: string,
+    newPassword: string
+): Promise<void> => {
+    try {
+        await api.post('/auth/reset-password', { token, newPassword });
+    } catch (err) {
+        if (err instanceof AxiosError && err.response) {
+            throw err.response.data;
+        }
+        throw err;
+    }
+};
+export const submitReview = async (
+    orderGroupId: number,
+    payload: ReviewRequest
+): Promise<void> => {
+    try {
+        await api.post(`/customer/orders/${orderGroupId}/review`, payload);
+    } catch (err) {
+        if (err instanceof AxiosError && err.response) {
+            throw err.response.data;
+        }
+        throw err;
+    }
+};
+
+export const getRestaurantReviews = async (): Promise<ReviewDTO[]> => {
+  try {
+    const response = await api.get('/restaurant/orders/reviews');
+    return response.data;
+  } catch (err) {
+    if (err instanceof AxiosError && err.response) {
+      throw err.response.data;
+    }
+    throw err;
+  }
+};
+
+export const replyToReview = async (orderGroupId: string | number, reply: string): Promise<void> => {
+  try {
+    await api.post(`/restaurant/orders/reviews/${orderGroupId}/reply`, reply);
+  } catch (err) {
+    if (err instanceof AxiosError && err.response) {
+      throw err.response.data;
+    }
+    throw err;
+  }
+};
+
+export const getRestaurantReviewsForCustomer = async (restaurantId: number): Promise<ReviewDTO[]> => {
+  try {
+    const response = await api.get(`/customer/restaurants/${restaurantId}/reviews`);
+    return response.data;
+  } catch (err) {
+    console.error("Error fetching customer reviews:", err);
+    throw err;
+  }
+};
+
+
+
+// Check if a restaurant is in favorites
+export const checkIsFavorite = async (restaurantId: number): Promise<boolean> => {
+    try {
+        const response = await api.get(`/customer/favorites/${restaurantId}`);
+        return response.data.isFavorite;
+    } catch (error) {
+        console.error('Error checking favorite status:', error);
+        return false;
+    }
+};
+
+// Get all favorite restaurants
+export const getFavoriteRestaurants = async (): Promise<Restaurant[]> => {
+    try {
+        const response = await api.get('/customer/favorites');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching favorites:', error);
+        throw error;
+    }
+};
+
+// Add a restaurant to favorites
+export const addToFavorites = async (restaurantId: number): Promise<boolean> => {
+    try {
+        const response = await api.post(`/customer/favorites/${restaurantId}`);
+        return true;
+    } catch (error) {
+        console.error('Error adding to favorites:', error);
+        return false;
+    }
+};
+
+// Remove a restaurant from favorites
+export const removeFromFavorites = async (restaurantId: number): Promise<boolean> => {
+    try {
+        const response = await api.delete(`/customer/favorites/${restaurantId}`);
+        return true;
+    } catch (error) {
+        console.error('Error removing from favorites:', error);
+        return false;
     }
 };
 

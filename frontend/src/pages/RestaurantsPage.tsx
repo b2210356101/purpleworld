@@ -11,9 +11,10 @@ import {
     TextField,
     SelectChangeEvent,
     Button,
-    Paper
+    Paper,
+    Pagination
 } from '@mui/material';
-import { Restaurant } from '../types';
+import { Restaurant, PageInfo, PageResponse } from '../types';
 import { getNearestRestaurants } from '../utils/api';
 import { useAddress } from '../hooks/useAddress';
 import { useTranslation } from 'react-i18next';
@@ -78,41 +79,45 @@ const RestaurantsPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortOption, setSortOption] = useState('rating');
 
-    // Fetch restaurants based on selected address
-    const loadRestaurants = useCallback(async () => {
+    // Pagination state
+    const [page, setPage] = useState(0);
+    const [pageSize] = useState(16);
+    const [pageInfo, setPageInfo] = useState<PageInfo | null>(null);
+
+    // Fetch restaurants based on selected address with pagination
+    const loadRestaurants = useCallback(async (pageNum = 0) => {
         if (!address.selectedAddress) return;
 
         setIsLoading(true);
         try {
-            const list = await getNearestRestaurants();
+            const result = await getNearestRestaurants(pageNum, pageSize);
 
-            // Transform the response to match Restaurant type
-            const transformedList = list.map(r => ({
-                id: r.id,
-                restaurantName: r.restaurantName,
-                distanceInKm: r.distanceInKm,
-                profileImg: r.profileImg,
-                rating: r.rating,
-                reviews: r.reviews,
-            })) as Restaurant[];
+            setRestaurants(result.content);
+            setFilteredRestaurants(result.content);
+            setPageInfo(result.pageInfo);
 
-            setRestaurants(transformedList);
-            setFilteredRestaurants(transformedList);
         } catch (err) {
             console.error('Could not load restaurants:', err);
         } finally {
             setIsLoading(false);
         }
-    }, [address.selectedAddress]);
+    }, [address.selectedAddress, pageSize]);
 
-    // Load restaurants when selected address changes
+    // Load restaurants when selected address or page changes
     useEffect(() => {
         if (address.selectedAddress) {
-            loadRestaurants();
+            loadRestaurants(page);
         }
-    }, [address.selectedAddress, loadRestaurants]);
+    }, [address.selectedAddress, page, loadRestaurants]);
 
-    // Handle search
+    // Handle page change
+    const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+        setPage(value - 1); // MUI Pagination uses 1-based indexing, our API uses 0-based
+        window.scrollTo(0, 0); // Scroll to top when page changes
+    };
+
+    // Handle search - this filters the current page results only
+    // For a real-world app, you'd send the search term to the backend
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
         setSearchTerm(value);
@@ -130,7 +135,7 @@ const RestaurantsPage = () => {
         setFilteredRestaurants(filtered);
     };
 
-    // Handle sort
+    // Handle sort - applies to current page only
     const handleSortChange = (event: SelectChangeEvent<string>) => {
         const value = event.target.value;
         setSortOption(value);
@@ -236,23 +241,45 @@ const RestaurantsPage = () => {
             ) : isLoading ? (
                 // Show loading indicators
                 <Grid container spacing={3}>
-                    {Array.from(new Array(8)).map((_, index) => (
+                    {Array.from(new Array(12)).map((_, index) => (
                         <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={`skeleton-${index}`}>
                             <RestaurantCardSkeleton />
                         </Grid>
                     ))}
                 </Grid>
             ) : filteredRestaurants.length > 0 ? (
-                // Show restaurants
-                <Grid container spacing={3}>
-                    {filteredRestaurants.map((restaurant) => (
-                        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={restaurant.id}>
-                            <Suspense fallback={<RestaurantCardSkeleton />}>
-                                <RestaurantCard restaurant={restaurant} />
-                            </Suspense>
-                        </Grid>
-                    ))}
-                </Grid>
+                <>
+                    {/* Show restaurants */}
+                    <Grid container spacing={3}>
+                        {filteredRestaurants.map((restaurant) => (
+                            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={restaurant.id}>
+                                <Suspense fallback={<RestaurantCardSkeleton />}>
+                                    <RestaurantCard restaurant={restaurant} />
+                                </Suspense>
+                            </Grid>
+                        ))}
+                    </Grid>
+
+                    {/* Pagination */}
+                    {pageInfo && pageInfo.totalPages > 0 && (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 5 }}>
+                            <Pagination
+                                count={pageInfo.totalPages}
+                                page={page + 1} // MUI Pagination uses 1-based indexing
+                                onChange={handlePageChange}
+                                color="primary"
+                                size="large"
+                                showFirstButton
+                                showLastButton
+                                sx={{
+                                    '& .MuiPaginationItem-root': {
+                                        fontSize: '1rem',
+                                    }
+                                }}
+                            />
+                        </Box>
+                    )}
+                </>
             ) : (
                 // Show no results message
                 <Box sx={{ py: 8, textAlign: 'center' }}>

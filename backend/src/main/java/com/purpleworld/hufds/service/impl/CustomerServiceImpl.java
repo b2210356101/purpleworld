@@ -4,7 +4,9 @@ import com.purpleworld.hufds.dto.CustomerCurrentOrderDTO;
 import com.purpleworld.hufds.dto.CustomerOrderSummaryDTO;
 import com.purpleworld.hufds.dto.OrderDetailsResponse;
 import com.purpleworld.hufds.dto.OrderItemDTO;
+import com.purpleworld.hufds.dto.ReviewDTO;
 import com.purpleworld.hufds.dto.request.AddressRequest;
+import com.purpleworld.hufds.dto.request.ReviewRequest;
 import com.purpleworld.hufds.dto.response.*;
 import com.purpleworld.hufds.entity.*;
 import com.purpleworld.hufds.enums.AccountStatus;
@@ -14,6 +16,8 @@ import com.purpleworld.hufds.service.GoogleMapsService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -37,6 +41,8 @@ public class CustomerServiceImpl implements CustomerService {
     private final CartRepository cartRepository;
     private final OrderGroupRepository orderGroupRepository;
     private final OrderRepository orderRepository;
+    private final ReviewRepository reviewRepository;
+    private final FavoriteRepository favoriteRepository;
 
     @Override
     public ResponseEntity<String> dashboard() {
@@ -163,7 +169,11 @@ public class CustomerServiceImpl implements CustomerService {
                 return ResponseEntity.status(404).body(response);
             }
 
+            Optional<Address> address = addressRepository.findById(customer.getCurrentAddressId());
+
             response.put("addressId", customer.getCurrentAddressId());
+            response.put("address", address.get().getFullAddress());
+            response.put("addressName", address.get().getName());
             return ResponseEntity.ok(response);
 
         } catch (RuntimeException ex) {
@@ -281,19 +291,17 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional
-    public ResponseEntity<?> getNearestRestaurants(String email) {
+    public ResponseEntity<?> getNearestRestaurants(String email, Pageable pageable) {
         Customer customer = customerRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
 
         Long customerCurrentAddressId = customer.getCurrentAddressId();
 
         if (customerCurrentAddressId == null) {
-
             return ResponseEntity.badRequest().body("No current address set for customer");
         }
 
         Optional<Address> customerCurrentAddress = addressRepository.findById(customerCurrentAddressId);
-
         Address currentAddress = customerCurrentAddress.get();
 
         double customerLat = currentAddress.getLatitude();
@@ -303,7 +311,6 @@ public class CustomerServiceImpl implements CustomerService {
 
         List<RestaurantResponse> nearestRestaurants = new ArrayList<>();
         for (Restaurant restaurant : restaurants) {
-
             Optional<Address> restaurantAddress = addressRepository.findByRestaurant(restaurant);
             Address currentRestaurantAddress = restaurantAddress.get();
             double restLat = currentRestaurantAddress.getLatitude();
@@ -315,22 +322,58 @@ public class CustomerServiceImpl implements CustomerService {
                 nearestRestaurant.setId(restaurant.getId());
                 nearestRestaurant.setRestaurantName(restaurant.getRestaurantName());
                 nearestRestaurant.setProfileImg(restaurant.getProfileImg());
-                nearestRestaurant.setRating(4.5);
-                nearestRestaurant.setReviews(345);
+                List<OrderGroup> orderGroups = orderGroupRepository.findByRestaurantId(restaurant.getId());
+                List<Review> reviews = new ArrayList<>();
+
+                for (OrderGroup orderGroup : orderGroups) {
+                    reviewRepository.findByOrderGroupId(orderGroup.getId()).ifPresent(reviews::add);
+                }
+
+                double[] ratingData = calculateRestaurantRatingAndReviews(restaurant.getId());
+                double averageRating = Math.round(ratingData[0] * 10.0) / 10.0;
+                int reviewCount = (int) ratingData[1];
+
+                double normalizedRating = averageRating / 5.0; // 0-1 arası
+                double normalizedReviewCount = Math.min(1.0, reviewCount / 50.0);
+                double normalizedDistance = Math.max(0.0, (15.0 - distance) / 15.0);
+
+                double score = (0.6 * normalizedRating) + (0.3 * normalizedReviewCount) + (0.1 * normalizedDistance);
+
+                nearestRestaurant.setRating(averageRating);
+                nearestRestaurant.setReviews(reviewCount);
                 nearestRestaurant.setDistanceInKm(distance);
                 nearestRestaurants.add(nearestRestaurant);
                 nearestRestaurant.setMenu(null);
+                nearestRestaurant.setScore(score);
             }
         }
 
-        nearestRestaurants.sort(Comparator.comparingDouble(RestaurantResponse::getDistanceInKm));
+        nearestRestaurants.sort(Comparator.comparingDouble(RestaurantResponse::getScore).reversed());
 
-        return ResponseEntity.ok(nearestRestaurants);
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), nearestRestaurants.size());
+        List<RestaurantResponse> pagedContent = nearestRestaurants.subList(start, end);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", pagedContent);
+
+        Map<String, Object> pageInfo = new HashMap<>();
+        int totalPages = (int) Math.ceil((double) nearestRestaurants.size() / pageable.getPageSize());
+        pageInfo.put("pageNumber", pageable.getPageNumber());
+        pageInfo.put("pageSize", pageable.getPageSize());
+        pageInfo.put("totalPages", totalPages);
+        pageInfo.put("totalElements", nearestRestaurants.size());
+        pageInfo.put("hasNext", pageable.getPageNumber() < totalPages - 1);
+        pageInfo.put("hasPrevious", pageable.getPageNumber() > 0);
+
+        response.put("pageInfo", pageInfo);
+
+        return ResponseEntity.ok(response);
     }
 
     @Override
     @Transactional
-    public ResponseEntity<?> getNearestRestaurantFood(String email) {
+    public ResponseEntity<?> getNearestRestaurantFood(String email, Pageable pageable) {
         Map<String, Object> response = new HashMap<>();
         try {
             if (email == null || email.isBlank()) {
@@ -352,40 +395,78 @@ public class CustomerServiceImpl implements CustomerService {
             double customerLat = currentAddress.getLatitude();
             double customerLng = currentAddress.getLongitude();
 
-            // Get all restaurants from the repository
             List<Restaurant> restaurants = restaurantRepository.findAll();
-
-            List<MenuItemCustomerResponse> result = new ArrayList<>();
+            Map<Long, Double> restaurantScoreMap = new HashMap<>();
+            Map<Long, Restaurant> restaurantMap = new HashMap<>();
 
             for (Restaurant restaurant : restaurants) {
-
                 Optional<Address> restaurantAddressOpt = addressRepository.findByRestaurant(restaurant);
-                if (restaurantAddressOpt.isEmpty()) {
-                    continue;
-                }
+                if (restaurantAddressOpt.isEmpty()) continue;
+
                 Address restaurantAddress = restaurantAddressOpt.get();
                 double restLat = restaurantAddress.getLatitude();
                 double restLng = restaurantAddress.getLongitude();
 
                 double distance = calculateHaversine(customerLat, customerLng, restLat, restLng);
                 if (distance <= 15.0 && restaurant.getStatus().equals(AccountStatus.APPROVED)) {
+                    double[] ratingData = calculateRestaurantRatingAndReviews(restaurant.getId());
+                    double avgRating = ratingData[0];
+                    int reviewCount = (int) ratingData[1];
 
-                    Optional<Menu> menu = menuRepository.findById(restaurant.getId());
-                    Menu restaurantMenu = menu.get();
+                    double normalizedRating = avgRating / 5.0;
+                    double normalizedReviewCount = Math.min(1.0, reviewCount / 50.0);
+                    double normalizedDistance = Math.max(0.0, (15.0 - distance) / 15.0);
 
-                    for (Category category : restaurantMenu.getCategories()) {
-                        List<MenuItem> categoryFoods = category.getMenuItems();
-                        for (MenuItem menuItem : categoryFoods) {
-                            MenuItemCustomerResponse itemResponse = getMenuItemCustomerResponse(restaurant, menuItem);
-                            result.add(itemResponse);
+                    double score = (0.6 * normalizedRating) + (0.3 * normalizedReviewCount) + (0.1 * normalizedDistance);
 
-                        }
-                    }
-
+                    restaurantScoreMap.put(restaurant.getId(), score);
+                    restaurantMap.put(restaurant.getId(), restaurant);
                 }
             }
 
-            return ResponseEntity.ok(result);
+            List<Restaurant> sortedRestaurants = restaurantScoreMap.entrySet().stream()
+                    .sorted(Map.Entry.<Long, Double>comparingByValue().reversed())
+                    .map(entry -> restaurantMap.get(entry.getKey()))
+                    .collect(Collectors.toList());
+
+            List<MenuItemCustomerResponse> result = new ArrayList<>();
+
+
+            for (Restaurant restaurant : sortedRestaurants) {
+                Optional<Menu> menu = menuRepository.findById(restaurant.getId());
+                if (menu.isEmpty()) continue;
+
+                Menu restaurantMenu = menu.get();
+                for (Category category : restaurantMenu.getCategories()) {
+                    for (MenuItem menuItem : category.getMenuItems()) {
+                        if (menuItem.getIsAvailable()) {
+                            MenuItemCustomerResponse itemResponse = getMenuItemCustomerResponse(restaurant, menuItem);
+                            result.add(itemResponse);
+                        }
+                    }
+                }
+            }
+
+            int start = (int) pageable.getOffset();
+            int end = Math.min((start + pageable.getPageSize()), result.size());
+            List<MenuItemCustomerResponse> pagedContent = result.subList(start, end);
+
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("content", pagedContent);
+
+            Map<String, Object> pageInfo = new HashMap<>();
+            int totalPages = (int) Math.ceil((double) result.size() / pageable.getPageSize());
+            pageInfo.put("pageNumber", pageable.getPageNumber());
+            pageInfo.put("pageSize", pageable.getPageSize());
+            pageInfo.put("totalPages", totalPages);
+            pageInfo.put("totalElements", result.size());
+            pageInfo.put("hasNext", pageable.getPageNumber() < totalPages - 1);
+            pageInfo.put("hasPrevious", pageable.getPageNumber() > 0);
+
+            responseBody.put("pageInfo", pageInfo);
+
+            return ResponseEntity.ok(responseBody);
+
         } catch (RuntimeException ex) {
             response.put("error", "Error: " + ex.getMessage());
             return ResponseEntity.status(400).body(response);
@@ -429,8 +510,8 @@ public class CustomerServiceImpl implements CustomerService {
                 double distance = calculateHaversine(customerLat, customerLng, restLat, restLng);
 
                 int totalQuantity = group.getOrderItems().stream()
-                .mapToInt(item -> item.getQuantity())
-                .sum();
+                        .mapToInt(item -> item.getQuantity())
+                        .sum();
 
                 return new CustomerCurrentOrderDTO(
                         group.getId(),
@@ -442,10 +523,8 @@ public class CustomerServiceImpl implements CustomerService {
                         group.getStatus(),
                         group.getOrder().getOrderedDate(),
                         estimatedDelivery,
-                        distance
-                );
+                        distance);
             }).toList();
-
 
             currentOrders.add(new CustomerOrderSummaryDTO(
                     order.getId(),
@@ -539,7 +618,8 @@ public class CustomerServiceImpl implements CustomerService {
         itemResponse.setDescription(menuItem.getDescription());
         itemResponse.setImg(menuItem.getImg());
         itemResponse.setRestaurant(
-                new RestaurantResponse(restaurant.getId(), restaurant.getRestaurantName(), null, 0, 0, 0, null));
+                new RestaurantResponse(restaurant.getId(), restaurant.getRestaurantName(), null, 0, 0, 0, null,null));
+        itemResponse.setIsAvailable(menuItem.getIsAvailable());
         return itemResponse;
     }
 
@@ -571,35 +651,49 @@ public class CustomerServiceImpl implements CustomerService {
         return EARTH_RADIUS_KM * c;
     }
 
-    @Override
-    @Transactional
-    public ResponseEntity<?> getRestaurantById(Long restaurantId) {
-        if (restaurantId == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Restaurant ID is required");
-        }
 
-        return restaurantRepository.findById(restaurantId)
-                .map(restaurant -> {
-                    // Check restaurant status
-                    if (!restaurant.getStatus().equals(AccountStatus.APPROVED) ||
-                            restaurant.getStatus().equals(AccountStatus.BANNED)) {
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Restaurant is not available");
-                    }
+@Override
+@Transactional
+public ResponseEntity<?> getRestaurantById(Long restaurantId) {
+    if (restaurantId == null) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Restaurant ID is required");
+    }
 
-                    // Get menu data and map entities to DTOs
-                    List<CategoryResponse> categoryResponses = menuRepository.findByRestaurantId(restaurantId)
-                            .map(menu -> menu.getCategories().stream()
-                                    .map(category -> {
-                                        // Map each menu item in the category
-                                        List<MenuItemResponse> menuItemResponses = category.getMenuItems().stream()
-                                                .map(item -> {
-                                                    // Map removable elements
-                                                    List<RemovableElementResponse> removableElementResponses = item
-                                                            .getRemovableElements().stream()
-                                                            .map(element -> new RemovableElementResponse(
-                                                                    element.getId(),
-                                                                    element.getName()))
-                                                            .collect(Collectors.toList());
+    return restaurantRepository.findById(restaurantId)
+            .map(restaurant -> {
+                // Check restaurant status
+                if (!restaurant.getStatus().equals(AccountStatus.APPROVED) ||
+                        restaurant.getStatus().equals(AccountStatus.BANNED)) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Restaurant is not available");
+                }
+
+                // Calculate ratings from reviews
+                List<OrderGroup> orderGroups = orderGroupRepository.findByRestaurantId(restaurantId);
+                List<Review> reviews = new ArrayList<>();
+
+                // Collect all reviews for this restaurant's order groups
+                for (OrderGroup orderGroup : orderGroups) {
+                    Optional<Review> reviewOpt = reviewRepository.findByOrderGroupId(orderGroup.getId());
+                    reviewOpt.ifPresent(reviews::add);
+                }
+
+                // Calculate average rating and review count
+                double[] stats = calculateRestaurantRatingAndReviews(restaurant.getId());
+
+                // Get menu data and map entities to DTOs
+                List<CategoryResponse> categoryResponses = menuRepository.findByRestaurantId(restaurantId)
+                        .map(menu -> menu.getCategories().stream()
+                                .map(category -> {
+                                    // Map each menu item in the category
+                                    List<MenuItemResponse> menuItemResponses = category.getMenuItems().stream()
+                                            .map(item -> {
+                                                // Map removable elements
+                                                List<RemovableElementResponse> removableElementResponses = item
+                                                        .getRemovableElements().stream()
+                                                        .map(element -> new RemovableElementResponse(
+                                                                element.getId(),
+                                                                element.getName()))
+                                                        .collect(Collectors.toList());
 
                                                     // Create menu item response
                                                     return new MenuItemResponse(
@@ -608,39 +702,41 @@ public class CustomerServiceImpl implements CustomerService {
                                                             item.getPrice(),
                                                             item.getDescription(),
                                                             item.getImg(),
-                                                            removableElementResponses);
+                                                            removableElementResponses,
+                                                            item.getIsAvailable());
                                                 })
                                                 .collect(Collectors.toList());
 
-                                        // Create category response with its menu items
-                                        return new CategoryResponse(
-                                                category.getId(),
-                                                category.getName(),
-                                                menuItemResponses);
-                                    })
-                                    .collect(Collectors.toList()))
-                            .orElse(Collections.emptyList());
+                                    // Create category response with its menu items
+                                    return new CategoryResponse(
+                                            category.getId(),
+                                            category.getName(),
+                                            menuItemResponses);
+                                })
+                                .collect(Collectors.toList()))
+                        .orElse(Collections.emptyList());
 
-                    // Create menu response
-                    MenuResponse menuResponse = new MenuResponse(
-                            restaurantId,
-                            restaurant.getRestaurantName(),
-                            categoryResponses);
+                // Create menu response
+                MenuResponse menuResponse = new MenuResponse(
+                        restaurantId,
+                        restaurant.getRestaurantName(),
+                        categoryResponses);
 
-                    // Create and return restaurant response
-                    RestaurantResponse response = new RestaurantResponse(
-                            restaurant.getId(),
-                            restaurant.getRestaurantName(),
-                            restaurant.getProfileImg(),
-                            4.6, 
-                            345, 
-                            100, 
-                            menuResponse);
+                // Create and return restaurant response
+                RestaurantResponse response = new RestaurantResponse(
+                        restaurant.getId(),
+                        restaurant.getRestaurantName(),
+                        restaurant.getProfileImg(),
+                        stats[0],
+                        stats[1],
+                        100,
+                        menuResponse,
+                        null);
 
-                    return ResponseEntity.ok(response);
-                })
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body("Restaurant not found"));
-    }
+                return ResponseEntity.ok(response);
+            })
+            .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body("Restaurant not found"));
+}
 
     @Override
     @Transactional
@@ -694,7 +790,8 @@ public class CustomerServiceImpl implements CustomerService {
                         item.getPrice(),
                         item.getDescription(),
                         item.getImg(),
-                        removableElementsResponses));
+                        removableElementsResponses,
+                        item.getIsAvailable()));
             }
 
             // Only add categories with available items
@@ -712,5 +809,288 @@ public class CustomerServiceImpl implements CustomerService {
                 categoryResponses);
 
         return ResponseEntity.ok(response);
+    }
+
+    @Override
+    public ResponseEntity<?> createReview(Long orderGroupId, String email, ReviewRequest dto) {
+        Customer customer = customerRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        OrderGroup orderGroup = orderGroupRepository.findById(orderGroupId)
+                .orElseThrow(() -> new RuntimeException("Order group not found"));
+
+        if (!orderGroup.getStatus().equals("DELIVERED")) {
+            return ResponseEntity.badRequest().body("Cannot review before delivery");
+        }
+
+        if (reviewRepository.existsByOrderGroup(orderGroup)) {
+            return ResponseEntity
+                    .badRequest()
+                    .body("You have already submitted a review for this order");
+        }
+
+        Review review = new Review();
+        review.setOrderGroup(orderGroup); // ✅ HATA BURADA düzeltildi
+        review.setTasteRating(dto.getTasteRating());
+        review.setDeliveryRating(dto.getDeliveryRating());
+        review.setServiceRating(dto.getServiceRating());
+        review.setReview(dto.getReview());
+        review.setUserName(customer.getFirstName() + " " + customer.getLastName());
+        review.setUserAvatar(customer.getProfileImg());
+        review.setReviewDate(LocalDateTime.now());
+
+        reviewRepository.save(review);
+        return ResponseEntity.ok("Review submitted successfully");
+    }
+
+    @Override
+    @Transactional
+public ResponseEntity<?> restaurantReviews(Long restaurantId, String email) {
+    Restaurant restaurant = restaurantRepository.findById(restaurantId)
+            .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+
+    List<OrderGroup> orderGroups = orderGroupRepository.findByRestaurantId(restaurant.getId());
+
+    List<Long> orderGroupIds = orderGroups.stream()
+            .map(OrderGroup::getId)
+            .collect(Collectors.toList());
+
+    List<Review> reviews = orderGroupIds.stream()
+            .map(reviewRepository::findByOrderGroupId)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.toList());
+
+    List<ReviewDTO> response = reviews.stream()
+            .map(review -> {
+                // Get order items for this review's order group
+                OrderGroup orderGroup = review.getOrderGroup();
+                
+                // Map order items to DTOs
+                List<OrderItemDTO> orderItemDTOs = orderGroup.getOrderItems().stream()
+                        .map(item -> new OrderItemDTO(
+                                item.getMenuItem().getName(),
+                                item.getMenuItemId(),
+                                item.getQuantity(),
+                                item.getPrice(),
+                                item.getRemovables()))
+                        .collect(Collectors.toList());
+                
+                // Create ReviewDTO with order items
+                ReviewDTO dto = new ReviewDTO(
+                        review.getTasteRating(),
+                        review.getDeliveryRating(),
+                        review.getServiceRating(),
+                        review.getReview(),
+                        review.getRestaurantReply(),
+                        review.getUserName(),
+                        review.getUserAvatar(),
+                        review.getReviewDate(),
+                        review.getOrderGroup().getId()
+                );
+                
+                // Set order items
+                dto.setOrderItems(orderItemDTOs);
+                
+                return dto;
+            })
+            .collect(Collectors.toList());
+
+    return ResponseEntity.ok(response);
+}
+
+    @Override
+    @Transactional
+    public ResponseEntity<?> addToFavorites(Long restaurantId, String email) {
+        try {
+            if (email == null || email.isBlank()) {
+                return ResponseEntity.status(401).body("Unauthorized: Invalid or missing token");
+            }
+
+            if (restaurantId == null) {
+                return ResponseEntity.status(400).body("Restaurant ID is required");
+            }
+
+            Customer customer = customerRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+            restaurantRepository.findById(restaurantId)
+                    .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+
+            // Check if already in favorites
+            boolean alreadyFavorited = favoriteRepository.existsByCustomerIdAndRestaurantId(
+                    customer.getId(), restaurantId);
+
+            if (alreadyFavorited) {
+                return ResponseEntity.ok(Map.of(
+                        "message", "Restaurant is already in favorites",
+                        "isFavorite", true));
+            }
+
+            Favorite favorite = new Favorite();
+            favorite.setCustomerId(customer.getId());
+            favorite.setRestaurantId(restaurantId);
+
+            favoriteRepository.save(favorite);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Restaurant added to favorites successfully",
+                    "isFavorite", true));
+
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(400).body("Error: " + ex.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Something went wrong: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<?> removeFromFavorites(Long restaurantId, String email) {
+        try {
+            if (email == null || email.isBlank()) {
+                return ResponseEntity.status(401).body("Unauthorized: Invalid or missing token");
+            }
+
+            if (restaurantId == null) {
+                return ResponseEntity.status(400).body("Restaurant ID is required");
+            }
+
+            Customer customer = customerRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+            // Check if in favorites
+            Optional<Favorite> favoriteOpt = favoriteRepository.findByCustomerIdAndRestaurantId(
+                    customer.getId(), restaurantId);
+
+            if (favoriteOpt.isEmpty()) {
+                return ResponseEntity.ok(Map.of(
+                        "message", "Restaurant is not in favorites",
+                        "isFavorite", false));
+            }
+
+            favoriteRepository.deleteByCustomerIdAndRestaurantId(customer.getId(), restaurantId);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Restaurant removed from favorites successfully",
+                    "isFavorite", false));
+
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(400).body("Error: " + ex.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Something went wrong: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<?> getFavorites(String email) {
+        try {
+            if (email == null || email.isBlank()) {
+                return ResponseEntity.status(401).body("Unauthorized: Invalid or missing token");
+            }
+
+            Customer customer = customerRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+            List<Favorite> favorites = favoriteRepository.findAllByCustomerId(customer.getId());
+
+            if (favorites.isEmpty()) {
+                return ResponseEntity.ok(Collections.emptyList());
+            }
+
+            List<Long> restaurantIds = favorites.stream()
+                    .map(Favorite::getRestaurantId)
+                    .collect(Collectors.toList());
+
+            List<RestaurantResponse> favoriteRestaurants = new ArrayList<>();
+
+            for (Long id : restaurantIds) {
+                Optional<Restaurant> restaurantOpt = restaurantRepository.findById(id);
+
+                if (restaurantOpt.isPresent()) {
+                    Restaurant restaurant = restaurantOpt.get();
+
+                    // Get restaurant address to calculate distance if customer has current address
+                    double distance = 0.0;
+                    if (customer.getCurrentAddressId() != null) {
+                        Optional<Address> customerAddressOpt = addressRepository
+                                .findById(customer.getCurrentAddressId());
+                        Optional<Address> restaurantAddressOpt = addressRepository.findByRestaurant(restaurant);
+
+                        if (customerAddressOpt.isPresent() && restaurantAddressOpt.isPresent()) {
+                            Address customerAddress = customerAddressOpt.get();
+                            Address restaurantAddress = restaurantAddressOpt.get();
+
+                            distance = calculateHaversine(
+                                    customerAddress.getLatitude(), customerAddress.getLongitude(),
+                                    restaurantAddress.getLatitude(), restaurantAddress.getLongitude());
+                        }
+                    }
+
+                    double[] stats = calculateRestaurantRatingAndReviews(restaurant.getId());
+
+                    RestaurantResponse response = new RestaurantResponse(
+                            restaurant.getId(),
+                            restaurant.getRestaurantName(),
+                            restaurant.getProfileImg(),
+                            stats[0],
+                            stats[1],
+                            distance,
+                            null,
+                            null
+                    );
+                    favoriteRestaurants.add(response);
+                }
+            }
+
+            return ResponseEntity.ok(favoriteRestaurants);
+
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(400).body("Error: " + ex.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Something went wrong: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<?> checkIsFavorite(Long restaurantId, String email) {
+        try {
+            if (email == null || email.isBlank()) {
+                return ResponseEntity.status(401).body("Unauthorized: Invalid or missing token");
+            }
+
+            Customer customer = customerRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+            boolean isFavorite = favoriteRepository.existsByCustomerIdAndRestaurantId(
+                    customer.getId(), restaurantId);
+
+            return ResponseEntity.ok(Map.of("isFavorite", isFavorite));
+
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(400).body("Error: " + ex.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Something went wrong: " + e.getMessage());
+        }
+    }
+    private double[] calculateRestaurantRatingAndReviews(Long restaurantId) {
+        List<OrderGroup> orderGroups = orderGroupRepository.findByRestaurantId(restaurantId);
+        List<Review> reviews = new ArrayList<>();
+        for (OrderGroup group : orderGroups) {
+            reviewRepository.findByOrderGroupId(group.getId()).ifPresent(reviews::add);
+        }
+
+        double avg = 0.0;
+        if (!reviews.isEmpty()) {
+            double total = 0.0;
+            for (Review review : reviews) {
+                total += (review.getTasteRating() + review.getServiceRating() + review.getDeliveryRating()) / 3.0;
+            }
+            avg = total/reviews.size();
+        }
+
+        return new double[]{avg, reviews.size()};
     }
 }

@@ -14,6 +14,7 @@ const Footer = () => {
             sx={{
                 backgroundColor: 'primary.light',
                 py: 3,
+                pb: { xs: '86px', sm: 3},
                 borderTop: '1px solid #eaeaea'
             }}
         >

@@ -49,6 +49,17 @@ public class AuthController {
     public ResponseEntity<Boolean> checkTaxIdExists(@RequestParam String taxId) {
         return ResponseEntity.ok(authService.isTaxIdRegistered(taxId));
     }
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@RequestBody ForgotPasswordRequest req) {
+        authService.forgotPassword(req);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestBody ResetPasswordRequest req) {
+        authService.resetPassword(req);
+        return ResponseEntity.ok().build();
+    }
 
 
 }

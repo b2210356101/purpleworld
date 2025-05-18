@@ -1,0 +1,8 @@
+frontend/src/utils/
+
+frontend/src/pages/AboutPage.tsx
+frontend/src/pages/HomePage.tsx
+frontend/src/pages/CustomerHomePage.tsx
+
+frontend/src/components/layout/Header.tsx
+frontend/src/components/layout/Footer.tsx

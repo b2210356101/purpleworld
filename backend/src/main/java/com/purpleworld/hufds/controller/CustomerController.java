@@ -2,13 +2,15 @@ package com.purpleworld.hufds.controller;
 
 import com.purpleworld.hufds.dto.OrderDetailsResponse;
 import com.purpleworld.hufds.dto.request.AddressRequest;
+import com.purpleworld.hufds.dto.request.ReviewRequest;
 import com.purpleworld.hufds.service.CustomerService;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/customer")
@@ -59,14 +61,21 @@ public class CustomerController {
 
 
     @GetMapping("/nearest-restaurants")
-    public ResponseEntity<?> getNearestRestaurants(@AuthenticationPrincipal String email) {
-        return customerService.getNearestRestaurants(email);
-
+    public ResponseEntity<?> getNearestRestaurants(
+            @AuthenticationPrincipal String email,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "4") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return customerService.getNearestRestaurants(email, pageable);
     }
 
     @GetMapping("/popular-foods")
-    public ResponseEntity<?> getPopularFoods(@AuthenticationPrincipal String email) {
-        return customerService.getNearestRestaurantFood(email);
+    public ResponseEntity<?> getPopularFoods(
+            @AuthenticationPrincipal String email,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "6") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return customerService.getNearestRestaurantFood(email, pageable);
     }
 
     @GetMapping("/{menuItemId}/ingredients")
@@ -102,5 +111,45 @@ public class CustomerController {
     public ResponseEntity<?> getRestaurantMenu(@PathVariable Long restaurantId) {
         return customerService.getRestaurantMenu(restaurantId);
     }
+
+    @PostMapping("/orders/{orderGroupId}/review")
+    public ResponseEntity<?> createReview(
+            @PathVariable Long orderGroupId,
+            @AuthenticationPrincipal String email,
+            @RequestBody ReviewRequest request
+    ) {
+        return customerService.createReview(orderGroupId, email, request);
+    }
+
+    @GetMapping("/restaurants/{restaurantId}/reviews")
+    public ResponseEntity<?> getReviews(@PathVariable Long restaurantId, @AuthenticationPrincipal String email) {
+        return customerService.restaurantReviews(restaurantId,email);
+    }
+
+    @GetMapping("/favorites")
+    public ResponseEntity<?> getFavorites(@AuthenticationPrincipal String email) {
+        return customerService.getFavorites(email);
+    }
+
+    @PostMapping("/favorites/{restaurantId}")
+    public ResponseEntity<?> addToFavorites(
+            @PathVariable Long restaurantId,
+            @AuthenticationPrincipal String email) {
+        return customerService.addToFavorites(restaurantId, email);
+    }
+
+    @DeleteMapping("/favorites/{restaurantId}")
+    public ResponseEntity<?> removeFromFavorites(
+            @PathVariable Long restaurantId,
+            @AuthenticationPrincipal String email) {
+        return customerService.removeFromFavorites(restaurantId, email);
+    }
+
+    @GetMapping("/favorites/{restaurantId}")
+    public ResponseEntity<?> checkIsFavorite(
+        @PathVariable Long restaurantId,
+        @AuthenticationPrincipal String email) {
+    return customerService.checkIsFavorite(restaurantId, email);
+}
 }
 

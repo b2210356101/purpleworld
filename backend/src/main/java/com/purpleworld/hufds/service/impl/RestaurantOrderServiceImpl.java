@@ -3,12 +3,15 @@ package com.purpleworld.hufds.service.impl;
 import com.purpleworld.hufds.dto.OrderItemDTO;
 import com.purpleworld.hufds.dto.OrderGroupDTO;
 import com.purpleworld.hufds.dto.RestaurantStatsDTO;
+import com.purpleworld.hufds.dto.ReviewDTO;
 import com.purpleworld.hufds.entity.Address;
 import com.purpleworld.hufds.entity.OrderGroup;
 import com.purpleworld.hufds.entity.Restaurant;
+import com.purpleworld.hufds.entity.Review;
 import com.purpleworld.hufds.repository.AddressRepository;
 import com.purpleworld.hufds.repository.OrderGroupRepository;
 import com.purpleworld.hufds.repository.RestaurantRepository;
+import com.purpleworld.hufds.repository.ReviewRepository;
 import com.purpleworld.hufds.service.RestaurantOrderService;
 import com.purpleworld.hufds.service.TrackingService;
 import jakarta.transaction.Transactional;
@@ -30,6 +33,7 @@ public class RestaurantOrderServiceImpl implements RestaurantOrderService {
     private final OrderGroupRepository orderGroupRepository;
     private final AddressRepository addressRepository;
     private final TrackingService trackingService;
+    private final ReviewRepository reviewRepository;
 
     @Override
     @Transactional
@@ -213,4 +217,80 @@ public class RestaurantOrderServiceImpl implements RestaurantOrderService {
                 new RestaurantStatsDTO("Total Revenue", revenue)
         );
     }
+
+    @Override
+    @Transactional
+    public void replyToReview(String email, Long orderGroupId, String reply) {
+        Restaurant restaurant = restaurantRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+
+        OrderGroup orderGroup = orderGroupRepository.findById(orderGroupId)
+                .orElseThrow(() -> new RuntimeException("Order group not found"));
+
+        if (!orderGroup.getRestaurant().getId().equals(restaurant.getId())) {
+            throw new RuntimeException("Unauthorized to reply to this review");
+        }
+
+        Review review = reviewRepository.findByOrderGroupId(orderGroupId)
+                .orElseThrow(() -> new RuntimeException("Review not found"));
+
+        review.setRestaurantReply(reply);
+        reviewRepository.save(review);
+    }
+
+
+@Override
+@Transactional
+public List<ReviewDTO> getReviewsForRestaurant(String email) {
+    Restaurant restaurant = restaurantRepository.findByEmail(email)
+        .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+
+    List<OrderGroup> orderGroups = orderGroupRepository.findByRestaurantId(restaurant.getId());
+
+    List<Long> orderGroupIds = orderGroups.stream()
+        .map(OrderGroup::getId)
+        .collect(Collectors.toList());
+
+    List<Review> reviews = orderGroupIds.stream()
+        .map(reviewRepository::findByOrderGroupId)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(Collectors.toList());
+
+    return reviews.stream()
+        .map(review -> {
+            // Get order items for this review's order group
+            OrderGroup orderGroup = review.getOrderGroup();
+            
+            // Map order items to DTOs
+            List<OrderItemDTO> orderItemDTOs = orderGroup.getOrderItems().stream()
+                    .map(item -> new OrderItemDTO(
+                            item.getMenuItem().getName(),
+                            item.getMenuItemId(),
+                            item.getQuantity(),
+                            item.getPrice(),
+                            item.getRemovables()))
+                    .collect(Collectors.toList());
+            
+            // Create ReviewDTO with order items
+            ReviewDTO dto = new ReviewDTO(
+                    review.getTasteRating(),
+                    review.getDeliveryRating(),
+                    review.getServiceRating(),
+                    review.getReview(),
+                    review.getRestaurantReply(),
+                    review.getUserName(),
+                    review.getUserAvatar(),
+                    review.getReviewDate(),
+                    review.getOrderGroup().getId()
+            );
+            
+            // Set order items
+            dto.setOrderItems(orderItemDTOs);
+            
+            return dto;
+        })
+        .collect(Collectors.toList());
+}
+
 }

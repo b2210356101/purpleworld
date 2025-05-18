@@ -4,19 +4,10 @@ import AddIcon from '@mui/icons-material/Add';
 import RemoveIngredientsModal from "../cart/RemoveIngredientsModal";
 import { useState } from "react";
 import { getIngredients } from "../../utils/api";
-import { Ingredient, Restaurant } from "../../types";
+import { Food, Ingredient, Restaurant } from "../../types";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import FoodImageModal from "./FoodImageModal";
-
-interface Food {
-    id: number;
-    name: string;
-    image: string;
-    restaurant: Restaurant;
-    price: string;
-    description: string;
-}
 
 const PopularFoodCard: React.FC<{ food: Food }> = ({ food }) => {
     const { t } = useTranslation();
@@ -65,6 +56,7 @@ const PopularFoodCard: React.FC<{ food: Food }> = ({ food }) => {
                 flexDirection: 'column',
                 borderRadius: 3,
                 overflow: 'hidden',
+                height: '100%',
                 transition: "transform 0.3s, box-shadow 0.3s",
                 "&:hover": {
                     transform: "translateY(-3px)",

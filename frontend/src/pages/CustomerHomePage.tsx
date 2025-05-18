@@ -5,7 +5,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAddress } from '../hooks/useAddress';
 import { useOrders } from '../hooks/useOrders';
 import { useTracking } from '../hooks/useTracking';
-import { Restaurant, CustomerCurrentOrderDTO } from '../types';
+import { Restaurant, CustomerCurrentOrderDTO, Food } from '../types';
 import { getNearestRestaurants, getPopularMenuItems } from '../utils/api';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
@@ -40,7 +40,7 @@ const LoadingFallback = () => (
 );
 
 // Restaurant Card Skeleton
-const RestaurantCardSkeleton = () => (
+export const RestaurantCardSkeleton = () => (
     <Paper
         elevation={2}
         sx={{
@@ -69,7 +69,7 @@ const RestaurantCardSkeleton = () => (
 );
 
 // Popular Food Card Skeleton
-const PopularFoodCardSkeleton = () => (
+export const PopularFoodCardSkeleton = () => (
     <Paper
         sx={{
             borderRadius: 4,
@@ -90,15 +90,6 @@ const PopularFoodCardSkeleton = () => (
     </Paper>
 );
 
-interface PopularFood {
-    id: number;
-    name: string;
-    image: string;
-    restaurant: Restaurant;
-    price: string;
-    description: string;
-}
-
 const CustomerHomePage = () => {
     const { t } = useTranslation();
     // Custom hooks
@@ -108,8 +99,11 @@ const CustomerHomePage = () => {
     const dispatch = useAppDispatch();
     const { isAuthenticated } = useAppSelector((state) => state.auth);
 
+    const selectedAddressObj = useMemo(() => {
+        return address.addresses.find(a => a.addressId === address.selectedAddress) || null;
+    }, [address.addresses, address.selectedAddress]);
     const [nearbyRestaurants, setNearbyRestaurants] = useState<Restaurant[]>([]);
-    const [popularMenuItems, setPopularMenuItems] = useState<PopularFood[]>([]);
+    const [popularMenuItems, setPopularMenuItems] = useState<Food[]>([]);
     const [isPaymentSuccessOpen, setIsPaymentSuccessOpen] = useState(false);
     const [orderData, setOrderData] = useState<{
         orderId: number;
@@ -123,6 +117,8 @@ const CustomerHomePage = () => {
 
     const location = useLocation();
     const navigate = useNavigate();
+    const selectedAddressName = selectedAddressObj?.name ?? '';
+    const selectedAddressFull = selectedAddressObj?.fullAddress ?? '';
 
     // Load restaurants - using useCallback to prevent recreating this function on every render
     const loadNearbyRestaurants = useCallback(async () => {
@@ -131,7 +127,7 @@ const CustomerHomePage = () => {
         try {
             const list = await getNearestRestaurants();
             setNearbyRestaurants(
-                list.map(r => ({
+                list.content.map(r => ({
                     id: r.id,
                     restaurantName: r.restaurantName,
                     distanceInKm: r.distanceInKm,
@@ -154,7 +150,7 @@ const CustomerHomePage = () => {
         try {
             const items = await getPopularMenuItems();
             setPopularMenuItems(
-                items.map(mi => ({
+                items.content.filter(mi => mi.isAvailable).map(mi => ({
                     id: mi.id,
                     name: mi.name,
                     image: mi.img,
@@ -176,22 +172,29 @@ const CustomerHomePage = () => {
         }
     }, [dispatch, isAuthenticated]);
 
+    useEffect(() => {
+        setIsLoading(prev => ({ ...prev, hero: true }));
+
+        const heroLoadingTimer = setTimeout(() => {
+            setIsLoading(prev => ({ ...prev, hero: false }));
+        }, 500);
+
+        return () => {
+            clearTimeout(heroLoadingTimer);
+        };
+    }, []);
+
     // Fetch data when address is selected
     useEffect(() => {
         if (address.selectedAddress) {
-            setIsLoading({ restaurants: true, popularItems: true, hero: true });
+            setIsLoading(prev => ({ ...prev, restaurants: true, popularItems: true }));
 
             const restaurantTimer = setTimeout(loadNearbyRestaurants, 100);
             const menuItemTimer = setTimeout(loadPopularMenuItems, 200);
 
-            const heroLoadingTimer = setTimeout(() => {
-                setIsLoading(prev => ({ ...prev, hero: false }));
-            }, 500);
-
             return () => {
                 clearTimeout(restaurantTimer);
                 clearTimeout(menuItemTimer);
-                clearTimeout(heroLoadingTimer);
             };
         }
     }, [address.selectedAddress, loadNearbyRestaurants, loadPopularMenuItems]);
@@ -243,20 +246,41 @@ const CustomerHomePage = () => {
 
     // Memoize the hero section to prevent re-renders
     const heroSection = useMemo(() => (
-        <Grid container spacing={6} sx={{ bgcolor: 'primary.main', mt: { xs: 2, md: 6 }, p: 6, alignItems: 'center', justifyContent: 'space-between', borderRadius: 6, color: 'white' }}>
-            <Grid size={{ xs: 12, md: 6 }}>
-                <Typography variant="h4" fontWeight="bold" gutterBottom>
-                    {t('homepage.hero.hello')}, {localStorage.getItem('username')}!
-                </Typography>
-                <Typography>
-                    {t('homepage.hero.description1')}<br />
-                    {t('homepage.hero.description2')}
-                </Typography>
+        <Grid container spacing={6} sx={{ bgcolor: 'primary.main', mt: { xs: 2, md: 6 }, p: 6, alignItems: 'center', justifyContent: 'space-between', borderRadius: 6, color: 'white' }}><Grid size={{ xs: 12, md: 6 }}>
+            <Typography variant="h4" fontWeight="bold" gutterBottom>
+                {t('homepage.hero.hello')}, {localStorage.getItem('username')}!
+            </Typography>
+            <Typography>
+                {t('homepage.hero.description1')}<br />
+                {t('homepage.hero.description2')}
+            </Typography>
 
-                <Button variant="contained" size="large" sx={{ mt: 2, color: 'primary.main', bgcolor: 'white' }} onClick={address.handleDialogOpen}>
-                    {t('address.select')}
-                </Button>
-            </Grid>
+            {selectedAddressName && (
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        mt: 2,
+                        p: 1.5,
+                        borderRadius: 2,
+                        bgcolor: 'rgba(255,255,255,0.15)',
+                    }}
+                >
+                    <Box>
+                        <Typography variant="subtitle2" fontWeight="bold" sx={{ lineHeight: 1.2 }}>
+                            {selectedAddressName}
+                        </Typography>
+                        <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                            {selectedAddressFull}
+                        </Typography>
+                    </Box>
+                </Box>
+            )}
+
+            <Button variant="contained" size="large" sx={{ mt: 2, color: 'primary.main', bgcolor: 'white' }} onClick={address.handleDialogOpen}>
+                {t('address.select')}
+            </Button>
+        </Grid>
 
             <Grid size={{ xs: 12, md: 6 }} sx={{ textAlign: 'right' }}>
                 {isLoading.hero ? (
@@ -285,31 +309,6 @@ const CustomerHomePage = () => {
             </Grid>
         </Grid>
     ), [address.handleDialogOpen, i18n.language, isLoading.hero]);
-
-    // Memoize the categories section header
-    const categoriesSectionHeader = useMemo(() => (
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h5" fontWeight="bold">
-                {t('homepage.categories.search')}
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Typography
-                    variant="body2"
-                    component={Link}
-                    to="/categories"
-                    sx={{
-                        color: 'primary.main',
-                        textDecoration: 'none',
-                        display: 'flex',
-                        alignItems: 'center'
-                    }}
-                >
-                    {t('util.view')}
-                    <ArrowForward sx={{ fontSize: 16, ml: 1 }} />
-                </Typography>
-            </Box>
-        </Box>
-    ), [i18n.language]);
 
     // Memoize the restaurants section header
     const restaurantsSectionHeader = useMemo(() => (
@@ -373,9 +372,8 @@ const CustomerHomePage = () => {
 
             {/* Food Categories */}
             <Box sx={{ py: 6 }}>
-                {categoriesSectionHeader}
                 <Suspense fallback={<LoadingFallback />}>
-                    <FoodCategories />
+                    <FoodCategories showHeader />
                 </Suspense>
             </Box>
 
@@ -412,27 +410,57 @@ const CustomerHomePage = () => {
 
                         {/* Popular Foods */}
                         <Box sx={{ py: 6 }}>
-                            <Typography variant="h5" fontWeight="bold" sx={{ mb: 3 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                                <Typography variant="h5" fontWeight="bold">
                                 {t('homepage.popular')}
-                            </Typography>
+                                </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    <Typography
+                                        variant="body2"
+                                        component={Link}
+                                        to="/popular-foods"
+                                        sx={{
+                                            color: 'primary.main',
+                                            textDecoration: 'none',
+                                            display: 'flex',
+                                            alignItems: 'center'
+                                        }}
+                                    >
+                                        {t('util.view')}
+                                        <ArrowForward sx={{ fontSize: 16, ml: 1 }} />
+                                    </Typography>
+                                </Box>
+                            </Box>
 
                             <Grid container spacing={2}>
                                 {isLoading.popularItems ? (
                                     // Show food skeletons while loading
                                     Array.from(new Array(5)).map((_, index) => (
-                                        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }} key={`food-skeleton-${index}`}>
+                                        <Grid size={{ xs: 6, sm: 4, md: 4, lg: 2.4 }} key={`food-skeleton-${index}`}>
                                             <PopularFoodCardSkeleton />
                                         </Grid>
                                     ))
-                                ) : (
-                                    // Show actual food items when loaded
+                                ) : popularMenuItems.length > 0 ? (
                                     popularMenuItems.map((food) => (
-                                        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }} key={food.id}>
+                                        <Grid size={{ xs: 6, sm: 4, md: 4, lg: 2.4 }} key={food.id}>
                                             <Suspense fallback={<PopularFoodCardSkeleton />}>
                                                 <PopularFoodCard food={food} />
                                             </Suspense>
                                         </Grid>
                                     ))
+                                ) : (
+                                    <Box sx={{
+                                        width: '100%',
+                                        textAlign: 'center',
+                                        py: 4,
+                                    }}>
+                                        <Typography variant="h6">
+                                            {t('homepage.noPopularItems')}
+                                        </Typography>
+                                        <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
+                                            {t('homepage.tryAgainLater')}
+                                        </Typography>
+                                    </Box>
                                 )}
                             </Grid>
                         </Box>

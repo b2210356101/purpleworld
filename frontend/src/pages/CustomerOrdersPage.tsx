@@ -2,240 +2,43 @@ import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
-  Paper,
-  Button,
-  Avatar,
-  Pagination,
-  Chip,
   Container,
-  Stack,
   Divider,
   Alert,
   CircularProgress,
-  useTheme,
+  Pagination,
+  Snackbar
 } from "@mui/material";
-import FastfoodIcon from "@mui/icons-material/Fastfood";
+import { OrderDTO, CustomerCurrentOrderDTO, OrderDetailsData, ReviewRequest, ReviewDTO } from "../types";
+import { getCustomerOrderHistory, getOrderDetails, submitReview } from "../utils/api";
 import OrderDetailsModal from "../components/OrderDetailsModal";
-import { getCustomerOrderHistory, getOrderDetails } from "../utils/api";
-import { OrderDTO, OrderGroupDTO, OrderDetailsData, OrderDetails } from "../types";
+import OrderCard from "../components/OrderCard";
+import WriteReviewModal, { ReviewSubmitData } from "../components/customer/WriteReviewModal";
+import {useTranslation} from "react-i18next";
 
-interface OrderCardProps {
-  orderGroup: OrderGroupDTO;
-  onDetailsClick: (orderGroup: OrderGroupDTO, parentOrder: OrderDTO) => void;
+// Define an interface that extends CustomerCurrentOrderDTO with parentOrder
+interface OrderGroupWithParent extends CustomerCurrentOrderDTO {
   parentOrder: OrderDTO;
+  review?: ReviewDTO; // Add the review property as optional
 }
 
-const OrderCard: React.FC<OrderCardProps> = ({ orderGroup, onDetailsClick, parentOrder }) => {
-  const theme = useTheme();
-  
-  const formatDateTime = (dateString: string) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleString('tr-TR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getStatusChip = (status: string) => {
-    let chipStyle = {
-      backgroundColor: "#E0E0E0",
-      color: "#000000"
-    };
-    let displayStatus = status;
-    
-    switch (status) {
-      case "ORDERED":
-        chipStyle = {
-          backgroundColor: "#2196F3",
-          color: "#FFFFFF"
-        };
-        break;
-      case "PREPARING":
-        chipStyle = {
-          backgroundColor: "#FF9800",
-          color: "#000000"
-        };
-        break;
-      case "READY_FOR_PICKUP":
-        chipStyle = {
-          backgroundColor: "#673AB7",
-          color: "#FFFFFF"
-        };
-        displayStatus = "READY FOR PICKUP";
-        break;
-      case "ON_THE_WAY":
-        chipStyle = {
-          backgroundColor: "#03A9F4",
-          color: "#FFFFFF"
-        };
-        displayStatus = "ON THE WAY";
-        break;
-      case "DELIVERED":
-        chipStyle = {
-          backgroundColor: "#4CAF50",
-          color: "#FFFFFF"
-        };
-        break;
-      case "REJECTED":
-      case "CANCELLED":
-        chipStyle = {
-          backgroundColor: "#F44336",
-          color: "#FFFFFF"
-        };
-        break;
-      default:
-        chipStyle = {
-          backgroundColor: "#9E9E9E",
-          color: "#FFFFFF"
-        };
-    }
-    
-    return (
-      <Chip 
-        label={displayStatus} 
-        size="small" 
-        style={chipStyle} 
-      />
-    );
-   };
-
-  return (
-    <Paper
-      elevation={0}
-      sx={{
-        mb: 3,
-        backgroundColor: 'primary.light',
-        borderRadius: 3,
-        overflow: "hidden",
-        // The theme already applies the shadow to MuiPaper
-      }}
-    >
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          p: 2,
-        }}
-      >
-        <Typography variant="body1" color="text.secondary">
-          Order #{orderGroup.orderGroupId}
-        </Typography>
-        {getStatusChip(orderGroup.status)}
-      </Box>
-
-      <Box sx={{ bgcolor: 'background.paper', borderTopLeftRadius: 16, borderTopRightRadius: 16 }}>
-        <Box sx={{ p: 3 }}>
-          <Stack spacing={2}>
-            <Box
-              sx={{
-                display: "flex",
-                gap: 2,
-                alignItems: "flex-start",
-              }}
-            >
-              <Avatar
-                variant="circular"
-                src={orderGroup.img}
-                sx={{
-                  width: 56,
-                  height: 56,
-                  border: '2px solid',
-                  borderColor: 'primary.light',
-                  boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
-                }}
-              >
-                {/* Fallback icon if image fails to load */}
-                {!orderGroup.img && <FastfoodIcon sx={{ color: "primary.main" }} />}
-              </Avatar>
-
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  {orderGroup.restaurantName}
-                </Typography>
-                {orderGroup.orderItems && orderGroup.orderItems.map((item, index) => (
-                  <Box key={index} sx={{ mb: 1 }}>
-                    <Typography variant="body1" color="text.secondary">
-                       {item.name} x{item.quantity}
-                    </Typography>
-                  </Box>
-                ))}
-                {orderGroup.note && (
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    Note: {orderGroup.note}
-                  </Typography>
-                )}
-              </Box>
-            </Box>
-          </Stack>
-        </Box>
-
-        <Divider />
-
-        <Box sx={{ p: 3 }}>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button
-                variant="outlined"
-                onClick={() => onDetailsClick(orderGroup, parentOrder)}
-                sx={{
-                  // Theme already applies borderRadius: '50px' to all buttons
-                  "&:hover": {
-                    backgroundColor: 'primary.light',
-                  },
-                }}
-              >
-                Details
-              </Button>
-              {orderGroup.status === "DELIVERED" && (
-                <Button
-                  variant="outlined"
-                  sx={{
-                    // Theme already applies borderRadius: '50px' to all buttons
-                    "&:hover": {
-                      backgroundColor: 'primary.light',
-                    },
-                  }}
-                >
-                  Review
-                </Button>
-              )}
-            </Box>
-
-            <Box sx={{ textAlign: "right" }}>
-              <Typography variant="caption" color="text.secondary">
-                {formatDateTime(orderGroup.orderedDate)}
-              </Typography>
-              <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                {orderGroup.restaurantTotal} ₺
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-      </Box>
-    </Paper>
-  );
-};
-
 const MyOrders: React.FC = () => {
-  const theme = useTheme();
+  const { t, i18n } = useTranslation();
   const [page, setPage] = useState<number>(1);
   const [orders, setOrders] = useState<OrderDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedOrderDetails, setSelectedOrderDetails] = useState<OrderDetailsData | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [detailsLoading, setDetailsLoading] = useState<boolean>(false);
+  const [reviewModalOpen, setReviewModalOpen] = useState<boolean>(false);
+  const [selectedOrderGroup, setSelectedOrderGroup] = useState<CustomerCurrentOrderDTO | null>(null);
+  const [selectedParentOrder, setSelectedParentOrder] = useState<OrderDTO | null>(null);
+  const [notification, setNotification] = useState<{open: boolean, message: string, severity: 'success' | 'error'}>({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
 
   const itemsPerPage = 5;
 
@@ -251,18 +54,17 @@ const MyOrders: React.FC = () => {
       
       if (Array.isArray(data)) {
         setOrders(data);
-        // Reset page to 1 when data is loaded
         setPage(1);
       } else {
-        console.error('Unexpected data format:', data);
+        console.error(t('myOrders.error.unexpectedFormat'), data);
         setOrders([]);
-        setError('Received invalid data format from server');
+        setError(t('myOrders.error.invalidFormat'));
       }
       
       setError(null);
     } catch (err) {
-      console.error('Error fetching order history:', err);
-      setError('Failed to load order history. Please try again later.');
+      console.error(t('myOrders.error.fetchingHistory'), err);
+      setError(t('myOrders.error.failedToLoad'));
       setOrders([]);
     } finally {
       setLoading(false);
@@ -274,29 +76,51 @@ const MyOrders: React.FC = () => {
     value: number
   ) => {
     setPage(value);
-    // Scroll to top when page changes
     window.scrollTo({
       top: 0,
       behavior: 'smooth'
     });
   };
 
-  const formatDateTime = (dateString: string) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleString('tr-TR', {
+  const formatDateTime = (dateValue: any) => {
+  if (!dateValue) return "";
+  
+  // Check if dateValue is an array
+  if (Array.isArray(dateValue)) {
+    // Extract year, month, day, hour, minute from array
+    const [year, month, day, hour = 0, minute = 0] = dateValue;
+    // Create a date (months are 0-indexed in JS Date)
+    const date = new Date(year, month - 1, day, hour, minute);
+    return date.toLocaleString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     });
-  };
+  }
+  
+  // Handle string format
+  if (typeof dateValue === 'string') {
+    const date = new Date(dateValue);
+    if (!isNaN(date.getTime())) {
+      return date.toLocaleString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+  }
+  
+  // If all else fails, return a fallback
+  return "Cannot fetch date";
+};
 
-  const handleDetailsClick = async (orderGroup: OrderGroupDTO, parentOrder: OrderDTO) => {
+  const handleDetailsClick = async (orderGroup: CustomerCurrentOrderDTO, parentOrder: OrderDTO) => {
     try {
       setDetailsLoading(true);
-      // Fetch detailed order information including address
       const detailedOrderInfo = await getOrderDetails(orderGroup.orderGroupId);
       
       const orderDetails: OrderDetailsData = {
@@ -304,54 +128,46 @@ const MyOrders: React.FC = () => {
         date: formatDateTime(detailedOrderInfo.date || orderGroup.orderedDate || parentOrder.orderedDate),
         restaurants: [{
           name: orderGroup.restaurantName,
-          items: detailedOrderInfo.items?.map(item => ({
+          items: detailedOrderInfo.items?.map((item) => ({
             name: item.name,
             price: `${item.price} ₺`,
-            quantity: item.quantity,
-          })) || orderGroup.orderItems?.map(item => ({
-            name: item.name,
-            price: `${item.price} ₺`,
-            quantity: item.quantity,
-          })) || [],
+            quantity: item.quantity
+          })) || []
         }],
         address: {
-          name: detailedOrderInfo.addressName || orderGroup.customerName || "N/A",
-          address: detailedOrderInfo.addressFull || "Address not available",
-          city: detailedOrderInfo.addressCity || "City not available",
+          name: detailedOrderInfo.addressName || t('myOrders.notAvailable'),
+          address: detailedOrderInfo.addressFull || t('myOrders.addressNotAvailable'),
+          city: detailedOrderInfo.addressCity || t('myOrders.cityNotAvailable'),
         },
         billing: {
-          itemTotal: `${orderGroup.restaurantTotal} ₺`,
+          itemTotal: `${orderGroup.totalPrice} ₺`,
           discount: "0,00 ₺",
-          totalPayment: `${orderGroup.restaurantTotal} ₺`,
-        },
+          totalPayment: `${orderGroup.totalPrice} ₺`
+        }
       };
 
       setSelectedOrderDetails(orderDetails);
       setModalOpen(true);
     } catch (err) {
-      console.error('Error fetching order details:', err);
+      console.error(t('myOrders.error.fetchingDetails'), err);
       // If the detailed info fails, fall back to basic data
       const orderDetails: OrderDetailsData = {
         orderId: parentOrder.orderId,
         date: formatDateTime(orderGroup.orderedDate || parentOrder.orderedDate),
         restaurants: [{
           name: orderGroup.restaurantName,
-          items: orderGroup.orderItems?.map(item => ({
-            name: item.name,
-            price: `${item.price} ₺`,
-            quantity: item.quantity,
-          })) || [],
+          items: []
         }],
         address: {
-          name: orderGroup.customerName || "N/A",
-          address: "Address information unavailable",
-          city: "N/A",
+            name: t('myOrders.notAvailable'),
+            address: t('myOrders.addressInfoUnavailable'),
+            city: t('myOrders.notAvailable'),
         },
         billing: {
-          itemTotal: `${orderGroup.restaurantTotal} ₺`,
+          itemTotal: `${orderGroup.totalPrice} ₺`,
           discount: "0,00 ₺",
-          totalPayment: `${orderGroup.restaurantTotal} ₺`,
-        },
+          totalPayment: `${orderGroup.totalPrice} ₺`
+        }
       };
       setSelectedOrderDetails(orderDetails);
       setModalOpen(true);
@@ -360,9 +176,98 @@ const MyOrders: React.FC = () => {
     }
   };
 
+  const handleReviewClick = (orderGroup: CustomerCurrentOrderDTO, parentOrder: OrderDTO) => {
+    setSelectedOrderGroup(orderGroup);
+    setSelectedParentOrder(parentOrder);
+    setReviewModalOpen(true);
+  };
+
   const handleCloseModal = () => {
     setModalOpen(false);
     setSelectedOrderDetails(null);
+  };
+
+  const handleCloseReviewModal = () => {
+    setReviewModalOpen(false);
+    setSelectedOrderGroup(null);
+    setSelectedParentOrder(null);
+  };
+
+  const handleReviewSubmit = async (reviewData: ReviewSubmitData) => {
+    if (!selectedOrderGroup) return;
+    
+    try {
+      // Create a properly typed ReviewRequest object for the API
+      const reviewRequest: ReviewRequest = {
+        tasteRating: reviewData.ratings.taste,
+        deliveryRating: reviewData.ratings.delivery,
+        serviceRating: reviewData.ratings.service,
+        review: reviewData.comment
+      };
+      
+      // Submit review to the backend
+      await submitReview(selectedOrderGroup.orderGroupId, reviewRequest);
+      
+      // Update the local state with the submitted review
+      const updatedOrders = orders.map(order => ({
+        ...order,
+        orderGroups: order.orderGroups.map(group => {
+          if (group.orderGroupId === selectedOrderGroup.orderGroupId) {
+            return {
+              ...group,
+              review: {
+              tasteRating: reviewRequest.tasteRating,
+              deliveryRating: reviewRequest.deliveryRating,
+              serviceRating: reviewRequest.serviceRating,
+              review: reviewRequest.review || '',
+              restaurantAnswer: null,
+              userName: " ",         // opsiyonel: backend set ediyor
+              userAvatar: '',                    // gösterilmiyor ama structure için boş string olabilir
+              reviewDate: new Date().toISOString(), // optimistik güncelleme
+              orderGroupId : group.orderGroupId
+            }
+            };
+          }
+          return group;
+        })
+      }));
+      
+      // Update state with updated orders
+      setOrders(updatedOrders);
+      
+      // Show success notification
+      setNotification({
+        open: true,
+        message: 'Your review has been submitted successfully!',
+        severity: 'success'
+      });
+      
+    } catch (error: any) {
+      console.error('Error submitting review:', error);
+      
+      let errorMessage = 'An error occurred while submitting your review.';
+      
+      if (error.response?.status === 400) {
+        errorMessage = error.response.data || 'You have already submitted a review for this order.';
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setNotification({
+        open: true,
+        message: errorMessage,
+        severity: 'error'
+      });
+    } finally {
+      // Ensure the modal is closed
+      handleCloseReviewModal();
+    }
+  };
+
+  const handleCloseNotification = () => {
+    setNotification(prev => ({ ...prev, open: false }));
   };
 
   if (loading) {
@@ -381,12 +286,32 @@ const MyOrders: React.FC = () => {
     );
   }
 
-  // Get all order groups from all orders
-  const allOrderGroups = Array.isArray(orders) ? orders.flatMap(order => 
-    Array.isArray(order.orderGroups) ? order.orderGroups.map(group => ({ ...group, parentOrder: order })) : []
-  ) : [];
+  // Convert OrderGroupDTO objects to CustomerCurrentOrderDTO objects with parent order reference
+  const allOrderGroups: OrderGroupWithParent[] = Array.isArray(orders)
+    ? orders.flatMap(order =>
+        Array.isArray(order.orderGroups)
+          ? order.orderGroups.map(group => {
+              // Create a properly structured CustomerCurrentOrderDTO object with parent order
+              const customerOrder: OrderGroupWithParent = {
+                orderGroupId: group.orderGroupId,
+                restaurantId: 0, // Default value if not available
+                restaurantName: group.restaurantName,
+                img: group.img,
+                itemCount: group.orderItems?.length || 0,
+                totalPrice: group.restaurantTotal,
+                status: group.status,
+                orderedDate: group.orderedDate,
+                estimatedDeliveryTime: "", // Default value if not available
+                distanceInKm: 0, // Default value if not available
+                parentOrder: order,
+                review: group.review
+              };
+              return customerOrder;
+            })
+          : []
+      )
+    : [];
 
-  // Paginate order groups
   const startIndex = (page - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentOrderGroups = allOrderGroups.slice(startIndex, endIndex);
@@ -395,22 +320,23 @@ const MyOrders: React.FC = () => {
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Typography variant="h5" fontWeight={700} mb={1} color="text.primary">
-        My Orders
+        {t('myOrders.title')}
       </Typography>
       <Divider sx={{ mb: 3 }} />
 
       {currentOrderGroups.map((orderGroup) => (
-        <OrderCard 
+        <OrderCard
           key={`${orderGroup.parentOrder.orderId}-${orderGroup.orderGroupId}`}
-          orderGroup={orderGroup} 
+          orderGroup={orderGroup}
           onDetailsClick={handleDetailsClick}
+          onReviewClick={handleReviewClick}
           parentOrder={orderGroup.parentOrder}
         />
       ))}
 
       {(!orders || orders.length === 0) && (
         <Typography variant="body1" color="text.secondary" textAlign="center" sx={{ mt: 4 }}>
-          You don't have any orders yet.
+          {t('myOrders.noOrders')}
         </Typography>
       )}
 
@@ -428,15 +354,15 @@ const MyOrders: React.FC = () => {
             sx={{
               "& .MuiPaginationItem-root": {
                 color: "text.primary",
-                fontSize: "1rem",
+                fontSize: "1rem"
               },
               "& .Mui-selected": {
                 backgroundColor: "primary.main",
                 color: "white",
                 "&:hover": {
-                  backgroundColor: "primary.dark",
-                },
-              },
+                  backgroundColor: "primary.dark"
+                }
+              }
             }}
           />
         </Box>
@@ -449,6 +375,31 @@ const MyOrders: React.FC = () => {
           orderDetails={selectedOrderDetails}
         />
       )}
+
+      {selectedOrderGroup && selectedParentOrder && (
+        <WriteReviewModal
+          open={reviewModalOpen}
+          onClose={handleCloseReviewModal}
+          orderGroup={selectedOrderGroup}
+          parentOrder={selectedParentOrder}
+          onSubmit={handleReviewSubmit}
+        />
+      )}
+      
+      <Snackbar 
+        open={notification.open} 
+        autoHideDuration={6000} 
+        onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={handleCloseNotification} 
+          severity={notification.severity}
+          sx={{ width: '100%' }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { Box, Typography, Paper, Grid, Divider, CircularProgress } from "@mui/material";
-import { getAdminStats } from "../utils/api"; // Yeni API fonksiyonu
+import { useEffect, useState } from "react";
+import { Box, Typography, Paper, Grid, Divider } from "@mui/material";
+import { getAdminStats } from "../utils/api"; 
 import { AdminStats } from "../types";
-import { useNavigate } from "react-router-dom"; // Tip tanımı burada
+import { useNavigate } from "react-router-dom";
 import Loading from "../components/Loading";
+import { useTranslation } from 'react-i18next';
 
 const AdminDashboard = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
 
     const [loading, setLoading] = useState<boolean>(true);
@@ -35,10 +37,10 @@ const AdminDashboard = () => {
     return (
         <Box sx={{ p: { xs: 2, md: 4 } }}>
             <Typography variant="h4" fontWeight="bold" gutterBottom>
-                Welcome, Admin!
+                {t('admin.dashboard.welcome')}
             </Typography>
             <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-                Manage users, restaurants, couriers, and platform settings from here.
+                {t('admin.dashboard.subtitle')}
             </Typography>
 
             <Divider sx={{ my: 4 }} />
@@ -70,7 +72,7 @@ const AdminDashboard = () => {
                                 {stats.totalRestaurants}
                             </Typography>
                             <Typography variant="subtitle2" color="text.secondary">
-                                Total Restaurants
+                                {t('admin.dashboard.totalRestaurants')}
                             </Typography>
                         </Paper>
                     </Grid>
@@ -94,7 +96,7 @@ const AdminDashboard = () => {
                                 {stats.totalCouriers}
                             </Typography>
                             <Typography variant="subtitle2" color="text.secondary">
-                                Total Couriers
+                                {t('admin.dashboard.totalCouriers')}
                             </Typography>
                         </Paper>
                     </Grid>
@@ -105,7 +107,7 @@ const AdminDashboard = () => {
                                 {stats.totalPendingApprovals}
                             </Typography>
                             <Typography variant="subtitle2" color="text.secondary">
-                                Pending Approvals
+                                {t('admin.dashboard.pendingApprovals')}
                             </Typography>
                         </Paper>
                     </Grid>
@@ -116,7 +118,7 @@ const AdminDashboard = () => {
                                 {stats.totalCoupons}
                             </Typography>
                             <Typography variant="subtitle2" color="text.secondary">
-                                Active Coupons
+                                {t('admin.dashboard.activeCoupons')}
                             </Typography>
                         </Paper>
                     </Grid>

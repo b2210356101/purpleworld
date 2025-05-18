@@ -3,7 +3,12 @@
         "view": "Tümünü Gör",
         "yes": "Evet",
         "cancel": "İptal",
-        "loading": "Yükleniyor..."
+        "add": "Ekle",
+        "details": "Detaylar",
+        "loading": "Yükleniyor...",
+        "confirm": "Onayla",
+        "save": "Kaydet",
+        "close": "Kapat"
     },
     "homepage": {
         "hero": {
@@ -25,10 +30,16 @@
             "pasta": "Makarna",
             "salad": "Salata",
             "dessert": "Tatlı",
-            "sushi": "Sushi"
+            "sushi": "Suşi",
+            "kebab": "Kebap",
+            "soup": "Çorba",
+            "wraps": "Dürüm",
+            "vegan": "Vejeteryan"
         },
-        "near": "Yakındaki Restoranlar",
+        "near": "Popüler Restoranlar",
         "popular": "Popüler Yemekler",
+        "noPopularItems": "Şu anda popüler yemek yok",
+        "tryAgainLater": "Lütfen daha sonra tekrar deneyin veya başka bir kategori seçin",
         "features": {
             "fastDelivery": {
                 "title": "Hızlı Teslimat",
@@ -123,9 +134,21 @@
         "loading": "Sepetiniz yükleniyor...",
         "error": "Sepet öğeleri yüklenemedi. Lütfen daha sonra tekrar deneyin.",
         "tryAgain": "Tekrar Dene",
-        "updateError": "Sepet öğesi güncellenemedi."
+        "updateError": "Sepet öğesi güncellenemedi.",
+        "noteForRestaurant": "Restoran için not",
+        "notePlaceholder": "Örn. Soğansız, ekstra acılı...",
+        "noNote": "Not eklenmedi",
+        "promoCode": "Promosyon Kodu",
+        "promoCodeApplied": "Promosyon kodu başarıyla uygulandı!",
+        "invalidPromoCode": "Geçersiz promosyon kodu",
+        "apply": "Uygula",
+        "total": "Toplam",
+        "deliveryTime": "{{min}}–{{max}} dakika içinde teslimat",
+        "proceedToCheckout": "Ödeme Adımına Geç",
+        "noteUpdateError": "Not güncellenemedi"
     },
     "restaurant": {
+        "new": "Yeni Restaurant",
         "searchHeader": "Restoran veya yemek ara...",
         "view": "Restoranı Görüntüle",
         "add": "Sepete Ekle",
@@ -138,7 +161,31 @@
         "search": "Yemeklerde ara...",
         "result": "Arama Sonuçları",
         "review": "yorum",
-        "viewReviews": "Yorumları Gör"
+        "viewReviews": "Yorumları Gör",
+        "stock": {
+            "title": "Stok Yönetimi",
+            "totalItems": "Toplam Ürün",
+            "inStock": "Stokta Var",
+            "outOfStock": "Stokta Yok",
+            "allCategories": "Tüm Kategoriler",
+            "allItems": "Tüm Ürünler",
+            "searchItems": "Ürün ara...",
+            "sortBy": "Sıralama",
+            "sortName": "İsim",
+            "sortPrice": "Fiyat",
+            "sortDir": "Yön",
+            "sortAsc": "Artan",
+            "sortDesc": "Azalan",
+            "noItemsFound": "Seçilen filtreler için ürün bulunamadı.",
+            "in": "Var",
+            "out": "Yok",
+            "addedToStock": "Ürün stoka eklendi.",
+            "removedFromStock": "Ürün stoktan çıkarıldı.",
+            "updateError": "Stok durumu güncellenirken hata oluştu. Lütfen tekrar deneyin."
+        },
+        "menu": {
+            "fetchError": "Menü öğeleri yüklenemedi. Lütfen tekrar deneyin."
+        }
     },
     "login": {
         "title": "Giriş Yap & Lezzeti Keşfet",
@@ -150,7 +197,8 @@
         "signIn": "Giriş Yap",
         "noAccount": "Hesabınız yok mu? Şimdi kaydolun.",
         "validEmail": "Lütfen geçerli bir e-posta adresi girin.",
-        "loginError": "Giriş yapılamadı"
+        "loginError": "Giriş yapılamadı",
+        "returnInfo": "Giriş yaptıktan sonra şu sayfaya yönlendirileceksiniz: {{path}}"
     },
     "register": {
         "common": {
@@ -226,10 +274,38 @@
             "ssnExists": "Bu TC Kimlik numarası zaten kayıtlı."
         }
     },
+    "forgotPassword": {
+        "title": "Şifremi Unuttum",
+        "instructions": "Şifrenizi sıfırlamak için aşağıya e-posta adresinizi girin. Size talimatları göndereceğiz.",
+        "sendResetLink": "Sıfırlama Bağlantısı Gönder",
+        "backToLogin": "Giriş Sayfasına Dön",
+        "emailSent": "Şifre sıfırlama e-postası gönderildi!",
+        "checkInbox": "Eğer",
+        "resetLinkSent": "için bir hesap varsa, kısa süre içinde bir şifre sıfırlama bağlantısı alacaksınız. Lütfen gelen kutunuzu (ve spam klasörünü) kontrol edin.",
+        "error": "Bir şeyler yanlış gitti. Lütfen tekrar deneyin."
+    },
+    "resetPassword": {
+        "title": "Yeni Şifre Belirle",
+        "newPassword": "Yeni Şifre",
+        "newPasswordPlaceholder": "Yeni şifrenizi girin",
+        "confirmPassword": "Şifreyi Onayla",
+        "confirmPasswordPlaceholder": "Yeni şifrenizi tekrar girin",
+        "resetButton": "Şifreyi Sıfırla",
+        "backToLogin": "Giriş Sayfasına Dön",
+        "success": "Şifreniz güncellendi!",
+        "redirecting": "Yönlendiriliyor:",
+        "passwordRequirements": "Şifre en az 8 karakter olmalı, büyük ve küçük harf, bir rakam ve bir özel karakter (!@#$%^&*_) içermelidir",
+        "passwordsDoNotMatch": "Şifreler eşleşmiyor",
+        "invalidToken": "Geçersiz veya süresi dolmuş token"
+    },
     "search": {
         "results": "Arama Sonuçları",
         "resultsFound": "sonuç bulundu",
         "placeholder": "Restoran veya yemek ara...",
+        "quickResults": "{{count}} restoran bulundu",
+        "matchingItems": "{{count}} eşleşen ürün",
+        "items": "ürün",
+        "seeAll": "Tüm sonuçları gör",
         "button": "Ara",
         "filter": "Filtrele",
         "sortBy": "Sırala",
@@ -245,12 +321,408 @@
         "restaurants": "Restoranlar",
         "foods": "Yemekler",
         "all": "Tümü",
-        "matchingItems": "eşleşen ürün",
         "showItems": "Ürünleri Göster",
         "hide": "Gizle",
         "noResults": "Sonuç Bulunamadı",
+        "clear": "Aramayı Temizle",
         "tryDifferent": "Farklı bir arama terimi deneyin veya aşağıdaki restoranları inceleyin.",
-        "backToHome": "Ana Sayfaya Dön"
+        "backToHome": "Ana Sayfaya Dön",
+        "popularSearches": "Popüler Aramalar"
+    },
+    "nav": {
+        "home": "Ana Sayfa",
+        "restaurants": "Restoranlar",
+        "cart": "Sepet",
+        "favorites": "Favoriler",
+        "search": "Ara",
+        "profile": "Profil",
+        "menu": "Menü",
+        "orders": "Siparişler",
+        "deliveries": "Teslimatlar",
+        "earnings": "Kazançlar",
+        "dashboard": "Panel",
+        "couriers": "Kuryeler",
+        "about": "Hakkında",
+        "login": "Giriş",
+        "empty": "Boş",
+        "emptyCart": "Sepetiniz boş",
+        "addToCart": "Ürün ekle"
+    },
+    "checkout": {
+        "title": "Güvenli Ödeme",
+        "deliveryAddress": "Teslimat adresi",
+        "paymentType": "Ödeme Tipi",
+        "paymentOptions": {
+            "creditCard": "Kredi Kartı",
+            "cash": "Kapıda Ödeme"
+        },
+        "card": {
+            "nameOnCard": "Kart üzerindeki isim",
+            "namePlaceholder": "Ad Soyad",
+            "cardNumber": "Kart numarası",
+            "expiryDate": "Son kullanma tarihi",
+            "cvv": "CVV"
+        },
+        "validation": {
+            "nameRequired": "Kart üzerindeki isim gereklidir",
+            "invalidName": "Lütfen geçerli bir kart sahibi adı girin",
+            "invalidCardNumber": "Lütfen geçerli bir 16 haneli kart numarası girin",
+            "invalidExpiry": "Lütfen geçerli bir son kullanma tarihi girin (AA/YY)",
+            "cardExpired": "Kart süresi dolmuş",
+            "invalidCvv": "Lütfen geçerli bir 3 haneli güvenlik kodu girin"
+        },
+        "notification": {
+            "orderPlaced": "Sipariş #{{orderId}} verildi!"
+        },
+        "error": {
+            "fetchData": "Veri getirme hatası:",
+            "placeOrder": "Sipariş verilemedi."
+        },
+        "log": {
+            "orderResponse": "Sipariş yanıtı:"
+        },
+        "summary": {
+            "cart": "Sepet",
+            "items": "Ürünler",
+            "item": "Ürün",
+            "billDetails": "Fatura detayları",
+            "itemTotal": "Ürün Toplamı",
+            "discount": "İndirim",
+            "total": "Toplam",
+            "proceedToPayment": "Ödemeyi Tamamla"
+        }
+    },
+    "orderTracking": {
+        "currentOrders": "Mevcut Siparişler ({{count}})",
+        "orderFrom": "{{restaurant}} siparişi",
+        "orderNumber": "Sipariş #{{id}}",
+        "placedAt": "Sipariş zamanı {{time}}",
+        "estimatedDelivery": "Tahmini teslimat {{time}}",
+        "steps": {
+            "ordered": "Sipariş Verildi",
+            "confirmed": "Onaylandı",
+            "preparing": "Hazırlanıyor",
+            "readyforpickup": "Hazır",
+            "ontheway": "Yolda",
+            "delivered": "Teslim Edildi"
+        },
+        "itemsDistance": "{{count}} ürün • {{distance}} km uzaklıkta",
+        "cancelOrder": "Siparişi İptal Et",
+        "viewDetails": "Detayları Görüntüle",
+        "trackOrder": "Siparişi Takip Et"
+    },
+    "payment": {
+        "success": {
+            "title": "Ödeme Başarılı!"
+        },
+        "details": {
+            "refNumber": "Referans Numarası",
+            "paymentTime": "Ödeme Zamanı",
+            "paymentMethod": "Ödeme Yöntemi",
+            "totalAmount": "Toplam Tutar",
+            "estimatedDelivery": "Tahmini Teslimat",
+            "orderNotes": "Sipariş Notları"
+        },
+        "methods": {
+            "cash": "Kapıda Ödeme",
+            "creditCard": "Kredi Kartı"
+        },
+        "close": "Kapat"
+    },
+    "orderDetailsModal": {
+        "title": "Sipariş Detayları",
+        "items": "Ürünler",
+        "item": "Ürün",
+        "date": "Tarih",
+        "deliveryAddress": "Teslimat Adresi",
+        "billDetails": "Fatura detayları",
+        "itemTotal": "Ürün Toplamı",
+        "discount": "İndirim",
+        "totalPayment": "Toplam Ödeme"
+    },
+    "favorites": {
+        "title": "Favori Restoranlar",
+        "search_placeholder": "Favori restoranlarınızda arayın",
+        "no_favorites": "Henüz favori restoranınız yok",
+        "add_some_favorites": "Favori restoranlarınızı eklemek için restoranları keşfedin",
+        "no_search_results": "Aramanızla eşleşen favori restoran bulunamadı",
+        "try_different_search": "Farklı bir arama terimi deneyin"
+    },
+    "restaurants": {
+        "title": "Restoranlar",
+        "search_placeholder": "Restoran ara...",
+        "no_restaurants": "Yakınınızda restoran bulunamadı",
+        "no_search_results": "Aramanızla eşleşen restoran bulunamadı",
+        "try_different_search": "Farklı bir arama terimi deneyin",
+        "try_different_address": "Lütfen farklı bir adres seçin veya geniş bir arama yapın",
+        "browse": "Restoranları Keşfet",
+        "out_of_range": "Bu restoran teslimat alanının dışında",
+        "out_of_range_short": "Teslimat alanı dışında",
+        "too_far": "Çok Uzakta"
+    },
+    "popularFoods": {
+        "pageTitle": "Popüler Yemekler",
+        "pageDescription": "Yakınınızdaki restoranlardan en popüler yemekleri keşfedin",
+        "description": "Bölgendeki en popüler yemekleri keşfetmek için kaydır!",
+        "noItems": "Popüler yemek bulunamadı. Lütfen daha sonra tekrar deneyin.",
+        "endOfList": "Hepsi bu kadar! Başka lezzetler yakında...",
+        "tryAgain": "Tekrar deneyin",
+        "loadingFailed": "Öğeler yüklenemedi. Lütfen tekrar deneyin.",
+        "noAddress": "Popüler yemekleri görmek için lütfen bir teslimat adresi seçin. Ana sayfaya yönlendiriliyorsunuz..."
+    },
+    "myOrders": {
+        "title": "Siparişlerim",
+        "orderNumber": "Sipariş #{{id}}",
+        "note": "Not",
+        "review": "Değerlendir",
+        "noOrders": "Henüz siparişiniz bulunmamaktadır.",
+        "notAvailable": "Mevcut Değil",
+        "addressNotAvailable": "Adres mevcut değil",
+        "cityNotAvailable": "Şehir mevcut değil",
+        "addressInfoUnavailable": "Adres bilgisi mevcut değil",
+        "error": {
+            "unexpectedFormat": "Beklenmeyen veri formatı:",
+            "invalidFormat": "Sunucudan geçersiz veri formatı alındı",
+            "fetchingHistory": "Sipariş geçmişi alınırken hata oluştu:",
+            "failedToLoad": "Sipariş geçmişi yüklenemedi. Lütfen daha sonra tekrar deneyin.",
+            "fetchingDetails": "Sipariş detayları alınırken hata oluştu:"
+        }
+    },
+    "admin": {
+        "actions": {
+            "action": "Eylemler",
+            "approve": "Onayla",
+            "approveRestaurant": "Restoranı Onayla",
+            "ban": "Yasakla",
+            "banCourier": "Kuryeyi Yasakla",
+            "banRestaurant": "Restoranı Yasakla",
+            "reject": "Reddet",
+            "unban": "Yasağı Kaldır",
+            "unbanCourier": "Kurye Yasağını Kaldır",
+            "unbanRestaurant": "Restoran Yasağını Kaldır",
+            "view": "Görüntüle"
+        },
+        "status": {
+            "approved": "Onaylandı",
+            "banned": "Yasaklandı",
+            "pending": "Beklemede",
+            "rejected": "Reddedildi"
+        },
+        "courier": {
+            "detailsTitle": "Kurye Detayları",
+            "email": "E-posta",
+            "fetchError": "Kuryeler getirilemedi",
+            "firstName": "Ad",
+            "fullName": "Ad Soyad",
+            "id": "Kimlik",
+            "lastName": "Soyad",
+            "noCouriers": "Kurye bulunamadı",
+            "phone": "Telefon",
+            "ssn": "TC Kimlik No",
+            "status": "Durum",
+            "approveSuccess": "Kurye başarıyla onaylandı",
+            "approveError": "Kurye onaylanamadı",
+            "rejectSuccess": "Kurye başarıyla reddedildi",
+            "rejectError": "Kurye reddedilemedi",
+            "banSuccess": "Kurye başarıyla yasaklandı",
+            "banError": "Kurye yasaklanamadı",
+            "unbanSuccess": "Kurye yasağı başarıyla kaldırıldı",
+            "unbanError": "Kurye yasağı kaldırılamadı"
+        },
+        "restaurant": {
+            "detailsTitle": "Restoran Detayları",
+            "email": "E-posta",
+            "fetchError": "Restoranlar getirilemedi",
+            "id": "Kimlik",
+            "manager": "Yönetici",
+            "name": "Restoran Adı",
+            "noRestaurants": "Restoran bulunamadı",
+            "phone": "Telefon",
+            "status": "Durum",
+            "taxId": "Vergi Numarası",
+            "approveSuccess": "Restoran başarıyla onaylandı",
+            "approveError": "Restoran onaylanamadı",
+            "rejectSuccess": "Restoran başarıyla reddedildi",
+            "rejectError": "Restoran reddedilemedi",
+            "banSuccess": "Restoran başarıyla yasaklandı",
+            "banError": "Restoran yasaklanamadı",
+            "unbanSuccess": "Restoran yasağı başarıyla kaldırıldı",
+            "unbanError": "Restoran yasağı kaldırılamadı"
+        },
+        "dashboard": {
+            "welcome": "Hoş Geldiniz, Yönetici!",
+            "subtitle": "Kullanıcıları, restoranları, kuryeleri ve platform ayarlarını buradan yönetin.",
+            "totalRestaurants": "Toplam Restoran",
+            "totalCouriers": "Toplam Kurye",
+            "pendingApprovals": "Bekleyen Onaylar",
+            "activeCoupons": "Aktif Kuponlar"
+        }
+    },
+    "menuManagement": {
+        "title": "Menüyü Yönet",
+        "addNewCategory": "Yeni Kategori Ekle",
+        "addNewItem": "Yeni Ürün Ekle",
+        "addNew": "Yeni Ekle",
+        "addElement": "Eleman Ekle",
+        "uploadImage": "Resim Yükle",
+        "aria": {
+            "deleteCategory": "Kategoriyi sil",
+            "editItem": "Ürünü düzenle",
+            "deleteItem": "Ürünü sil"
+        },
+        "placeholder": {
+            "addRemovable": "Çıkarılabilir içerik ekle",
+            "newRemovable": "Yeni çıkarılabilir içerik girin"
+        },
+        "label": {
+            "categoryName": "Kategori Adı",
+            "itemName": "Ürün Adı",
+            "price": "Fiyat (₺)",
+            "description": "Açıklama",
+            "productImage": "Ürün Resmi",
+            "removableElements": "Çıkarılabilir Elemanlar:"
+        },
+        "dialog": {
+            "addCategory": "Yeni Kategori Ekle",
+            "editItem": "Ürünü Düzenle",
+            "addItemTo": "{{name}} Kategorisine Yeni Ürün Ekle"
+        },
+        "error": {
+            "updateItem": "Ürün güncellenemedi:",
+            "addItem": "Ürün eklenemedi:",
+            "addCategory": "Kategori eklenemedi:",
+            "deleteItem": "Ürün silinemedi:",
+            "deleteRemovable": "Çıkarılabilir eleman silinemedi:",
+            "deleteCategory": "Kategori silinemedi:",
+            "addRemovable": "Çıkarılabilir eleman eklenemedi:"
+        },
+        "alert": {
+            "fillRequired": "Lütfen tüm gerekli alanları doldurun (İsim ve Fiyat)",
+            "deleteItemFailed": "Ürün silinemedi. Lütfen tekrar deneyin.",
+            "deleteRemovableFailed": "Çıkarılabilir eleman silinemedi. Lütfen tekrar deneyin.",
+            "deleteCategoryFailed": "Kategori silinemedi. Lütfen tekrar deneyin.",
+            "addRemovableFailed": "Çıkarılabilir eleman eklenemedi. Lütfen tekrar deneyin."
+        }
+    },
+    "order": {
+        "status": {
+            "readyForPickup": "TESLİMATA HAZIR",
+            "onTheWay": "YOLDA"
+        },
+        "table": {
+            "orderNumber": "Sipariş #",
+            "customer": "Müşteri",
+            "items": "Ürünler",
+            "time": "Zaman",
+            "orderedAt": "Sipariş Saati",
+            "status": "Durum",
+            "actions": "İşlemler"
+        },
+        "details": {
+            "title": "Sipariş Detayları",
+            "number": "Sipariş #{{id}}",
+            "ordered": "Sipariş Verildi",
+            "rejected": "Reddedildi",
+            "preparingSince": "Hazırlanmaya başlama",
+            "onTheWaySince": "Yola çıkma",
+            "delivered": "Teslim edildi",
+            "removables": "Çıkarılacaklar",
+            "notes": "Notlar",
+            "items": "ürün",
+            "noItems": "Bu sipariş için ürün bulunamadı.",
+            "orderItems": "Sipariş Ürünleri",
+            "noDetailedItems": "Bu sipariş için detaylı ürün bilgisi bulunamadı.",
+            "price": "Fiyat",
+            "totalAmount": "Toplam Tutar"
+        },
+        "actions": {
+            "rejectAccept": "Reddet / Kabul Et",
+            "markAsPrepared": "Hazır Olarak İşaretle",
+            "reject": "Reddet",
+            "accept": "Kabul Et"
+        }
+    },
+    "dashboard": {
+        "activeOrders": "Aktif Siparişler",
+        "noActiveOrders": "Aktif sipariş bulunamadı",
+        "statistics": "İstatistikler",
+        "lastReviews": "Son Değerlendirmeler",
+        "viewAll": "Tümünü Görüntüle",
+        "review": {
+            "date": "2 gün önce",
+            "text": "Lorem Ipsum, baskı ve dizgi endüstrisinin basit metnidir. Lorem Ipsum, endüstrinin standart sahte metni olmuştur"
+        },
+        "error": {
+            "fetchingOrders": "Siparişler getirilirken hata oluştu:",
+            "loadOrders": "Siparişler yüklenemedi.",
+            "rejectingOrder": "Sipariş reddedilirken hata oluştu:",
+            "rejectOrderFailed": "Sipariş reddedilemedi. Lütfen tekrar deneyin.",
+            "acceptingOrder": "Sipariş kabul edilirken hata oluştu:",
+            "acceptOrderFailed": "Sipariş kabul edilemedi. Lütfen tekrar deneyin.",
+            "markingPrepared": "Sipariş hazır olarak işaretlenirken hata oluştu:",
+            "markPreparedFailed": "Sipariş hazır olarak işaretlenemedi. Lütfen tekrar deneyin.",
+            "fetchingStats": "İstatistikler getirilirken hata oluştu"
+        },
+        "log": {
+            "orderPlacedEvent": "Sipariş verildi olayı alındı"
+        }
+    },
+    "orderManagement": {
+        "yourOrders": "Siparişleriniz",
+        "noOrders": "Sipariş bulunamadı",
+        "error": {
+            "fetchingOrders": "Siparişler getirilirken hata oluştu:",
+            "loadOrders": "Siparişler yüklenemedi. Lütfen daha sonra tekrar deneyin.",
+            "rejectingOrder": "Sipariş reddedilirken hata oluştu:",
+            "rejectOrderFailed": "Sipariş reddedilemedi. Lütfen tekrar deneyin.",
+            "acceptingOrder": "Sipariş kabul edilirken hata oluştu:",
+            "acceptOrderFailed": "Sipariş kabul edilemedi. Lütfen tekrar deneyin.",
+            "markingPrepared": "Sipariş hazır olarak işaretlenirken hata oluştu:",
+            "markPreparedFailed": "Sipariş hazır olarak işaretlenemedi. Lütfen tekrar deneyin.",
+            "expectedArray": "Bir dizi bekleniyordu ancak alındı:"
+        }
+    },
+    "courier": {
+        "dashboard": {
+            "title": "Kurye Paneli",
+            "availability": "Uygunluk Durumu",
+            "newOrder": "Yeni Sipariş",
+            "noOrders": "Şu anda mevcut sipariş bulunmamaktadır",
+            "ordersAppearHere": "Size teslimat atandığında yeni siparişler burada görünecektir",
+            "statistics": "İstatistikler"
+        },
+        "order": {
+            "number": "Sipariş #{{id}}",
+            "placedAt": "Sipariş zamanı: {{time}}",
+            "items": "{{count}} ürün"
+        },
+        "actions": {
+            "restaurantLocation": "Restoran Konumu",
+            "navigateToCustomer": "Müşteriye Yönlendir",
+            "pickUp": "Teslim Al",
+            "delivered": "Teslim Edildi",
+            "callCustomer": "Müşteriyi Ara",
+            "openInMaps": "Haritada Aç"
+        },
+        "success": {
+            "pickedUp": "Sipariş başarıyla teslim alındı!",
+            "delivered": "Sipariş başarıyla teslim edildi!"
+        },
+        "error": {
+            "fetchData": "Kurye verileri alınırken hata oluştu:",
+            "updateAvailability": "Uygunluk durumu güncellenemedi:",
+            "pickedUp": "Sipariş teslim alındı olarak işaretlenemedi",
+            "delivered": "Sipariş teslim edildi olarak işaretlenemedi"
+        },
+        "stats": {
+            "totalDeliveries": "Toplam Teslimatlar",
+            "todayDeliveries": "Bugünkü Teslimatlar",
+            "totalEarnings": "Toplam Kazanç"
+        },
+        "dialog": {
+            "queuedOrderTitle": "Sırada Bekleyen Sipariş Bulundu",
+            "queuedOrderDescription": "Size atanmış sırada bekleyen bir siparişiniz var. Uygun olmadığınızı belirtirseniz, bu sipariş başka bir kuryeye atanacaktır. Devam etmek istediğinizden emin misiniz?"
+        }
     },
     "contact": {
         "info": {

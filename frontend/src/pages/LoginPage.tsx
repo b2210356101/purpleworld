@@ -1,6 +1,6 @@
 import { Box, Button, Container, FormControl, FormLabel, IconButton, InputAdornment, Paper, TextField, Typography, CircularProgress, Alert } from "@mui/material";
-import { useState, useRef } from "react";
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useRef, useEffect } from "react";
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Phishing from "@mui/icons-material/Phishing";
 import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'
@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 const LoginPage = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const location = useLocation();
     const dispatch = useAppDispatch();
     const [emailError, setEmailError] = useState(false);
     const [emailErrorMessage, setEmailErrorMessage] = useState('');
@@ -24,23 +25,29 @@ const LoginPage = () => {
     const lastEmail = useRef('');
     const lastPassword = useRef('');
 
+    const from = location.state?.from || '/';
+
+    useEffect(() => {
+        console.log('Login page location state:', location.state);
+    }, [location.state]);
+
     const handleClickShowPassword = () => setShowPassword(!showPassword);
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (loginDisabled) {
             const emailInput = document.getElementById('email') as HTMLInputElement;
             const passwordInput = document.getElementById('password') as HTMLInputElement;
-
+            
             const currentEmail = emailInput?.value || '';
             const currentPassword = passwordInput?.value || '';
-
+            
             // Re-enable login button if either email or password has changed
             if (currentEmail !== lastEmail.current || currentPassword !== lastPassword.current) {
                 setLoginDisabled(false);
                 setShowError(false); // Hide error when input changes
             }
         }
-
+        
         // Reset email validation errors when email field changes
         if (event.target.id === 'email' && emailError) {
             setEmailError(false);
@@ -83,7 +90,7 @@ const LoginPage = () => {
 
                 const data = await loginUser(email, password);
 
-                console.log(data)
+                console.log('Login successful:', data);
 
                 dispatch(login({
                     token: data.token,
@@ -92,9 +99,11 @@ const LoginPage = () => {
                     profileImage: data.profileImage
                 }));
 
-                navigate('/');
+                // Navigate to the saved location or home page
+                console.log('Navigating to:', from);
+                navigate(from);
             } catch (err: any) {
-                console.log("LOGIN ERROR:", err);
+                console.error("LOGIN ERROR:", err);
 
                 const errorMessage =
                     err?.response?.data?.message ||
@@ -106,8 +115,7 @@ const LoginPage = () => {
 
                 // Disable login button until credentials change
                 setLoginDisabled(true);
-            }
-            finally {
+            } finally {
                 setLoading(false);
             }
         }
@@ -141,6 +149,14 @@ const LoginPage = () => {
                     height: '100%',
                 }}
             >
+                {/* Display info about return path for debugging */}
+                {from !== '/' && (
+                    <Box sx={{ mb: 2, width: '100%' }}>
+                        <Alert severity="info" sx={{ mb: 2 }}>
+                            {t('login.returnInfo', { path: from })}
+                        </Alert>
+                    </Box>
+                )}
 
                 {/* Login Area */}
                 <Paper component="form" noValidate onSubmit={handleSubmit} sx={{
@@ -199,16 +215,15 @@ const LoginPage = () => {
                             fullWidth
                             variant="standard"
                             margin="dense"
-                            slotProps={{
-                                input: {
-                                    endAdornment: (
-                                        <InputAdornment position="end">
-                                            <IconButton onClick={handleClickShowPassword}>
-                                                {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-                                            </IconButton>
-                                        </InputAdornment>
-                                    ),
-                                }
+                            onChange={handleInputChange}
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton onClick={handleClickShowPassword}>
+                                            {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
                             }}
                         />
                     </FormControl>

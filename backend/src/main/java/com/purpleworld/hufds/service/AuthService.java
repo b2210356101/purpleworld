@@ -13,6 +13,7 @@ public interface AuthService {
     boolean isEmailRegistered(String email);
     boolean isSsnRegistered(String ssn);
     boolean isTaxIdRegistered(String taxId);
-
+    void forgotPassword(ForgotPasswordRequest request);
+    void resetPassword(ResetPasswordRequest request);
 
 }

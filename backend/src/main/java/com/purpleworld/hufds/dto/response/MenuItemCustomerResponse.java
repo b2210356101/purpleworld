@@ -1,6 +1,5 @@
 package com.purpleworld.hufds.dto.response;
 
-import com.purpleworld.hufds.entity.Restaurant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,4 +14,5 @@ public class MenuItemCustomerResponse {
     private String description;
     private String img;
     private RestaurantResponse restaurant;
+    private Boolean isAvailable;
 }

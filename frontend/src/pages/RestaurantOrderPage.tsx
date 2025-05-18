@@ -39,6 +39,7 @@ import {
 } from "../utils/api";
 import { OrderGroupDTO } from "../types";
 import Loading from "../components/Loading";
+import { useTranslation } from "react-i18next";
 
 const RestaurantOrderManagement = () => {
     const [orders, setOrders] = useState<OrderGroupDTO[]>([]);
@@ -50,6 +51,7 @@ const RestaurantOrderManagement = () => {
     const ordersPerPage = 10;
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+    const { t } = useTranslation();
 
     // Fetch orders
     useEffect(() => {
@@ -214,7 +216,7 @@ const RestaurantOrderManagement = () => {
     };
 
     const formatDate = (dateString: string | null) => {
-        if (!dateString) return "N/A";
+        if (!dateString) return t('util.notAvailable');
         const date = new Date(dateString);
         return new Intl.DateTimeFormat("en-US", {
             year: "numeric",
@@ -226,7 +228,7 @@ const RestaurantOrderManagement = () => {
     };
 
     const formatTime = (dateString: string | null) => {
-        if (!dateString) return "N/A";
+        if (!dateString) return t('util.notAvailable');
         const date = new Date(dateString);
         return new Intl.DateTimeFormat("en-US", {
             hour: "2-digit",
@@ -263,7 +265,7 @@ const RestaurantOrderManagement = () => {
                     <Box sx={{ display: "flex", alignItems: "center" }}>
                         <BasketIcon fontSize="small" color="action" sx={{ mr: 0.5 }} />
                         <Typography variant="body2" color="text.secondary">
-                            {order.orderItems?.length || 0} items
+                            {order.orderItems?.length || 0} {t('order.details.items')}
                         </Typography>
                     </Box>
                 </Box>
@@ -276,7 +278,7 @@ const RestaurantOrderManagement = () => {
                     onClick={() => handleDetailsClick(order)}
                     sx={{ borderRadius: "50px" }}
                 >
-                    Details
+                    {t('util.details')}
                 </Button>
             </CardActions>
         </Card>
@@ -287,12 +289,12 @@ const RestaurantOrderManagement = () => {
             <Table>
                 <TableHead>
                     <TableRow>
-                        <TableCell>Order #</TableCell>
-                        <TableCell>Customer</TableCell>
-                        <TableCell>Items</TableCell>
-                        <TableCell>Ordered At</TableCell>
-                        <TableCell>Status</TableCell>
-                        <TableCell align="center">Actions</TableCell>
+                        <TableCell>{t('order.table.orderNumber')}</TableCell>
+                        <TableCell>{t('order.table.customer')}</TableCell>
+                        <TableCell>{t('order.table.items')}</TableCell>
+                        <TableCell>{t('order.table.orderedAt')}</TableCell>
+                        <TableCell>{t('order.table.status')}</TableCell>
+                        <TableCell align="center">{t('order.table.actions')}</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -311,7 +313,7 @@ const RestaurantOrderManagement = () => {
                                         onClick={() => handleDetailsClick(order)}
                                         sx={{ borderRadius: "50px", px: 3 }}
                                     >
-                                        Details
+                                        {t('util.details')}
                                     </Button>
                                 </TableCell>
                             </TableRow>
@@ -319,7 +321,7 @@ const RestaurantOrderManagement = () => {
                     ) : (
                         <TableRow>
                             <TableCell colSpan={6} align="center">
-                                No orders found
+                                {t('orderManagement.noOrders')}
                             </TableCell>
                         </TableRow>
                     )}
@@ -349,7 +351,7 @@ const RestaurantOrderManagement = () => {
         renderFn: (item: any, index: number) => React.ReactNode
     ) => {
         if (!Array.isArray(array)) {
-            console.warn("Expected an array but received:", array);
+            console.warn(t('orderManagement.error.expectedArray'), array);
             return null;
         }
         return array.map(renderFn);
@@ -358,7 +360,7 @@ const RestaurantOrderManagement = () => {
     return (
         <Box sx={{ px: { xs: 2, sm: 4 }, py: 3 }}>
             <Typography variant="h5" component="h1" gutterBottom fontWeight="bold">
-                Your Orders
+                {t('orderManagement.yourOrders')}
             </Typography>
             <Divider sx={{ mb: 3 }} />
 
@@ -369,7 +371,7 @@ const RestaurantOrderManagement = () => {
                             safeMap(currentOrders, (order, index) => renderMobileOrderCard(order))
                         ) : (
                             <Typography align="center" sx={{ py: 4 }}>
-                                No orders found
+                                {t('orderManagement.noOrders')}
                             </Typography>
                         )}
                     </Box>
@@ -410,7 +412,7 @@ const RestaurantOrderManagement = () => {
                                     gap: isMobile ? 1 : 0,
                                 }}
                             >
-                                <Typography variant="h6">Order Details</Typography>
+                                <Typography variant="h6">{t('order.details.title')}</Typography>
                                 {getStatusChip(selectedOrder.status)}
                             </Box>
                         </DialogTitle>
@@ -425,29 +427,29 @@ const RestaurantOrderManagement = () => {
                             >
                                 <Box sx={{ mb: { xs: 2, sm: 0 } }}>
                                     <Typography variant="subtitle2" color="text.secondary">
-                                        Order #{selectedOrder.orderGroupId}
+                                        {t('order.details.number', { id: selectedOrder.orderGroupId })}
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
-                                        Ordered: {formatDate(selectedOrder.orderedDate)}
+                                        {t('order.details.ordered')}: {formatDate(selectedOrder.orderedDate)}
                                     </Typography>
                                     {selectedOrder.status === "REJECTED" && (
                                         <Typography variant="body2" color="error">
-                                            Rejected: {formatDate(selectedOrder.rejectionDate)}
+                                            {t('order.details.rejected')}: {formatDate(selectedOrder.rejectionDate)}
                                         </Typography>
                                     )}
                                     {selectedOrder.status === "PREPARING" && (
                                         <Typography variant="body2" color="warning.main">
-                                            Preparing since: {formatDate(selectedOrder.preperationDate)}
+                                            {t('order.details.preparingSince')}: {formatDate(selectedOrder.preperationDate)}
                                         </Typography>
                                     )}
                                     {selectedOrder.status === "ON_THE_WAY" && (
                                         <Typography variant="body2" color="success.main">
-                                            On the way since: {formatDate(selectedOrder.takenOverDate)}
+                                            {t('order.details.onTheWaySince')}: {formatDate(selectedOrder.takenOverDate)}
                                         </Typography>
                                     )}
                                     {selectedOrder.status === "DELIVERED" && (
                                         <Typography variant="body2">
-                                            Delivered: {formatDate(selectedOrder.deliveredDate)}
+                                            {t('order.details.delivered')}: {formatDate(selectedOrder.deliveredDate)}
                                         </Typography>
                                     )}
                                 </Box>
@@ -468,7 +470,7 @@ const RestaurantOrderManagement = () => {
                             </Box>
                             <Divider sx={{ my: 2 }} />
                             <Typography variant="h6" gutterBottom>
-                                Order Items
+                                {t('order.details.orderItems')}
                             </Typography>
                             {selectedOrder.orderItems && selectedOrder.orderItems.length > 0 ? (
                                 selectedOrder.orderItems.map((item, index) => (
@@ -490,12 +492,12 @@ const RestaurantOrderManagement = () => {
                                             </Typography>
                                         </Box>
                                         <Typography variant="body2" color="text.secondary" gutterBottom>
-                                            Price: {item.price.toFixed(2)}TL
+                                            {t('order.details.price')}: {item.price.toFixed(2)}TL
                                         </Typography>
                                         {item.removables && (
                                             <Box sx={{ mt: 1 }}>
                                                 <Typography variant="body2" color="text.secondary">
-                                                    Removables:
+                                                    {t('order.details.removables')}:
                                                 </Typography>
                                                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                                                     {item.removables.split(",").map((removable, idx) => (
@@ -514,13 +516,13 @@ const RestaurantOrderManagement = () => {
                                 ))
                             ) : (
                                 <Typography variant="body2" color="text.secondary">
-                                    No detailed items available for this order.
+                                    {t('order.details.noDetailedItems')}
                                 </Typography>
                             )}
                             {selectedOrder.note && (
                                 <Box sx={{ mt: 3 }}>
                                     <Typography variant="subtitle1" fontWeight="bold">
-                                        Notes:
+                                        {t('order.details.notes')}:
                                     </Typography>
                                     <Paper sx={{ p: 2, bgcolor: "primary.light" }}>
                                         <Typography variant="body2">{selectedOrder.note}</Typography>
@@ -534,7 +536,7 @@ const RestaurantOrderManagement = () => {
                                     justifyContent: "space-between",
                                 }}
                             >
-                                <Typography variant="subtitle1">Total Amount:</Typography>
+                                <Typography variant="subtitle1">{t('order.details.totalAmount')}:</Typography>
                                 <Typography variant="subtitle1" fontWeight="bold">
                                     {selectedOrder.restaurantTotal.toFixed(2)}TL
                                 </Typography>
@@ -563,7 +565,7 @@ const RestaurantOrderManagement = () => {
                                         }}
                                         fullWidth={isMobile}
                                     >
-                                        Reject
+                                        {t('order.actions.reject')}
                                     </Button>
                                     <Button
                                         onClick={() => handleAcceptOrder(selectedOrder.orderGroupId)}
@@ -577,7 +579,7 @@ const RestaurantOrderManagement = () => {
                                         }}
                                         fullWidth={isMobile}
                                     >
-                                        Accept
+                                        {t('order.actions.accept')}
                                     </Button>
                                     <Button
                                         onClick={handleCloseDetails}
@@ -590,7 +592,7 @@ const RestaurantOrderManagement = () => {
                                         }}
                                         fullWidth={isMobile}
                                     >
-                                        Close
+                                        {t('util.close')}
                                     </Button>
                                 </>
                             )}
@@ -608,7 +610,7 @@ const RestaurantOrderManagement = () => {
                                         }}
                                         fullWidth={isMobile}
                                     >
-                                        Mark as Prepared
+                                        {t('order.actions.markAsPrepared')}
                                     </Button>
                                     <Button
                                         onClick={handleCloseDetails}
@@ -620,7 +622,7 @@ const RestaurantOrderManagement = () => {
                                         }}
                                         fullWidth={isMobile}
                                     >
-                                        Close
+                                        {t('util.close')}
                                     </Button>
                                 </>
                             )}
@@ -632,7 +634,7 @@ const RestaurantOrderManagement = () => {
                                     sx={{ borderRadius: "50px" }}
                                     fullWidth={isMobile}
                                 >
-                                    Close
+                                    {t('util.close')}
                                 </Button>
                             )}
                         </DialogActions>

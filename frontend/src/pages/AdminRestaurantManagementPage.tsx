@@ -32,6 +32,7 @@ import {
 } from '../utils/api';
 import { RestaurantResponseForAdmin } from '../types';
 import Loading from '../components/Loading';
+import { useTranslation } from 'react-i18next';
 
 // Styled component for the page header
 const PageHeader = styled(Typography)(({ theme }) => ({
@@ -51,6 +52,8 @@ const InfoLabel = styled(Typography)(({ theme }) => ({
 
 // Main restaurant management component
 const AdminRestaurantManagementPage: React.FC = () => {
+  const { t } = useTranslation();
+  
   // State for restaurants data
   const [restaurants, setRestaurants] = useState<RestaurantResponseForAdmin[]>([]);
   // State for pagination
@@ -87,7 +90,7 @@ const AdminRestaurantManagementPage: React.FC = () => {
       // Calculate total pages based on data length
       setTotalPages(Math.ceil(data.length / ITEMS_PER_PAGE));
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch restaurants';
+      const errorMessage = err instanceof Error ? err.message : t('admin.restaurant.fetchError');
       setError(errorMessage);
       console.error('Error fetching restaurants:', err);
     } finally {
@@ -130,12 +133,12 @@ const AdminRestaurantManagementPage: React.FC = () => {
       // Show success notification
       setNotification({
         open: true,
-        message: 'Restaurant banned successfully',
+        message: t('admin.restaurant.banSuccess'),
         severity: 'success',
       });
     } catch (err) {
       // Show error notification
-      const errorMessage = err instanceof Error ? err.message : 'Failed to ban restaurant';
+      const errorMessage = err instanceof Error ? err.message : t('admin.restaurant.banError');
       setNotification({
         open: true,
         message: errorMessage,
@@ -165,12 +168,12 @@ const AdminRestaurantManagementPage: React.FC = () => {
       // Show success notification
       setNotification({
         open: true,
-        message: 'Restaurant unbanned successfully',
+        message: t('admin.restaurant.unbanSuccess'),
         severity: 'success',
       });
     } catch (err) {
       // Show error notification
-      const errorMessage = err instanceof Error ? err.message : 'Failed to unban restaurant';
+      const errorMessage = err instanceof Error ? err.message : t('admin.restaurant.unbanError');
       setNotification({
         open: true,
         message: errorMessage,
@@ -200,12 +203,12 @@ const AdminRestaurantManagementPage: React.FC = () => {
       // Show success notification
       setNotification({
         open: true,
-        message: 'Restaurant approved successfully',
+        message: t('admin.restaurant.approveSuccess'),
         severity: 'success',
       });
     } catch (err) {
       // Show error notification
-      const errorMessage = err instanceof Error ? err.message : 'Failed to approve restaurant';
+      const errorMessage = err instanceof Error ? err.message : t('admin.restaurant.approveError');
       setNotification({
         open: true,
         message: errorMessage,
@@ -235,12 +238,12 @@ const AdminRestaurantManagementPage: React.FC = () => {
       // Show success notification
       setNotification({
         open: true,
-        message: 'Restaurant rejected successfully',
+        message: t('admin.restaurant.rejectSuccess'),
         severity: 'success',
       });
     } catch (err) {
       // Show error notification
-      const errorMessage = err instanceof Error ? err.message : 'Failed to reject restaurant';
+      const errorMessage = err instanceof Error ? err.message : t('admin.restaurant.rejectError');
       setNotification({
         open: true,
         message: errorMessage,
@@ -289,13 +292,13 @@ const AdminRestaurantManagementPage: React.FC = () => {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'APPROVED':
-        return 'Approved';
+        return t('admin.status.approved');
       case 'REJECTED':
-        return 'Rejected';
+        return t('admin.status.rejected');
       case 'BANNED':
-        return 'Banned';
+        return t('admin.status.banned');
       case 'PENDING':
-        return 'Pending';
+        return t('admin.status.pending');
       default:
         return status.charAt(0) + status.slice(1).toLowerCase();
     }
@@ -303,7 +306,7 @@ const AdminRestaurantManagementPage: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <PageHeader variant="h4">Restaurant Management</PageHeader>
+      <PageHeader variant="h4">{t('menu.restaurantManagement')}</PageHeader>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -315,12 +318,12 @@ const AdminRestaurantManagementPage: React.FC = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Restaurant Name</TableCell>
-              <TableCell>ID</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Phone</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              <TableCell>{t('admin.restaurant.name')}</TableCell>
+              <TableCell>{t('admin.restaurant.id')}</TableCell>
+              <TableCell>{t('admin.restaurant.email')}</TableCell>
+              <TableCell>{t('admin.restaurant.phone')}</TableCell>
+              <TableCell>{t('admin.restaurant.status')}</TableCell>
+              <TableCell align="right">{t('admin.actions.action')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -333,7 +336,7 @@ const AdminRestaurantManagementPage: React.FC = () => {
             ) : restaurants.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} align="center">
-                  No restaurants found
+                  {t('admin.restaurant.noRestaurants')}
                 </TableCell>
               </TableRow>
             ) : (
@@ -369,7 +372,7 @@ const AdminRestaurantManagementPage: React.FC = () => {
                             onClick={() => handleBanRestaurant(restaurant.id)}
                             disabled={loading}
                           >
-                            Ban
+                            {t('admin.actions.ban')}
                           </Button>
                         </Grid>
                       )}
@@ -384,7 +387,7 @@ const AdminRestaurantManagementPage: React.FC = () => {
                             onClick={() => handleApproveRestaurant(restaurant.id)}
                             disabled={loading}
                           >
-                            Approve
+                            {t('admin.actions.approve')}
                           </Button>
                         </Grid>
                       )}
@@ -399,7 +402,7 @@ const AdminRestaurantManagementPage: React.FC = () => {
                             onClick={() => handleUnbanRestaurant(restaurant.id)}
                             disabled={loading}
                           >
-                            Unban
+                            {t('admin.actions.unban')}
                           </Button>
                         </Grid>
                       )}
@@ -415,7 +418,7 @@ const AdminRestaurantManagementPage: React.FC = () => {
                               onClick={() => handleApproveRestaurant(restaurant.id)}
                               disabled={loading}
                             >
-                              Approve
+                              {t('admin.actions.approve')}
                             </Button>
                           </Grid>
                           <Grid size={{ xs: 'auto' }}>
@@ -426,7 +429,7 @@ const AdminRestaurantManagementPage: React.FC = () => {
                               onClick={() => handleRejectRestaurant(restaurant.id)}
                               disabled={loading}
                             >
-                              Reject
+                              {t('admin.actions.reject')}
                             </Button>
                           </Grid>
                         </>
@@ -445,7 +448,7 @@ const AdminRestaurantManagementPage: React.FC = () => {
                           onClick={() => handleViewRestaurant(restaurant)}
                           disabled={loading}
                         >
-                          View
+                          {t('admin.actions.view')}
                         </Button>
                       </Grid>
                     </Grid>
@@ -481,37 +484,37 @@ const AdminRestaurantManagementPage: React.FC = () => {
           <>
             <DialogTitle>
               <Typography variant="h6" component="div">
-                Restaurant Details
+                {t('admin.restaurant.detailsTitle')}
               </Typography>
             </DialogTitle>
             <DialogContent dividers>
               <Stack spacing={2}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <InfoLabel>ID:</InfoLabel>
+                  <InfoLabel>{t('admin.restaurant.id')}:</InfoLabel>
                   <Typography>{selectedRestaurant.id}</Typography>
                 </Box>
                 <Divider />
 
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <InfoLabel>Name:</InfoLabel>
+                  <InfoLabel>{t('admin.restaurant.name')}:</InfoLabel>
                   <Typography>{selectedRestaurant.restaurantName}</Typography>
                 </Box>
                 <Divider />
 
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <InfoLabel>Email:</InfoLabel>
+                  <InfoLabel>{t('admin.restaurant.email')}:</InfoLabel>
                   <Typography>{selectedRestaurant.email}</Typography>
                 </Box>
                 <Divider />
 
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <InfoLabel>Phone:</InfoLabel>
+                  <InfoLabel>{t('admin.restaurant.phone')}:</InfoLabel>
                   <Typography>{selectedRestaurant.phoneNumber}</Typography>
                 </Box>
                 <Divider />
 
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <InfoLabel>Status:</InfoLabel>
+                  <InfoLabel>{t('admin.restaurant.status')}:</InfoLabel>
                   <Chip
                     label={getStatusLabel(selectedRestaurant.status)}
                     size="small"
@@ -528,7 +531,7 @@ const AdminRestaurantManagementPage: React.FC = () => {
                 <Divider />
 
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <InfoLabel>Manager:</InfoLabel>
+                  <InfoLabel>{t('admin.restaurant.manager')}:</InfoLabel>
                   <Typography>
                     {selectedRestaurant.manager_Name} {selectedRestaurant.manager_Last_Name}
                   </Typography>
@@ -536,14 +539,14 @@ const AdminRestaurantManagementPage: React.FC = () => {
                 <Divider />
 
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <InfoLabel>Tax ID:</InfoLabel>
+                  <InfoLabel>{t('admin.restaurant.taxId')}:</InfoLabel>
                   <Typography>{selectedRestaurant.tax_Id}</Typography>
                 </Box>
               </Stack>
             </DialogContent>
             <DialogActions>
               <Button onClick={handleCloseDetailsDialog} sx={{ color: 'secondary.main' }}>
-                Close
+                {t('util.cancel')}
               </Button>
 
               {/* Conditional action buttons based on status */}
@@ -556,7 +559,7 @@ const AdminRestaurantManagementPage: React.FC = () => {
                   sx={{ bgcolor: 'secondary.dark' }}
                   variant="contained"
                 >
-                  Ban Restaurant
+                  {t('admin.actions.banRestaurant')}
                 </Button>
               )}
 
@@ -570,7 +573,7 @@ const AdminRestaurantManagementPage: React.FC = () => {
                   sx={{ bgcolor: 'primary.main' }}
                   variant="contained"
                 >
-                  Approve Restaurant
+                  {t('admin.actions.approveRestaurant')}
                 </Button>
               )}
 
@@ -584,7 +587,7 @@ const AdminRestaurantManagementPage: React.FC = () => {
                   sx={{ bgcolor: 'teal' }}
                   variant="contained"
                 >
-                  Unban Restaurant
+                  {t('admin.actions.unbanRestaurant')}
                 </Button>
               )}
 
@@ -598,7 +601,7 @@ const AdminRestaurantManagementPage: React.FC = () => {
                     sx={{ bgcolor: 'secondary.light' }}
                     variant="contained"
                   >
-                    Reject
+                    {t('admin.actions.reject')}
                   </Button>
                   <Button
                     onClick={() => {
@@ -608,7 +611,7 @@ const AdminRestaurantManagementPage: React.FC = () => {
                     sx={{ bgcolor: 'primary' }}
                     variant="contained"
                   >
-                    Approve
+                    {t('admin.actions.approve')}
                   </Button>
                 </>
               )}

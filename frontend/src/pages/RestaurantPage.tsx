@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
     Box,
     Typography,
@@ -17,41 +17,60 @@ import {
     Tooltip,
     Card,
     CardMedia,
-    CardContent
-} from '@mui/material';
-import { useParams } from 'react-router-dom';
-import AddIcon from '@mui/icons-material/Add';
-import { Search as SearchIcon, Favorite, FavoriteBorder } from '@mui/icons-material';
-import { getIngredients, getRestaurantMenuForCustomer, getRestaurantDetails } from '../utils/api';
-import { MenuItem, Restaurant, Ingredient } from '../types';
+    CardContent,
+} from "@mui/material";
+import { useParams } from "react-router-dom";
+import AddIcon from "@mui/icons-material/Add";
+import { useNavigate } from 'react-router-dom';
+import {
+    Search as SearchIcon,
+    Favorite,
+    FavoriteBorder,
+} from "@mui/icons-material";
+import {
+    getIngredients,
+    getRestaurantMenuForCustomer,
+    getRestaurantDetails, checkIsFavorite, addToFavorites, removeFromFavorites
+} from "../utils/api";
+import { MenuItem, Restaurant, Ingredient } from "../types";
+import LoginIcon from '@mui/icons-material/Login';
 import RemoveIngredientsModal from "../components/cart/RemoveIngredientsModal";
-import Loading from '../components/Loading';
-import { useTranslation } from 'react-i18next';
-import FoodImageModal from '../components/menu/FoodImageModal';
+import Loading from "../components/Loading";
+import { useTranslation } from "react-i18next";
+import FoodImageModal from "../components/menu/FoodImageModal";
+import { getToken } from "../utils/auth";
 
 const RestaurantPage = () => {
     const { t } = useTranslation();
+    const navigate = useNavigate();
 
     const { id } = useParams<{ id: string }>();
     const restaurantId = id ? parseInt(id) : 0;
     const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+    const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+    const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
+    const isAuthenticated = !!getToken();
 
     const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
     const [categories, setCategories] = useState<any[]>([]);
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
     const [currentTab, setCurrentTab] = useState(0);
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, setSearchTerm] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedFood, setSelectedFood] = useState<MenuItem | null>(null);
     const [ingredients, setIngredients] = useState<Ingredient[]>([]);
     const [quantity, setQuantity] = useState<number>(1);
-    const [selectedIngredients, setSelectedIngredients] = useState<Ingredient[]>([]);
+    const [selectedIngredients, setSelectedIngredients] = useState<Ingredient[]>(
+        []
+    );
     const [isAddingToCart, setIsAddingToCart] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isFavorite, setIsFavorite] = useState(false);
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+
+    const handleLogin = () => {
+        navigate('/login', { state: { from: `/restaurants/${id}` } });
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -66,10 +85,28 @@ const RestaurantPage = () => {
 
                 const menuData = await getRestaurantMenuForCustomer(restaurantId);
 
+                const status = await checkIsFavorite(restaurantId);
+                setIsFavorite(status);
+
                 if (menuData && menuData.categories) {
+
+                    menuData.categories.forEach(category => {
+                        if (category.menuItems) {
+                            console.log(`Items in category ${category.name}:`,
+                                category.menuItems.map(item => ({
+                                    name: item.name,
+                                    isAvailable: item.isAvailable
+                                }))
+                            );
+                        }
+                    });
+
                     setCategories(menuData.categories);
                     if (menuData.categories.length > 0) {
-                        setMenuItems(menuData.categories[0].menuItems || []);
+                        const availableItems = menuData.categories[0].menuItems
+                            ? menuData.categories[0].menuItems.filter(item => item.isAvailable)
+                            : [];
+                        setMenuItems(availableItems);
                     }
                 }
             } catch (error) {
@@ -86,7 +123,10 @@ const RestaurantPage = () => {
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setCurrentTab(newValue);
         if (categories && categories.length > newValue) {
-            setMenuItems(categories[newValue].menuItems || []);
+            const availableItems = categories[newValue].menuItems
+                ? categories[newValue].menuItems.filter((item: MenuItem) => item.isAvailable)
+                : [];
+            setMenuItems(availableItems);
         }
     };
 
@@ -97,7 +137,10 @@ const RestaurantPage = () => {
 
         if (!searchValue.trim()) {
             if (categories && categories.length > currentTab) {
-                setMenuItems(categories[currentTab].menuItems || []);
+                const availableItems = categories[currentTab].menuItems
+                    ? categories[currentTab].menuItems.filter((item: MenuItem) => item.isAvailable)
+                    : [];
+                setMenuItems(availableItems);
             }
             return;
         }
@@ -110,8 +153,9 @@ const RestaurantPage = () => {
             if (category.menuItems) {
                 category.menuItems.forEach((item: MenuItem) => {
                     if (
-                        item.name.toLowerCase().includes(searchLower) ||
-                        (item.description && item.description.toLowerCase().includes(searchLower))
+                        item.isAvailable &&
+                        (item.name.toLowerCase().includes(searchLower) ||
+                            (item.description && item.description.toLowerCase().includes(searchLower)))
                     ) {
                         filteredItems.push(item);
                     }
@@ -123,9 +167,17 @@ const RestaurantPage = () => {
     };
 
     // Toggle favorite status
-    const toggleFavorite = () => {
-        setIsFavorite(!isFavorite);
-        // API to add/remove from favorites
+    const toggleFavorite = async () => {
+        try {
+            if (isFavorite) {
+                await removeFromFavorites(restaurantId);
+            } else {
+                await addToFavorites(restaurantId);
+            }
+            setIsFavorite(!isFavorite);
+        } catch (error) {
+            console.error('Error toggling favorite status:', error);
+        }
     };
 
     // Fetch ingredients and open modal
@@ -173,7 +225,7 @@ const RestaurantPage = () => {
                 }}
             >
                 {/* Favorite Button */}
-                <Tooltip
+                {isAuthenticated && <Tooltip
                     title={isFavorite ? t('restaurant.removeFromFavorites') : t('restaurant.addToFavorites')}
                     arrow
                     placement="bottom-end"
@@ -201,6 +253,7 @@ const RestaurantPage = () => {
                         {isFavorite ? <Favorite fontSize="medium" /> : <FavoriteBorder fontSize="medium" />}
                     </IconButton>
                 </Tooltip>
+                }
 
                 <Box sx={{
                     p: { xs: 1, sm: 2, md: 3 },
@@ -365,7 +418,7 @@ const RestaurantPage = () => {
                                 fontWeight="bold"
                                 color="text.primary"
                             >
-                                {restaurant?.rating}
+                                {restaurant?.rating?.toFixed(1)}
                             </Typography>
                         )}
 
@@ -414,21 +467,31 @@ const RestaurantPage = () => {
                                 variant="text"
                                 width="70%"
                                 height={16}
-                                sx={{ mx: 'auto' }}
+                                sx={{ mx: "auto" }}
                             />
                         ) : (
                             <Typography
                                 variant={isMobile ? "caption" : "body2"}
+                                onClick={() =>
+                                    navigate(`/restaurants/${restaurant?.id}/reviews`)
+                                }
                                 sx={{
-                                    color: 'primary.main',
-                                    fontWeight: 'medium',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' }
+                                    color: "primary.main",
+                                    fontWeight: "medium",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    fontSize: { xs: "0.7rem", sm: "0.75rem", md: "0.875rem" },
+                                    cursor: "pointer", // Add cursor pointer to show it's clickable
+                                    "&:hover": {
+                                        textDecoration: "underline", // Add underline on hover for better UX
+                                    },
                                 }}
                             >
-                                {t('restaurant.viewReviews')} <Box component="span" sx={{ ml: 0.5 }}>›</Box>
+                                {t("restaurant.viewReviews")}{" "}
+                                <Box component="span" sx={{ ml: 0.5 }}>
+                                    ›
+                                </Box>
                             </Typography>
                         )}
                     </Box>
@@ -519,14 +582,15 @@ const RestaurantPage = () => {
                         <Loading size={80} />
                     </Box>
                 ) : (
-                    <Grid container spacing={3}>
+                    <Grid container spacing={2}>
                         {menuItems.map((menuItem) => (
-                            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={menuItem.id}>
+                            <Grid size={{ xs: 6, sm: 6, md: 3 }} key={menuItem.id}>
                                 <Card sx={{
                                     display: 'flex',
                                     flexDirection: 'column',
                                     borderRadius: 3,
                                     overflow: 'hidden',
+                                    height: '100%',
                                     transition: "transform 0.3s, box-shadow 0.3s",
                                     "&:hover": {
                                         transform: "translateY(-3px)",
@@ -582,20 +646,31 @@ const RestaurantPage = () => {
                                             >
                                                 {menuItem.price}₺
                                             </Typography>
-                                            <Button
-                                                variant="contained"
-                                                sx={{
-                                                    minWidth: 0,
-                                                    width: { xs: 28, sm: 32 },
-                                                    height: { xs: 28, sm: 32 },
-                                                    borderRadius: '50%',
-                                                    p: 0
-                                                }}
-                                                onClick={() => handleOpenModal(menuItem)}
-                                                disabled={isAddingToCart}
-                                            >
-                                                <AddIcon />
-                                            </Button>
+                                            {isAuthenticated ? (
+                                                // Giriş yapmış kullanıcılar için + butonu
+                                                <Button
+                                                    variant="contained"
+                                                    sx={{
+                                                        minWidth: 0,
+                                                        width: { xs: 28, sm: 32 },
+                                                        height: { xs: 28, sm: 32 },
+                                                        borderRadius: '50%',
+                                                        p: 0
+                                                    }}
+                                                    onClick={() => handleOpenModal(menuItem)}
+                                                    disabled={isAddingToCart}
+                                                >
+                                                    <AddIcon />
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    variant="outlined"
+                                                    color="secondary"
+                                                    size="small"
+                                                    startIcon={<LoginIcon />}
+                                                    onClick={handleLogin}
+                                                />
+                                            )}
                                         </Box>
                                     </CardContent>
                                 </Card>

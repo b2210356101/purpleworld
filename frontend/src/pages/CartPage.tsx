@@ -12,6 +12,7 @@ import {
   CircularProgress,
   Alert,
   Skeleton,
+  useMediaQuery
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -20,10 +21,13 @@ import EditNoteIcon from "@mui/icons-material/EditNote";
 import { useNavigate } from "react-router-dom";
 import { viewCart, updateItemQuantity, removeItemFromCart, updateCartGroupNote } from "../utils/api";
 import { ViewCartResponse, CartGroupResponse, CartItemResponse } from "../types";
+import { useTranslation } from 'react-i18next';
 
 const ShoppingCartPage: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const navigate = useNavigate();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const [cartItems, setCartItems] = useState<CartGroupResponse[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -53,7 +57,7 @@ const ShoppingCartPage: React.FC = () => {
       setItemTotal(`${data.cartTotal}₺`);
       setTotalAmount(`${data.cartTotal}₺`);
     } catch (err) {
-      setError("Failed to load cart items. Please try again later.");
+      setError(t('cart.error'));
     } finally {
       setLoading(false);
     }
@@ -108,8 +112,8 @@ const ShoppingCartPage: React.FC = () => {
 
       window.dispatchEvent(new Event("cart-updated"));
     } catch (err: any) {
-      console.error("Cart update error:", err);
-      setError("Failed to update cart item.");
+      console.error(t('cart.updateError'), err);
+      setError(t('cart.updateError'));
       // Re-fetch cart on error to revert optimistic update
       await fetchCart();
     }
@@ -128,7 +132,7 @@ const ShoppingCartPage: React.FC = () => {
         )
       );
     } catch (err) {
-      console.error("Failed to update note", err);
+      console.error(t('cart.noteUpdateError'), err);
     }
   };
 
@@ -148,25 +152,32 @@ const ShoppingCartPage: React.FC = () => {
           sx={{ mt: 2 }}
           onClick={() => window.location.reload()}
         >
-          Try Again
+          {t('cart.tryAgain')}
         </Button>
       </Container>
     );
   }
 
   return (
-    <Container sx={{ py: 4 }}>
+    <Container 
+      sx={{ 
+        py: 4,
+        px: isMobile ? 1 : 2, // Reduce padding on mobile
+        maxWidth: "md", // Use medium width container for all screens
+        mx: "auto" // Center the container
+      }}
+    >
       <Typography variant="h5" fontWeight={700} mb={1}>
-        Shopping Cart
+        {t('cart.yourCart')}
       </Typography>
       <Divider sx={{ mb: 3 }} />
       {cartItems.length === 0 && !loading ? (
         <Paper sx={{ p: 4, textAlign: "center", borderRadius: 4 }}>
           <Typography variant="h6" mb={2}>
-            Your cart is empty
+            {t('cart.cartIsEmpty')}
           </Typography>
           <Button variant="contained" onClick={() => navigate("/")}>
-            Continue Shopping
+            {t('cart.continueShopping')}
           </Button>
         </Paper>
       ) : (
@@ -174,14 +185,19 @@ const ShoppingCartPage: React.FC = () => {
           display="flex"
           flexDirection={{ xs: "column", md: "row" }}
           gap={4}
-          alignItems="stretch"
+          alignItems={{ xs: "center", md: "flex-start" }}
+          justifyContent="center"
+          maxWidth="1100px" 
+          mx="auto"
         >
           <Box
             flex={3}
-            width={{ xs: "100%", md: "auto" }}
+            width="100%" // Always full width on mobile
             display="flex"
             flexDirection="column"
             gap={4}
+            maxWidth={{ sm: "650px", md: "650px" }}
+            mx="auto"
           >
             {loading ? (
               // Skeleton for items section during loading
@@ -192,8 +208,6 @@ const ShoppingCartPage: React.FC = () => {
                     backgroundColor: theme.palette.primary.light,
                     overflow: "hidden",
                     width: "100%",
-                    maxWidth: 650,
-                    mx: "-8",
                 }}
                 >
                 <Skeleton
@@ -201,7 +215,7 @@ const ShoppingCartPage: React.FC = () => {
                     height={48}
                     sx={{ bgcolor: theme.palette.primary.main }}
                 />
-                <Box px={3} pt={2} pb={3}>
+                <Box px={isMobile ? 2 : 3} pt={2} pb={3}>
                     {[...Array(2)].map((_, itemIndex) => (
                     <Box
                         key={itemIndex}
@@ -248,15 +262,15 @@ const ShoppingCartPage: React.FC = () => {
                     backgroundColor: theme.palette.primary.light,
                     overflow: "hidden",
                     width: "100%",
-                    maxWidth: 650,
-                    mx: "-8",
+                    maxWidth: "650px",
+                    mx: "auto"
                   }}
                 >
                   <Box
                     sx={{
                       backgroundColor: theme.palette.primary.main,
                       color: "white",
-                      px: 3,
+                      px: isMobile ? 2 : 3,
                       py: 1.5,
                     }}
                   >
@@ -264,23 +278,23 @@ const ShoppingCartPage: React.FC = () => {
                       {group.restaurantName}
                     </Typography>
                   </Box>
-                  <Box px={3} pt={2}>
+                  <Box px={isMobile ? 2 : 3} pt={2}>
                     {group.items.map((item: CartItemResponse) => (
                       <Box
                         key={item.itemId}
                         display="flex"
                         justifyContent="space-between"
-                        gap={2}
+                        gap={isMobile ? 1 : 2}
                         sx={{
-                          p: 2,
+                          p: isMobile ? 1.5 : 2,
                           borderRadius: 3,
                           mb: 2,
                         }}
                       >
                         <Box
                           sx={{
-                            width: 64,
-                            height: 64,
+                            width: isMobile ? 56 : 64,
+                            height: isMobile ? 56 : 64,
                             borderRadius: 2,
                             overflow: "hidden",
                             flexShrink: 0,
@@ -298,8 +312,11 @@ const ShoppingCartPage: React.FC = () => {
                             }}
                           />
                         </Box>
-                        <Box flex="1 1 200px">
-                          <Typography fontWeight={600}>
+                        <Box flex="1 1 100px">
+                          <Typography 
+                            fontWeight={600} 
+                            fontSize={isMobile ? 14 : 16}
+                          >
                             {item.itemName}
                           </Typography>
                         </Box>
@@ -309,7 +326,11 @@ const ShoppingCartPage: React.FC = () => {
                           alignItems="flex-end"
                           justifyContent="space-between"
                         >
-                          <Typography fontWeight={700} color="primary">
+                          <Typography 
+                            fontWeight={700} 
+                            color="primary"
+                            fontSize={isMobile ? 14 : 16}
+                          >
                             {item.itemPrice}₺
                           </Typography>
                           <Box
@@ -322,13 +343,13 @@ const ShoppingCartPage: React.FC = () => {
                               px: 1,
                               py: 0.5,
                               color: "white",
-                              minWidth: 100,
+                              minWidth: isMobile ? 90 : 100,
                               justifyContent: "space-between",
                             }}
                           >
                             <IconButton
                               size="small"
-                              sx={{ color: "white", width: 32, height: 32 }}
+                              sx={{ color: "white", width: 28, height: 28 }}
                               onClick={() =>
                                 handleQuantityChange(
                                   item.itemId,
@@ -346,7 +367,7 @@ const ShoppingCartPage: React.FC = () => {
                             </IconButton>
                             <Box
                               sx={{
-                                width: 24,
+                                width: 20,
                                 textAlign: "center",
                                 fontWeight: 600,
                                 fontSize: 14,
@@ -356,7 +377,7 @@ const ShoppingCartPage: React.FC = () => {
                             </Box>
                             <IconButton
                               size="small"
-                              sx={{ color: "white", width: 32, height: 32 }}
+                              sx={{ color: "white", width: 28, height: 28 }}
                               onClick={() =>
                                 handleQuantityChange(
                                   item.itemId,
@@ -372,16 +393,16 @@ const ShoppingCartPage: React.FC = () => {
                         </Box>
                       </Box>
                     ))}
-                    <Box px={3} pb={2}>
+                    <Box px={isMobile ? 1 : 3} pb={2}>
                       {editingGroupId === group.groupId ? (
                         <Box display="flex" flexDirection="column" gap={1}>
                           <TextField
                             fullWidth
                             size="small"
-                            label="Note for restaurant"
+                            label={t('cart.noteForRestaurant')}
                             value={editedNote}
                             onChange={(e) => setEditedNote(e.target.value)}
-                            placeholder="E.g. No onions, extra spicy..."
+                            placeholder={t('cart.notePlaceholder')}
                           />
                           <Box display="flex" justifyContent="flex-end" gap={1}>
                             <Button
@@ -389,14 +410,14 @@ const ShoppingCartPage: React.FC = () => {
                               size="small"
                               onClick={() => setEditingGroupId(null)}
                             >
-                              Cancel
+                              {t('util.cancel')}
                             </Button>
                             <Button
                               variant="contained"
                               size="small"
                               onClick={handleSaveNote}
                             >
-                              Save
+                              {t('util.save')}
                             </Button>
                           </Box>
                         </Box>
@@ -407,7 +428,7 @@ const ShoppingCartPage: React.FC = () => {
                           justifyContent="space-between"
                         >
                           <Typography fontSize={14} color="text.secondary">
-                            {group.note || "No note added"}
+                            {group.note || t('cart.noNote')}
                           </Typography>
                           <IconButton
                             size="small"
@@ -426,13 +447,13 @@ const ShoppingCartPage: React.FC = () => {
               ))
             )}
           </Box>
-          <Box flex={1} display="flex" flexDirection="column" gap={3}>
+          <Box flex={1} display="flex" flexDirection="column" gap={3} width="100%" maxWidth={{ xs: "100%", sm: "400px" }}>
             {loading ? (
               <>
                 {/* Skeleton for Promo Code Section */}
                 <Paper
                   sx={{
-                    p: 3,
+                    p: isMobile ? 2 : 3,
                     borderRadius: 4,
                     backgroundColor: theme.palette.primary.light,
                   }}
@@ -450,7 +471,7 @@ const ShoppingCartPage: React.FC = () => {
                 {/* Skeleton for Cart Summary Section */}
                 <Paper
                   sx={{
-                    p: 3,
+                    p: isMobile ? 2 : 3,
                     borderRadius: 4,
                     backgroundColor: theme.palette.primary.light,
                   }}
@@ -491,15 +512,19 @@ const ShoppingCartPage: React.FC = () => {
               <>
                 <Paper
                   sx={{
-                    p: 3,
+                    p: isMobile ? 2 : 3,
                     borderRadius: 4,
                     backgroundColor: theme.palette.primary.light,
                   }}
                 >
                   <Typography fontWeight={600} mb={1}>
-                    🏡 Promo Code
+                    🏡 {t('cart.promoCode')}
                   </Typography>
-                  <Box display="flex" gap={1}>
+                  <Box 
+                    display="flex" 
+                    gap={1}
+                    flexDirection={isMobile ? "column" : "row"}
+                  >
                     <TextField
                       size="small"
                       fullWidth
@@ -515,17 +540,21 @@ const ShoppingCartPage: React.FC = () => {
                       variant="contained"
                       color="primary"
                       disabled={promoCodeLoading}
+                      sx={{
+                        minWidth: isMobile ? "100%" : 80,
+                        mt: isMobile ? 1 : 0
+                      }}
                       onClick={() => {
                         if (promoCode === "SEPETTE80") {
                           setPromoCodeMessage({
-                            text: "Promo code applied successfully!",
+                            text: t('cart.promoCodeApplied'),
                             isError: false,
                           });
                           setDiscount("80₺");
                           setTotalAmount(`${parseFloat(itemTotal) - 80}₺`);
                         } else {
                           setPromoCodeMessage({
-                            text: "Invalid promo code",
+                            text: t('cart.invalidPromoCode'),
                             isError: true,
                           });
                         }
@@ -534,7 +563,7 @@ const ShoppingCartPage: React.FC = () => {
                       {promoCodeLoading ? (
                         <CircularProgress size={24} />
                       ) : (
-                        "Apply"
+                        t('cart.apply')
                       )}
                     </Button>
                   </Box>
@@ -550,13 +579,13 @@ const ShoppingCartPage: React.FC = () => {
                 </Paper>
                 <Paper
                   sx={{
-                    p: 3,
+                    p: isMobile ? 2 : 3,
                     borderRadius: 4,
                     backgroundColor: theme.palette.primary.light,
                   }}
                 >
                   <Typography variant="subtitle1" fontWeight={600} mb={1}>
-                    Cart Summary
+                    {t('cart.cartSummary')}
                   </Typography>
                   <Box mb={2}>
                     <Box
@@ -565,7 +594,7 @@ const ShoppingCartPage: React.FC = () => {
                       mb={1}
                     >
                       <Typography fontWeight={600} fontSize={14}>
-                        Item Total
+                        {t('cart.itemTotal')}
                       </Typography>
                       <Typography fontWeight={600} fontSize={14}>
                         {itemTotal}
@@ -573,7 +602,7 @@ const ShoppingCartPage: React.FC = () => {
                     </Box>
                     <Box display="flex" justifyContent="space-between">
                       <Typography fontWeight={600} fontSize={14}>
-                        Discount
+                        {t('cart.discount')}
                       </Typography>
                       <Typography
                         fontWeight={600}
@@ -591,7 +620,7 @@ const ShoppingCartPage: React.FC = () => {
                     mt={2}
                     sx={{ display: "flex", justifyContent: "space-between" }}
                   >
-                    <span>Total</span>
+                    <span>{t('cart.total')}</span>
                     <span>{totalAmount}</span>
                   </Typography>
                   <Typography
@@ -599,7 +628,7 @@ const ShoppingCartPage: React.FC = () => {
                     color="text.secondary"
                     mt={1}
                   >
-                    🚚 Delivery in 35–45 Min
+                    🚚 {t('cart.deliveryTime', { min: 35, max: 45 })}
                   </Typography>
                   <Button
                     variant="contained"
@@ -607,7 +636,7 @@ const ShoppingCartPage: React.FC = () => {
                     sx={{ mt: 3 }}
                     onClick={handleProceedToCheckout}
                   >
-                    Proceed To Checkout
+                    {t('cart.proceedToCheckout')}
                   </Button>
                 </Paper>
               </>

@@ -17,6 +17,7 @@ public class MenuItemResponse {
     private String description;
     private String img;
     private List<RemovableElementResponse> removableElements;
+    private Boolean isAvailable;
 
 
     public MenuItemResponse (MenuItem menuItem,List<RemovableElementResponse> removableElements) {
@@ -26,6 +27,7 @@ public class MenuItemResponse {
         this.description = menuItem.getDescription();
         this.img = menuItem.getImg();
         this.removableElements = removableElements;
+        this.isAvailable = menuItem.getIsAvailable();
     }
 
 }

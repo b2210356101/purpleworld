@@ -183,7 +183,7 @@ const HomePage = () => {
                 <Box sx={{ mt: 3 }}>
                     <Button
                         component={Link}
-                        to="/register"
+                        to="/register?tab=1"
                         variant="contained"
                         color="primary"
                         sx={{ mr: 2 }}

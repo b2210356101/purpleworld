@@ -104,7 +104,11 @@ const MenuDrawer = ({ onClose, onLogout }: MenuDrawerProps) => {
                 {/* Language Switch */}
                 <ButtonGroup variant="text" sx={{ color: 'white' }}>
                     <Button
-                        onClick={() => { i18n.changeLanguage('tr'); onClose(); }}
+                        onClick={() => {
+                            i18n.changeLanguage('tr');
+                            localStorage.setItem('lang', 'tr');
+                            onClose();
+                        }}
                         sx={{
                             fontWeight: i18n.language === 'tr' ? 'bold' : 'regular',
                             bgcolor: i18n.language === 'tr' ? 'white' : 'transparent',
@@ -115,7 +119,11 @@ const MenuDrawer = ({ onClose, onLogout }: MenuDrawerProps) => {
                         TR
                     </Button>
                     <Button
-                        onClick={() => { i18n.changeLanguage('en'); onClose(); }}
+                        onClick={() => {
+                            i18n.changeLanguage('en');
+                            localStorage.setItem('lang', 'en');
+                            onClose();
+                        }}
                         sx={{
                             fontWeight: i18n.language === 'en' ? 'bold' : 'regular',
                             bgcolor: i18n.language === 'en' ? 'white' : 'transparent',

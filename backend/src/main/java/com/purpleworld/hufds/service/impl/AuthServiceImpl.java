@@ -12,10 +12,14 @@ import com.purpleworld.hufds.repository.*;
 import com.purpleworld.hufds.security.JwtService;
 import com.purpleworld.hufds.service.AuthService;
 import com.purpleworld.hufds.service.GoogleMapsService;
+import com.purpleworld.hufds.service.MailService;
+import io.jsonwebtoken.JwtException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +35,8 @@ public class AuthServiceImpl implements AuthService {
     private final AdminRepository adminRepository;
     private final MenuRepository menuRepository;
     private final CartRepository cartRepository;
+    private final MailService mailService;
+
 
 
     @Override
@@ -156,8 +162,16 @@ public class AuthServiceImpl implements AuthService {
         String email = request.getEmail();
         String password = request.getPassword();
 
+        if (!isEmailRegistered(email)) {
+            throw new LoginException("Login Failed", "This email is not registered.", 403);
+        }
+
         var customer = customerRepository.findByEmail(email);
-        if (customer.isPresent() && passwordEncoder.matches(password, customer.get().getPassword())) {
+        if (customer.isPresent()) {
+            if (!passwordEncoder.matches(password, customer.get().getPassword())) {
+                throw new LoginException("Login Failed", "Incorrect password.", 403);
+            }
+
             if (customer.get().isBanned()) {
                 throw new LoginException("Account Banned", "Your restaurant account has been banned.", 403);
             }
@@ -167,7 +181,11 @@ public class AuthServiceImpl implements AuthService {
         }
 
         var courier = courierRepository.findByEmail(email);
-        if (courier.isPresent() && passwordEncoder.matches(password, courier.get().getPassword())) {
+        if (courier.isPresent()) {
+            if (!passwordEncoder.matches(password, courier.get().getPassword())) {
+                throw new LoginException("Login Failed", "Incorrect password.", 403);
+            }
+
             AccountStatus status = courier.get().getStatus();
             if (status != AccountStatus.APPROVED) {
                 if (status == AccountStatus.PENDING) {
@@ -183,7 +201,11 @@ public class AuthServiceImpl implements AuthService {
         }
 
         var restaurant = restaurantRepository.findByEmail(email);
-        if (restaurant.isPresent() && passwordEncoder.matches(password, restaurant.get().getPassword())) {
+        if (restaurant.isPresent()) {
+
+            if (!passwordEncoder.matches(password, restaurant.get().getPassword())) {
+                throw new LoginException("Login Failed", "Incorrect password.", 403);
+            }
             AccountStatus status = restaurant.get().getStatus();
             if (status != AccountStatus.APPROVED) {
                 if (status == AccountStatus.PENDING) {
@@ -199,11 +221,78 @@ public class AuthServiceImpl implements AuthService {
         }
 
         var admin = adminRepository.findByEmail(email);
-        if (admin.isPresent() && passwordEncoder.matches(password, admin.get().getPassword())) {
+        if (admin.isPresent()) {
+            if (!passwordEncoder.matches(password, admin.get().getPassword())) {
+                throw new LoginException("Login Failed", "Incorrect password.", 403);
+            }
             String token = jwtService.generateToken(email, "ADMIN");
             return new LoginResponse(token, "ADMIN", admin.get().getFirstName(), null);
         }
 
         throw new RuntimeException("Invalid credentials");
+    }
+
+
+
+    @Value("${app.frontend.reset-password-url}")
+    private String resetPasswordUrl; // e.g. https://yourdomain.com/reset-password
+
+    @Override
+    @Transactional
+    public void forgotPassword(ForgotPasswordRequest request) {
+        String email = request.getEmail();
+
+        if (!isEmailRegistered(email)) {
+            return;
+        }
+
+        String token = jwtService.generateResetToken(email);
+
+        String link = UriComponentsBuilder
+                .fromHttpUrl(resetPasswordUrl)
+                .queryParam("token", token)
+                .build()
+                .toUriString();
+
+        mailService.sendResetPasswordEmail(email, link);
+    }
+
+    @Override
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        String token = request.getToken();
+        String newPassword = request.getNewPassword();
+        String email;
+
+        try {
+            email = jwtService.extractEmailFromResetToken(token);
+        } catch (JwtException ex) {
+            throw new LoginException("Reset Failed", "Invalid or expired reset token.", 400);
+        }
+
+        updatePasswordByEmail(email, newPassword);
+    }
+    private void updatePasswordByEmail(String email, String rawPassword) {
+        String encoded = passwordEncoder.encode(rawPassword);
+
+        customerRepository.findByEmail(email).ifPresent(c -> {
+            c.setPassword(encoded);
+            customerRepository.save(c);
+        });
+
+        courierRepository.findByEmail(email).ifPresent(c -> {
+            c.setPassword(encoded);
+            courierRepository.save(c);
+        });
+
+        restaurantRepository.findByEmail(email).ifPresent(r -> {
+            r.setPassword(encoded);
+            restaurantRepository.save(r);
+        });
+
+        adminRepository.findByEmail(email).ifPresent(a -> {
+            a.setPassword(encoded);
+            adminRepository.save(a);
+        });
     }
 }

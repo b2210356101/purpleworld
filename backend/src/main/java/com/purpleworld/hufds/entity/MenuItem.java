@@ -27,7 +27,7 @@ public class MenuItem {
     private String description;
 
     @Column(name = "IsAvailable")
-    private Boolean isAvailable;
+    private Boolean isAvailable = true;
 
     @Lob
     @Column(name = "Img",columnDefinition = "TEXT")

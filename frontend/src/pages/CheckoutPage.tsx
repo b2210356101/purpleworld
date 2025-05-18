@@ -32,6 +32,7 @@ import {
   CartItemResponse,
 } from "../types";
 import CheckoutSummary from "../components/CheckoutSummary";
+import { useTranslation } from "react-i18next";
 
 // types
 interface CardInfo {
@@ -70,6 +71,7 @@ interface CheckoutData {
 }
 
 const CheckoutPage: React.FC = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const navigate = useNavigate();
 
@@ -297,7 +299,7 @@ const CheckoutPage: React.FC = () => {
   return (
     <Container sx={{ py:4 }}>
       <Typography variant="h5" fontWeight={700} mb={1}>
-        Secure Checkout
+        {t('checkout.title')}
       </Typography>
       <Divider sx={{ mb: 3 }} />
       <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={20}>
@@ -312,7 +314,7 @@ const CheckoutPage: React.FC = () => {
                 color: theme.palette.primary.main,
               }}
             />
-            Delivery address
+            {t('checkout.deliveryAddress')}
           </Typography>
           {!checkoutData.address.text ? (
             <CircularProgress size={24} />
@@ -336,19 +338,19 @@ const CheckoutPage: React.FC = () => {
           {/* payment type */}
           <Box mt={4} mb={2}>
             <Typography fontWeight={600} mb={1}>
-              Type of Payment
+              {t('checkout.paymentType')}
             </Typography>
             <Box display="flex" gap={2}>
               {[
                 {
                   type: "credit",
                   icon: <CreditCardIcon />,
-                  label: "Credit Card",
+                  label: t('checkout.paymentOptions.creditCard'),
                 },
                 {
                   type: "cash",
                   icon: <LocalAtmIcon />,
-                  label: "Cash on Delivery",
+                  label: t('checkout.paymentOptions.cash'),
                 },
               ].map(({ type, icon, label }) => (
                 <Box
@@ -409,11 +411,11 @@ const CheckoutPage: React.FC = () => {
               </Box>
 
               <Typography fontSize={14} fontWeight={500} mb={0.5}>
-                Name on card:
+                {t('checkout.card.nameOnCard')}:
               </Typography>
               <TextField
                 fullWidth
-                placeholder="Name Surname"
+                placeholder={t('checkout.card.namePlaceholder')}
                 value={checkoutData.cardInfo.name}
                 onChange={(e) => handleCardInput("name", e.target.value)}
                 onFocus={() => setFlipCard(false)}
@@ -430,7 +432,7 @@ const CheckoutPage: React.FC = () => {
               />
 
               <Typography fontSize={14} fontWeight={500} mb={0.5}>
-                Card number:
+                {t('checkout.card.cardNumber')}:
               </Typography>
               <TextField
                 fullWidth
@@ -457,7 +459,7 @@ const CheckoutPage: React.FC = () => {
               <Box display="flex" gap={2}>
                 <Box flex={1}>
                   <Typography fontSize={14} fontWeight={500} mb={0.5}>
-                    Expiry date:
+                    {t('checkout.card.expiryDate')}:
                   </Typography>
                   <TextField
                     fullWidth
@@ -486,7 +488,7 @@ const CheckoutPage: React.FC = () => {
                 </Box>
                 <Box flex={1}>
                   <Typography fontSize={14} fontWeight={500} mb={0.5}>
-                    CVV
+                    {t('checkout.card.cvv')}
                   </Typography>
                   <TextField
                     fullWidth

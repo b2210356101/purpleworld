@@ -17,4 +17,5 @@ public class RestaurantResponse {
     private double reviews;
     private double distanceInKm;
     private MenuResponse menu;
+    private Double score;
 }

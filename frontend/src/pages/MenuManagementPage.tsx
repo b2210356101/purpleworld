@@ -22,6 +22,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { addMenuCategory, addMenuItem, addRemovableElement, deleteMenuCategory, deleteMenuItem, deleteRemovableElement, getRestaurantMenu, updateMenuItem } from '../utils/api';
 import defaultFoodImg from "../assets/menuitem.png";
 import { Category } from '../types';
+import { useTranslation } from 'react-i18next';
 
 
 // Define interface for removable element response
@@ -43,6 +44,7 @@ interface MenuItem {
 
 // Component for rendering menu items grouped by category
 const MenuManagementPage: React.FC = () => {
+    const { t } = useTranslation();
     const [categories, setCategories] = useState<Category[]>([]);
     const [openCategoryDialog, setOpenCategoryDialog] = useState(false);
     const [openItemDialog, setOpenItemDialog] = useState(false);
@@ -67,7 +69,13 @@ const MenuManagementPage: React.FC = () => {
 
     const fetchMenu = async () => {
         try {
-            const menuData = await getRestaurantMenu();
+            const menuData = await getRestaurantMenu(
+                0,
+                10000,
+                "",
+                undefined,
+                undefined
+            );
             setCategories(menuData.categories || []);
         } catch (error) {
             // error
@@ -142,10 +150,10 @@ const MenuManagementPage: React.FC = () => {
                 await fetchMenu();
                 handleCloseItemDialog();
             } catch (error) {
-                console.error(isEditing ? 'Failed to update item:' : 'Failed to add item:', error);
+                console.error(isEditing ? t('menuManagement.error.updateItem') : t('menuManagement.error.addItem'), error);
             }
         } else {
-            alert('Please fill in all required fields (Name and Price)');
+            alert(t('menuManagement.alert.fillRequired'));
         }
     };
 
@@ -158,7 +166,7 @@ const MenuManagementPage: React.FC = () => {
                 await fetchMenu();
                 handleCloseCategoryDialog();
             } catch (error) {
-                console.error('Failed to add category:', error);
+                console.error(t('menuManagement.error.addCategory'), error);
             }
         }
     };
@@ -170,8 +178,8 @@ const MenuManagementPage: React.FC = () => {
             // Fetch fresh data instead of trying to update state manually
             await fetchMenu();
         } catch (error) {
-            console.error('Failed to delete item:', error);
-            alert('Failed to delete item. Please try again.');
+            console.error(t('menuManagement.error.deleteItem'), error);
+            alert(t('menuManagement.alert.deleteItemFailed'));
         }
     };
 
@@ -181,8 +189,8 @@ const MenuManagementPage: React.FC = () => {
             await deleteRemovableElement(itemId);
             await fetchMenu();
         } catch (error) {
-            console.error('Failed to delete item:', error);
-            alert('Failed to delete item. Please try again.');
+            console.error(t('menuManagement.error.deleteRemovable'), error);
+            alert(t('menuManagement.alert.deleteRemovableFailed'));
         }
     };
 
@@ -192,8 +200,8 @@ const MenuManagementPage: React.FC = () => {
             await deleteMenuCategory(categoryId);
             await fetchMenu();
         } catch (error) {
-            console.error('Failed to delete category:', error);
-            alert('Failed to delete category. Please try again.');
+            console.error(t('menuManagement.error.deleteCategory'), error);
+            alert(t('menuManagement.alert.deleteCategoryFailed'));
         }
     };
 
@@ -274,8 +282,8 @@ const MenuManagementPage: React.FC = () => {
                 // Refresh menu data to show the new element
                 await fetchMenu();
             } catch (error) {
-                console.error('Failed to add removable element:', error);
-                alert('Failed to add removable element. Please try again.');
+                console.error(t('menuManagement.error.addRemovable'), error);
+                alert(t('menuManagement.alert.addRemovableFailed'));
             }
         }
     };
@@ -291,14 +299,14 @@ const MenuManagementPage: React.FC = () => {
         <Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold' }}>
-                    Manage Menu
+                    {t('menuManagement.title')}
                 </Typography>
                 <Button
                     variant="contained"
                     startIcon={<AddIcon />}
                     onClick={handleOpenCategoryDialog}
                 >
-                    Add New Category
+                    {t('menuManagement.addNewCategory')}
                 </Button>
             </Box>
 
@@ -322,7 +330,7 @@ const MenuManagementPage: React.FC = () => {
                                 size="small"
                                 color="error"
                                 onClick={() => handleDeleteCategory(category.id)}
-                                aria-label="Delete category"
+                                aria-label={t('menuManagement.aria.deleteCategory')}
                             >
                                 <DeleteIcon />
                             </IconButton>
@@ -336,7 +344,7 @@ const MenuManagementPage: React.FC = () => {
                                 alignSelf: { xs: 'flex-start', sm: 'auto' }
                             }}
                         >
-                            Add New Item
+                            {t('menuManagement.addNewItem')}
                         </Button>
                     </Box>
 
@@ -395,7 +403,7 @@ const MenuManagementPage: React.FC = () => {
                                         {/* Add removable element section on page */}
                                         <Box sx={{ display: "flex", alignItems: 'center', gap: 2, mt: 1.2 }}>
                                             <TextField
-                                                placeholder="Add removable element"
+                                                placeholder={t('menuManagement.placeholder.addRemovable')}
                                                 variant="outlined"
                                                 size="small"
                                                 value={itemRemovableElements[item.id] || ''}
@@ -410,7 +418,7 @@ const MenuManagementPage: React.FC = () => {
                                                     whiteSpace: 'nowrap'
                                                 }}
                                             >
-                                                Add New
+                                                {t('menuManagement.addNew')}
                                             </Button>
                                         </Box>
                                     </CardContent>
@@ -432,7 +440,7 @@ const MenuManagementPage: React.FC = () => {
                                             size="small"
                                             color="primary"
                                             onClick={() => handleOpenEditDialog(category.id, category.name, item)}
-                                            aria-label="Edit item"
+                                            aria-label={t('menuManagement.aria.editItem')}
                                         >
                                             <EditIcon />
                                         </IconButton>
@@ -440,7 +448,7 @@ const MenuManagementPage: React.FC = () => {
                                             size="small"
                                             color="error"
                                             onClick={() => handleDeleteItem(item.id)}
-                                            aria-label="Delete item"
+                                            aria-label={t('menuManagement.aria.deleteItem')}
                                         >
                                             <DeleteIcon />
                                         </IconButton>
@@ -454,13 +462,13 @@ const MenuManagementPage: React.FC = () => {
 
             {/* Add Category Dialog */}
             <Dialog fullWidth maxWidth="sm" open={openCategoryDialog} onClose={handleCloseCategoryDialog}>
-                <DialogTitle>Add New Category</DialogTitle>
+                <DialogTitle>{t('menuManagement.dialog.addCategory')}</DialogTitle>
                 <DialogContent>
                     <TextField
                         autoFocus
                         margin="dense"
                         id="category"
-                        label="Category Name"
+                        label={t('menuManagement.label.categoryName')}
                         type="text"
                         fullWidth
                         variant="outlined"
@@ -469,12 +477,12 @@ const MenuManagementPage: React.FC = () => {
                     />
                 </DialogContent>
                 <DialogActions sx={{ p: 3 }}>
-                    <Button onClick={handleCloseCategoryDialog}>Cancel</Button>
+                    <Button onClick={handleCloseCategoryDialog}>{t('util.cancel')}</Button>
                     <Button
                         onClick={handleAddCategory}
                         variant="contained"
                     >
-                        Add
+                        {t('util.add')}
                     </Button>
                 </DialogActions>
             </Dialog>
@@ -482,7 +490,7 @@ const MenuManagementPage: React.FC = () => {
             {/* Add/Edit Item Dialog */}
             <Dialog fullWidth maxWidth="sm" open={openItemDialog} onClose={handleCloseItemDialog}>
                 <DialogTitle>
-                    {isEditing ? 'Edit Item' : `Add New Item to ${selectedCategoryName}`}
+                    {isEditing ? t('menuManagement.dialog.editItem') : t('menuManagement.dialog.addItemTo', { name: selectedCategoryName })}
                 </DialogTitle>
                 <DialogContent>
                     <TextField
@@ -490,7 +498,7 @@ const MenuManagementPage: React.FC = () => {
                         margin="dense"
                         id="name"
                         name="name"
-                        label="Item Name"
+                        label={t('menuManagement.label.itemName')}
                         type="text"
                         fullWidth
                         variant="outlined"
@@ -502,7 +510,7 @@ const MenuManagementPage: React.FC = () => {
                         margin="dense"
                         id="price"
                         name="price"
-                        label="Price (₺)"
+                        label={t('menuManagement.label.price')}
                         type="number"
                         fullWidth
                         variant="outlined"
@@ -514,7 +522,7 @@ const MenuManagementPage: React.FC = () => {
                         margin="dense"
                         id="description"
                         name="description"
-                        label="Description"
+                        label={t('menuManagement.label.description')}
                         type="text"
                         fullWidth
                         multiline
@@ -527,7 +535,7 @@ const MenuManagementPage: React.FC = () => {
                     {/* Image Upload Section */}
                     <Box sx={{ mb: 2, mt: 2 }}>
                         <Typography variant="subtitle1" gutterBottom>
-                            Product Image
+                            {t('menuManagement.label.productImage')}
                         </Typography>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                             <Box
@@ -547,7 +555,7 @@ const MenuManagementPage: React.FC = () => {
                                 {!newItem.img && !isEditing && <AddIcon />}
                             </Box>
                             <Button variant="outlined" component="label" sx={{ height: 40 }}>
-                                Upload Image
+                                {t('menuManagement.uploadImage')}
                                 <input
                                     type="file"
                                     hidden
@@ -562,7 +570,7 @@ const MenuManagementPage: React.FC = () => {
                     {!isEditing &&
                         <Box sx={{ mb: 2, mt: 3 }}>
                             <Typography variant="subtitle1" gutterBottom>
-                                Removable Elements:
+                                {t('menuManagement.label.removableElements')}
                             </Typography>
 
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
@@ -580,7 +588,7 @@ const MenuManagementPage: React.FC = () => {
 
                             <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
                                 <TextField
-                                    placeholder="Enter new removable element"
+                                    placeholder={t('menuManagement.placeholder.newRemovable')}
                                     variant="outlined"
                                     size="small"
                                     value={newElement}
@@ -597,18 +605,18 @@ const MenuManagementPage: React.FC = () => {
                                         whiteSpace: 'nowrap'
                                     }}
                                 >
-                                    Add Element
+                                    {t('menuManagement.addElement')}
                                 </Button>
                             </Box>
                         </Box>}
                 </DialogContent>
                 <DialogActions sx={{ p: 3 }}>
-                    <Button onClick={handleCloseItemDialog}>Cancel</Button>
+                    <Button onClick={handleCloseItemDialog}>{t('util.cancel')}</Button>
                     <Button
                         onClick={handleSaveItem}
                         variant="contained"
                     >
-                        {isEditing ? 'Save Changes' : 'Add Item'}
+                        {isEditing ? t('util.saveChanges') : t('util.add')}
                     </Button>
                 </DialogActions>
             </Dialog>

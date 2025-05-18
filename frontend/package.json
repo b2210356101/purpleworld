@@ -23,7 +23,9 @@
     "react-i18next": "^15.5.1",
     "react-lottie": "^1.2.10",
     "react-redux": "^9.2.0",
-    "react-router-dom": "^7.4.1"
+    "react-router-dom": "^7.4.1",
+    "react-slick": "^0.30.3",
+    "slick-carousel": "^1.8.1"
   },
   "devDependencies": {
     "@types/google.maps": "^3.58.1",

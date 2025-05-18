@@ -2,6 +2,7 @@ package com.purpleworld.hufds.service.impl;
 
 import com.purpleworld.hufds.dto.request.CategoryRequest;
 import com.purpleworld.hufds.dto.request.MenuItemRequest;
+import com.purpleworld.hufds.dto.request.MenuItemAvailabilityRequest;
 import com.purpleworld.hufds.dto.request.RemovableElementRequest;
 import com.purpleworld.hufds.dto.response.CategoryResponse;
 import com.purpleworld.hufds.dto.response.MenuItemResponse;
@@ -12,6 +13,9 @@ import com.purpleworld.hufds.repository.*;
 import com.purpleworld.hufds.service.MenuManagementService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,6 +24,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,56 +38,93 @@ public class MenuManagementServiceImpl implements MenuManagementService {
 
     @Override
     @Transactional
-    public ResponseEntity<?> getRestaurantMenu (@AuthenticationPrincipal String email) {
+    public ResponseEntity<?> getRestaurantMenu(
+            @AuthenticationPrincipal String email,
+            String search,
+            Pageable pageable) {
         Optional<Restaurant> restaurantOpt = restaurantRepository.findByEmail(email);
         if (restaurantOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Restaurant not found");
         }
 
         Restaurant restaurant = restaurantOpt.get();
-        Optional<Menu> menu = menuRepository.findByRestaurant(restaurant);
-        if (menu.isEmpty()) {
+        Optional<Menu> menuOpt = menuRepository.findByRestaurant(restaurant);
+        if (menuOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Menu not found");
         }
 
+        Menu menu = menuOpt.get();
+
+        Page<MenuItem> menuItemPage = menuItemRepository.findByRestaurantIdAndSearch(
+                restaurant.getId(),
+                search == null ? "" : search,
+                pageable);
+
+        Map<Category, List<MenuItem>> itemsByCategory = new HashMap<>();
+
+        List<MenuItem> sortedItems = new ArrayList<>(menuItemPage.getContent());
+
+        if (pageable.getSort().isSorted()) {}
+
+        for (MenuItem item : sortedItems) {
+            Category category = item.getCategory();
+            if (!itemsByCategory.containsKey(category)) {
+                itemsByCategory.put(category, new ArrayList<>());
+            }
+            itemsByCategory.get(category).add(item);
+        }
+
+        List<Category> sortedCategories = new ArrayList<>(itemsByCategory.keySet());
+        sortedCategories.sort(Comparator.comparing(Category::getName));
 
         List<CategoryResponse> categoryResponses = new ArrayList<>();
-
-        for (Category category : menu.get().getCategories()) {
-            String categoryName = category.getName();
-            Long categoryId = category.getId();
+        for (Category category : sortedCategories) {
+            List<MenuItem> items = itemsByCategory.get(category);
 
             List<MenuItemResponse> itemResponses = new ArrayList<>();
 
-            for (MenuItem item : category.getMenuItems()) {
-
-                List<RemovableElementResponse> removableElementsResponses = new ArrayList<>();
-                for (RemovableElement removableElement : item.getRemovableElements()){
-                    removableElementsResponses.add(new RemovableElementResponse(removableElement.getId(),
-                            removableElement.getName()));
-                }
+            for (MenuItem item : items) {
+                List<RemovableElementResponse> removableElementsResponses = item.getRemovableElements().stream()
+                        .map(re -> new RemovableElementResponse(re.getId(), re.getName()))
+                        .collect(Collectors.toList());
                 itemResponses.add(new MenuItemResponse(
                         item.getId(),
                         item.getName(),
                         item.getPrice(),
                         item.getDescription(),
                         item.getImg(),
-                        removableElementsResponses
-                ));
+                        removableElementsResponses,
+                        item.getIsAvailable()));
             }
 
             categoryResponses.add(new CategoryResponse(
-                    categoryId,
-                    categoryName,
-                    itemResponses
-            ));
+                    category.getId(),
+                    category.getName(),
+                    itemResponses));
         }
 
+        long totalItems = menuItemRepository.countByRestaurantId(restaurant.getId());
+        long inStockItems = menuItemRepository.countAvailableByRestaurantId(restaurant.getId());
+
+        MenuResponse.MenuStats stats = new MenuResponse.MenuStats(
+                totalItems,
+                inStockItems,
+                totalItems - inStockItems);
+
+        MenuResponse.PageInfo pageInfo = new MenuResponse.PageInfo(
+                menuItemPage.getNumber(),
+                menuItemPage.getSize(),
+                menuItemPage.getTotalPages(),
+                menuItemPage.getTotalElements(),
+                menuItemPage.hasNext(),
+                menuItemPage.hasPrevious());
+
         MenuResponse response = new MenuResponse(
-                menu.get().getId(),
-                menu.get().getRestaurant().getRestaurantName(),
-                categoryResponses
-        );
+                menu.getId(),
+                restaurant.getRestaurantName(),
+                categoryResponses,
+                pageInfo,
+                stats);
 
         return ResponseEntity.ok(response);
     }
@@ -133,8 +175,8 @@ public class MenuManagementServiceImpl implements MenuManagementService {
     @Override
     @Transactional
     public ResponseEntity<?> addMenuItemToCategory(@PathVariable Long categoryId,
-                                                   @RequestBody MenuItemRequest request,
-                                                   @AuthenticationPrincipal String email) {
+            @RequestBody MenuItemRequest request,
+            @AuthenticationPrincipal String email) {
         Optional<Restaurant> restaurantOpt = restaurantRepository.findByEmail(email);
         if (restaurantOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Restaurant not found");
@@ -154,19 +196,21 @@ public class MenuManagementServiceImpl implements MenuManagementService {
         menuItem.setImg(request.getImg());
         menuItem.setCategory(category);
         menuItem.setIsAvailable(true);
+        menuItem = menuItemRepository.save(menuItem);
 
-        if (request.getRemovableElements() != null && !request.getRemovableElements().equals("")) {
-            for (String element : request.getRemovableElements().split(",")) {
+        if (request.getRemovableElements() != null && !request.getRemovableElements().isBlank()) {
+            for (String elementName : request.getRemovableElements().split(",")) {
                 RemovableElement removableElement = new RemovableElement();
-                removableElement.setName(element);
+                removableElement.setName(elementName);
                 removableElement.setMenuItem(menuItem);
                 removableElementRepository.save(removableElement);
             }
+
+            menuItem = menuItemRepository.findById(menuItem.getId()).orElse(menuItem);
         }
 
-        menuItemRepository.save(menuItem);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body("Menu item created successfully.");
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body("Menu item created successfully.");
     }
 
     @Override
@@ -189,7 +233,7 @@ public class MenuManagementServiceImpl implements MenuManagementService {
         menuItem.setDescription(request.getDescription());
         menuItem.setImg(request.getImg());
 
-        menuItemRepository.save(menuItem);
+        menuItem = menuItemRepository.save(menuItem);
 
         return ResponseEntity.ok("Menu item updated successfully.");
     }
@@ -217,7 +261,7 @@ public class MenuManagementServiceImpl implements MenuManagementService {
     @Override
     @Transactional
     public ResponseEntity<?> deleteRemovableElement(@PathVariable Long removableElementId,
-                                                    @AuthenticationPrincipal String email) {
+            @AuthenticationPrincipal String email) {
         Optional<Restaurant> restaurantOpt = restaurantRepository.findByEmail(email);
         if (restaurantOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Restaurant not found");
@@ -238,8 +282,8 @@ public class MenuManagementServiceImpl implements MenuManagementService {
     @Override
     @Transactional
     public ResponseEntity<?> addRemovableElement(@PathVariable Long itemId,
-                                                 @RequestBody RemovableElementRequest request,
-                                                 @AuthenticationPrincipal String email) {
+            @RequestBody RemovableElementRequest request,
+            @AuthenticationPrincipal String email) {
         Optional<Restaurant> restaurantOpt = restaurantRepository.findByEmail(email);
         if (restaurantOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Restaurant not found");
@@ -258,5 +302,26 @@ public class MenuManagementServiceImpl implements MenuManagementService {
         removableElementRepository.save(removableElement);
 
         return ResponseEntity.status(HttpStatus.CREATED).body("Removable element added successfully");
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<?> updateMenuItemAvailability(Long itemId, MenuItemAvailabilityRequest request,
+            String email) {
+        Optional<Restaurant> restaurantOpt = restaurantRepository.findByEmail(email);
+        if (restaurantOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Restaurant not found");
+        }
+
+        Optional<MenuItem> itemOpt = menuItemRepository.findById(itemId);
+        if (itemOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Menu item not found");
+        }
+
+        MenuItem menuItem = itemOpt.get();
+        menuItem.setIsAvailable(request.getIsAvailable());
+        menuItemRepository.save(menuItem);
+
+        return ResponseEntity.ok("Menu item availability updated successfully.");
     }
 }

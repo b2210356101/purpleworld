@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Typography, Paper, Avatar, Button, Stack } from '@mui/material';
 import { CustomerCurrentOrderDTO } from '../../types';
 import { CircleRounded } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 interface OrderTrackingProps {
     activeOrderGroups: CustomerCurrentOrderDTO[];
@@ -24,12 +25,14 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({
     handleTrackOrder,
     handleCancelOrderClick
 }) => {
+    const { t } = useTranslation();
+
     if (activeOrderGroups.length === 0) return null;
 
     return (
         <Box sx={{ my: 6 }}>
             <Typography variant="h5" fontWeight="bold" sx={{ mb: 3 }}>
-                Current Orders ({activeOrderGroups.length})
+                {t('orderTracking.currentOrders', { count: activeOrderGroups.length })}
             </Typography>
 
             {activeOrderGroups.map((orderGroup) => (
@@ -38,13 +41,13 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <Box>
                                 <Typography variant="h6">
-                                    Order from {orderGroup.restaurantName}
+                                    {t('orderTracking.orderFrom', { restaurant: orderGroup.restaurantName })}
                                 </Typography>
                                 <Typography color="text.secondary">
-                                    Order #{orderGroup.orderGroupId}
+                                    {t('orderTracking.orderNumber', { id: orderGroup.orderGroupId })}
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
-                                    Placed at {formatOrderDate(orderGroup.orderedDate)}
+                                    {t('orderTracking.placedAt', { time: formatOrderDate(orderGroup.orderedDate) })}
                                 </Typography>
                             </Box>
                             <Box sx={{ textAlign: 'right' }}>
@@ -52,7 +55,7 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({
                                     {calculateRemainingTime(orderGroup.estimatedDeliveryTime)}
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
-                                    Estimated delivery at {formatEstimatedTime(orderGroup.estimatedDeliveryTime)}
+                                    {t('orderTracking.estimatedDelivery', { time: formatEstimatedTime(orderGroup.estimatedDeliveryTime) })}
                                 </Typography>
                             </Box>
                         </Box>
@@ -80,7 +83,7 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({
                                             <CircleRounded sx={{ color: '#d1d1d1', fontSize: 28 }} />
                                         )}
                                         <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
-                                            {step.label}
+                                            {t(`orderTracking.steps.${step.label.toLowerCase().replace(/\s+/g, '')}`)}
                                         </Typography>
                                     </Box>
                                 ))}
@@ -121,7 +124,10 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({
                                         {orderGroup.restaurantName}
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
-                                        {orderGroup.itemCount} items • {orderGroup.distanceInKm.toFixed(1)} km away
+                                        {t('orderTracking.itemsDistance', {
+                                            count: orderGroup.itemCount,
+                                            distance: orderGroup.distanceInKm.toFixed(1)
+                                        })}
                                     </Typography>
                                 </Box>
                             </Box>
@@ -133,7 +139,7 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({
                                         onClick={() => handleCancelOrderClick(orderGroup)}
                                         color="secondary"
                                     >
-                                        Cancel Order
+                                        {t('orderTracking.cancelOrder')}
                                     </Button>
                                 }
 
@@ -141,14 +147,14 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({
                                     variant="contained"
                                     onClick={() => handleViewOrderDetails(orderGroup)}
                                 >
-                                    View Details
+                                    {t('orderTracking.viewDetails')}
                                 </Button>
                                 <Button
                                     variant="outlined"
                                     onClick={() => handleTrackOrder(orderGroup)}
                                     disabled={orderGroup.status.toUpperCase() !== "ON_THE_WAY"}
                                 >
-                                    Track Order
+                                    {t('orderTracking.trackOrder')}
                                 </Button>
                             </Stack>
                         </Stack>

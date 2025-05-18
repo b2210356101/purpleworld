@@ -33,6 +33,7 @@ import {
 } from "../utils/api";
 import { OrderGroupDTO, Stat } from "../types";
 import Loading from "../components/Loading";
+import { useTranslation } from "react-i18next";
 
 // Review type
 interface Review {
@@ -56,6 +57,7 @@ const RestaurantDashboard = () => {
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const [containerWidth, setContainerWidth] = useState<string>("100%");
     const [isAnimating, setIsAnimating] = useState(false);
+    const { t } = useTranslation();
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -342,7 +344,7 @@ const RestaurantDashboard = () => {
                         mb: 2,
                     }}
                 >
-                    <Typography variant="h6">Order Details</Typography>
+                    <Typography variant="h6">{t('order.details.title')}</Typography>
                     <IconButton onClick={handleCloseDetails}>
                         <CloseIcon />
                     </IconButton>
@@ -358,24 +360,24 @@ const RestaurantDashboard = () => {
                 >
                     <Box>
                         <Typography variant="subtitle1" fontWeight="medium">
-                            Order #{selectedOrder.orderGroupId}
+                            {t('order.details.number', { id: selectedOrder.orderGroupId })}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
                             {formatDate(selectedOrder.orderedDate)}
                         </Typography>
                         {selectedOrder.status === "PREPARING" && (
                             <Typography variant="body2" color="warning.main">
-                                Preparing since: {formatDate(selectedOrder.preperationDate)}
+                                {t('order.details.preparingSince')}: {formatDate(selectedOrder.preperationDate)}
                             </Typography>
                         )}
                         {selectedOrder.status === "ON_THE_WAY" && (
                             <Typography variant="body2" color="success.main">
-                                On the way since: {formatDate(selectedOrder.takenOverDate)}
+                                {t('order.details.onTheWaySince')}: {formatDate(selectedOrder.takenOverDate)}
                             </Typography>
                         )}
                         {selectedOrder.status === "DELIVERED" && (
                             <Typography variant="body2">
-                                Delivered: {formatDate(selectedOrder.deliveredDate)}
+                                {t('order.details.delivered')}: {formatDate(selectedOrder.deliveredDate)}
                             </Typography>
                         )}
                     </Box>
@@ -407,7 +409,7 @@ const RestaurantDashboard = () => {
                                             color="text.secondary"
                                             sx={{ mb: 1 }}
                                         >
-                                            Removables: {item.removables}
+                                            {t('order.details.removables')}: {item.removables}
                                         </Typography>
                                     )}
                                 </Box>
@@ -431,7 +433,7 @@ const RestaurantDashboard = () => {
                     ))
                 ) : (
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        No items available for this order.
+                        {t('order.details.noItems')}
                     </Typography>
                 )}
 
@@ -439,7 +441,7 @@ const RestaurantDashboard = () => {
                 {selectedOrder.note && (
                     <Box sx={{ mb: 2 }}>
                         <Typography variant="subtitle2" fontWeight="bold">
-                            Notes:
+                            {t('order.details.notes')}:
                         </Typography>
                         <Typography variant="body2">{selectedOrder.note}</Typography>
                     </Box>
@@ -453,10 +455,10 @@ const RestaurantDashboard = () => {
                                 (total, item) => total + item.quantity,
                                 0
                             ) || 0}{" "}
-                            items
+                            {t('order.details.items')}
                         </Typography>
                         {selectedOrder.status === "ORDERED" && (
-                            <Typography variant="subtitle2">Reject / Accept</Typography>
+                            <Typography variant="subtitle2">{t('order.actions.rejectAccept')}</Typography>
                         )}
                     </Box>
 
@@ -496,7 +498,7 @@ const RestaurantDashboard = () => {
                                 color="primary"
                                 sx={{ borderRadius: "50px" }}
                             >
-                                Mark as Prepared
+                                {t('order.actions.markAsPrepared')}
                             </Button>
                         )}
                     </Box>
@@ -531,7 +533,7 @@ const RestaurantDashboard = () => {
                 component="h1"
                 sx={{ fontWeight: "bold", mb: 2 }}
             >
-                Active Orders
+                {t('dashboard.activeOrders')}
             </Typography>
             <Divider sx={{ mb: 3 }} />
 
@@ -613,7 +615,7 @@ const RestaurantDashboard = () => {
                                                                 (total, item) => total + item.quantity,
                                                                 0
                                                             ) || 0}{" "}
-                                                            items • {formatTime(order.orderedDate)}
+                                                            {t('order.details.items')} • {formatTime(order.orderedDate)}
                                                         </Typography>
                                                         <Button
                                                             variant="contained"
@@ -631,14 +633,14 @@ const RestaurantDashboard = () => {
                                                                 },
                                                             }}
                                                         >
-                                                            Details
+                                                            {t('util.details')}
                                                         </Button>
                                                     </Box>
                                                 </Paper>
                                             ))
                                         ) : (
                                             <Typography align="center" sx={{ py: 4 }}>
-                                                No active orders found
+                                                {t('dashboard.noActiveOrders')}
                                             </Typography>
                                         )}
                                     </Box>
@@ -655,13 +657,13 @@ const RestaurantDashboard = () => {
                                         <Table stickyHeader sx={{ tableLayout: "fixed" }}>
                                             <TableHead>
                                                 <TableRow>
-                                                    <TableCell width="15%">Order #</TableCell>
-                                                    <TableCell width="20%">Customer</TableCell>
-                                                    <TableCell width="10%">Items</TableCell>
-                                                    <TableCell width="15%">Time</TableCell>
-                                                    <TableCell width="20%">Status</TableCell>
+                                                    <TableCell width="15%">{t('order.table.orderNumber')}</TableCell>
+                                                    <TableCell width="20%">{t('order.table.customer')}</TableCell>
+                                                    <TableCell width="10%">{t('order.table.items')}</TableCell>
+                                                    <TableCell width="15%">{t('order.table.time')}</TableCell>
+                                                    <TableCell width="20%">{t('order.table.status')}</TableCell>
                                                     <TableCell width="20%" align="center">
-                                                        Actions
+                                                        {t('order.table.actions')}
                                                     </TableCell>
                                                 </TableRow>
                                             </TableHead>
@@ -696,7 +698,7 @@ const RestaurantDashboard = () => {
                                                                         },
                                                                     }}
                                                                 >
-                                                                    Details
+                                                                    {t('util.details')}
                                                                 </Button>
                                                             </TableCell>
                                                         </TableRow>
@@ -704,7 +706,7 @@ const RestaurantDashboard = () => {
                                                 ) : (
                                                     <TableRow>
                                                         <TableCell colSpan={6} align="center">
-                                                            No active orders found
+                                                            {t('dashboard.noActiveOrders')}
                                                         </TableCell>
                                                     </TableRow>
                                                 )}
@@ -775,7 +777,7 @@ const RestaurantDashboard = () => {
 
             {/* Statistics Section */}
             <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2, mt: 6 }}>
-                Statistics
+                {t('dashboard.statistics')}
             </Typography>
             <Divider sx={{ mb: 3 }} />
 
@@ -838,7 +840,7 @@ const RestaurantDashboard = () => {
                 }}
             >
                 <Typography variant="h5" component="h1" sx={{ fontWeight: "bold" }}>
-                    Last Reviews
+                    {t('dashboard.lastReviews')}
                 </Typography>
                 <Box sx={{ display: "flex", alignItems: "center" }}>
                     <Typography
@@ -849,7 +851,7 @@ const RestaurantDashboard = () => {
                             display: { xs: "none", sm: "block" },
                         }}
                     >
-                        View All
+                        {t('dashboard.viewAll')}
                     </Typography>
                     <IconButton
                         size="small"
@@ -922,4 +924,3 @@ const RestaurantDashboard = () => {
 };
 
 export default RestaurantDashboard;
-

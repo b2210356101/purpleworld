@@ -11,7 +11,7 @@ export interface Restaurant {
     distanceInKm: number;
     profileImg?: string;
     rating: number;
-    reviews?: number;
+    reviews: number;
     items?: {
         id: number;
         name: string;
@@ -19,6 +19,29 @@ export interface Restaurant {
         quantity: number;
         image: string;
     }[];
+}
+
+export interface Food {
+    id: number;
+    name: string;
+    image: string;
+    restaurant: Restaurant;
+    price: string;
+    description: string;
+}
+
+export interface PageInfo {
+    pageNumber: number;
+    pageSize: number;
+    totalPages: number;
+    totalElements: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+}
+
+export interface PageResponse<T> {
+    content: T[];
+    pageInfo: PageInfo;
 }
 
 export interface Address {
@@ -41,6 +64,8 @@ export interface Address {
 
 export interface CurrentAddress {
     addressId: number;
+    address: string;
+    addressName: string;
 }
 
 export interface MenuItem {
@@ -51,8 +76,12 @@ export interface MenuItem {
     img: string;
     restaurant: Restaurant;
     removableElements: { id: number; name: string }[];
+    isAvailable: boolean;
 }
 
+export interface MenuItemAvailabilityRequest {
+    isAvailable: boolean;
+}
 export interface Ingredient {
     id: number;
     name: string;
@@ -120,6 +149,23 @@ export interface MenuResponse {
     menuId: number;
     restaurantName: string;
     categories: Category[];
+    pageInfo: PageInfo;
+    stats?: MenuStats;
+}
+
+export interface PageInfo {
+    pageNumber: number;
+    pageSize: number;
+    totalPages: number;
+    totalElements: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+}
+
+export interface MenuStats {
+    totalItems: number;
+    inStockItems: number;
+    outOfStockItems: number;
 }
 
 export interface PlaceOrderRequest {
@@ -166,6 +212,7 @@ export interface OrderGroupDTO {
     deliveredDate: string | null;
     rejectionDate: string | null;
     orderItems: OrderItemDTO[] | null;
+    review?: ReviewDTO;
 
 }
 
@@ -219,10 +266,11 @@ export interface CustomerCurrentOrderDTO {
     img: string;
     itemCount: number;
     totalPrice: number;
-    status: string; // "PREPARING", "ON_THE_WAY", "DELIVERED", etc.
+    status: string;
     orderedDate: string;
     estimatedDeliveryTime: string;
     distanceInKm: number;
+    review?: ReviewDTO; // Add this property as optional
 }
 
 export interface OrderDetailsData {
@@ -306,7 +354,7 @@ export interface SearchResult {
     restaurantName: string;
     profileImg: string;
     distanceInKm: number;
-    rating?: number;
+    ratings?: number;
     reviews?: number;
     matchedItems: {
         id: number;
@@ -316,4 +364,22 @@ export interface SearchResult {
         img: string;
         removableElements: string[] | null;
     }[];
+}
+
+export interface ReviewRequest {
+    tasteRating: number;
+    deliveryRating: number;
+    serviceRating: number;
+    review?: string;
+}
+export interface ReviewDTO {
+    tasteRating: number;
+    deliveryRating: number;
+    serviceRating: number;
+    review: string;
+    restaurantAnswer?: string | null;
+    userName: string;
+    userAvatar: string;
+    reviewDate: string;
+    orderGroupId: number;
 }

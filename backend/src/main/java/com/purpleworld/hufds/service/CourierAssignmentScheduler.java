@@ -53,7 +53,6 @@ public class CourierAssignmentScheduler {
                 continue;
             }
 
-            // 2. Adım: Müsait olmayan ama çalışan ve sıraya sipariş almamış kuryelerden rastgele seç
             List<Courier> busyCouriers = courierRepository.findAllByIsAvailableFalseAndIsWorkingTrue();
             List<Courier> eligibleForQueue = busyCouriers.stream()
                     .filter(courier -> courier.getQueuedOrder() == null)

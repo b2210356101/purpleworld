@@ -26,10 +26,16 @@
             "pasta": "Pasta",
             "salad": "Salad",
             "dessert": "Dessert",
-            "sushi": "Sushi"
+            "sushi": "Sushi",
+            "kebab": "Kebab",
+            "soup": "Soup",
+            "wraps": "Wraps",
+            "vegan": "Vegan"
         },
-        "near": "Nearest Restaurants",
+        "near": "Popular Restaurants",
         "popular": "Popular Foods",
+        "noPopularItems": "No popular items available",
+        "tryAgainLater": "Please try again later or choose another category",
         "features": {
             "fastDelivery": {
                 "title": "Fast Delivery",
@@ -124,9 +130,21 @@
         "loading": "Loading your cart...",
         "error": "Failed to load cart items. Please try again later.",
         "tryAgain": "Try Again",
-        "updateError": "Failed to update cart item."
+        "updateError": "Failed to update cart item.",
+        "noteForRestaurant": "Note for restaurant",
+        "notePlaceholder": "E.g. No onions, extra spicy...",
+        "noNote": "No note added",
+        "promoCode": "Promo Code",
+        "promoCodeApplied": "Promo code applied successfully!",
+        "invalidPromoCode": "Invalid promo code",
+        "apply": "Apply",
+        "total": "Total",
+        "deliveryTime": "Delivery in {{min}}–{{max}} mins",
+        "proceedToCheckout": "Proceed To Checkout",
+        "noteUpdateError": "Failed to update note"
     },
     "restaurant": {
+        "new": "New Restaurant",
         "searchHeader": "Search for restaurants or foods...",
         "view": "View Restaurant",
         "add": "Add to Cart",
@@ -139,7 +157,31 @@
         "search": "Search food...",
         "result": "Search Results",
         "review": "reviews",
-        "viewReviews": "View Reviews"
+        "viewReviews": "View Reviews",
+        "stock": {
+            "title": "Stock Management",
+            "totalItems": "Total Items",
+            "inStock": "In Stock",
+            "outOfStock": "Out of Stock",
+            "allCategories": "All Categories",
+            "allItems": "All Items",
+            "searchItems": "Search items...",
+            "sortBy": "Sort By",
+            "sortName": "Name",
+            "sortPrice": "Price",
+            "sortDir": "Direction",
+            "sortAsc": "Ascending",
+            "sortDesc": "Descending",
+            "noItemsFound": "No items found for the selected filters.",
+            "in": "In",
+            "out": "Out",
+            "addedToStock": "Item added to stock.",
+            "removedFromStock": "Item removed from stock.",
+            "updateError": "Failed to update stock status. Please try again."
+        },
+        "menu": {
+            "fetchError": "Failed to load menu items. Please try again."
+        }
     },
     "login": {
         "title": "Login & Savor the Flavor",
@@ -151,7 +193,8 @@
         "signIn": "Sign in",
         "noAccount": "Don't have an account? Register now.",
         "validEmail": "Please enter a valid email address.",
-        "loginError": "Failed to login"
+        "loginError": "Failed to login",
+        "returnInfo": "After login, you'll be redirected to: {{path}}"
     },
     "register": {
         "common": {
@@ -227,10 +270,150 @@
             "ssnExists": "This SSN is already registered."
         }
     },
+    "forgotPassword": {
+        "title": "Forgot Password",
+        "instructions": "Enter your email address below and we'll send you instructions to reset your password.",
+        "sendResetLink": "Send Reset Link",
+        "backToLogin": "Back to Login",
+        "emailSent": "Password reset email sent!",
+        "checkInbox": "If an account exists for",
+        "resetLinkSent": "you'll receive a password reset link shortly. Please check your inbox (and spam folder).",
+        "error": "Something went wrong. Please try again."
+    },
+    "resetPassword": {
+        "title": "Set New Password",
+        "newPassword": "New Password",
+        "newPasswordPlaceholder": "Enter your new password",
+        "confirmPassword": "Confirm Password",
+        "confirmPasswordPlaceholder": "Confirm your new password",
+        "resetButton": "Reset Password",
+        "backToLogin": "Back to Login",
+        "success": "Your password has been updated!",
+        "redirecting": "Redirecting to",
+        "passwordRequirements": "Password must be at least 8 characters, include uppercase and lowercase letters, a number, and a special character (!@#$%^&*_)",
+        "passwordsDoNotMatch": "Passwords do not match",
+        "invalidToken": "Invalid or expired token"
+    },
+    "checkout": {
+        "title": "Secure Checkout",
+        "deliveryAddress": "Delivery address",
+        "paymentType": "Type of Payment",
+        "paymentOptions": {
+            "creditCard": "Credit Card",
+            "cash": "Cash on Delivery"
+        },
+        "card": {
+            "nameOnCard": "Name on card",
+            "namePlaceholder": "Name Surname",
+            "cardNumber": "Card number",
+            "expiryDate": "Expiry date",
+            "cvv": "CVV"
+        },
+        "validation": {
+            "nameRequired": "Name on card is required",
+            "invalidName": "Please enter a valid cardholder name",
+            "invalidCardNumber": "Please enter a valid 16-digit card number",
+            "invalidExpiry": "Please enter a valid expiry date (MM/YY)",
+            "cardExpired": "Card has expired",
+            "invalidCvv": "Please enter a valid 3-digit security code"
+        },
+        "notification": {
+            "orderPlaced": "Order #{{orderId}} placed!"
+        },
+        "error": {
+            "fetchData": "Fetch error:",
+            "placeOrder": "Failed to place order."
+        },
+        "log": {
+            "orderResponse": "Order response:"
+        },
+        "summary": {
+            "cart": "Cart",
+            "items": "Items",
+            "item": "Item",
+            "billDetails": "Bill details",
+            "itemTotal": "Item Total",
+            "discount": "Discount",
+            "total": "Total",
+            "proceedToPayment": "Proceed To Payment"
+        }
+    },
+    "payment": {
+        "success": {
+            "title": "Payment Success!"
+        },
+        "details": {
+            "refNumber": "Ref Number",
+            "paymentTime": "Payment Time",
+            "paymentMethod": "Payment Method",
+            "totalAmount": "Total Amount",
+            "estimatedDelivery": "Estimated Delivery",
+            "orderNotes": "Order Notes"
+        },
+        "methods": {
+            "cash": "Cash on Delivery",
+            "creditCard": "Credit Card"
+        },
+        "close": "Close"
+    },
+    "orderTracking": {
+        "currentOrders": "Current Orders ({{count}})",
+        "orderFrom": "Order from {{restaurant}}",
+        "orderNumber": "Order #{{id}}",
+        "placedAt": "Placed at {{time}}",
+        "estimatedDelivery": "Estimated delivery at {{time}}",
+        "steps": {
+            "ordered": "Ordered",
+            "confirmed": "Confirmed",
+            "preparing": "Preparing",
+            "readyforpickup": "Ready",
+            "ontheway": "On the way",
+            "delivered": "Delivered"
+        },
+        "itemsDistance": "{{count}} items • {{distance}} km away",
+        "cancelOrder": "Cancel Order",
+        "viewDetails": "View Details",
+        "trackOrder": "Track Order"
+    },
+    "orderDetailsModal": {
+        "title": "Order Details",
+        "items": "Items",
+        "item": "Item",
+        "date": "Date",
+        "deliveryAddress": "Delivery Address",
+        "billDetails": "Bill details",
+        "itemTotal": "Item Total",
+        "discount": "Discount",
+        "totalPayment": "Total Payment"
+    },
+    "favorites": {
+        "title": "Favorite Restaurants",
+        "search_placeholder": "Search favorite restaurants",
+        "no_favorites": "You don't have any favorite restaurants yet",
+        "add_some_favorites": "Explore restaurants to add some favorites",
+        "no_search_results": "No favorite restaurants match your search",
+        "try_different_search": "Try a different search term",
+        "out_of_range": "This restaurant is out of delivery range",
+        "out_of_range_short": "Out of range",
+        "too_far": "Too Far"
+    },
+    "restaurants": {
+        "title": "Restaurants",
+        "search_placeholder": "Search for restaurants...",
+        "no_restaurants": "No restaurants found near you",
+        "no_search_results": "No restaurants match your search",
+        "try_different_search": "Try a different search term",
+        "try_different_address": "Please try a different address or broaden your search",
+        "browse": "Browse Restaurants"
+    },
     "search": {
         "results": "Search Results",
         "resultsFound": "results found",
         "placeholder": "Search for restaurants or foods...",
+        "quickResults": "{{count}} restaurants found",
+        "matchingItems": "{{count}} matching items",
+        "items": "items",
+        "seeAll": "See all results for",
         "button": "Search",
         "filter": "Filter",
         "sortBy": "Sort By",
@@ -246,12 +429,296 @@
         "restaurants": "Restaurants",
         "foods": "Foods",
         "all": "All",
-        "matchingItems": "matching items",
         "showItems": "Show Items",
         "hide": "Hide",
         "noResults": "No Results Found",
+        "clear": "Clear Search",
         "tryDifferent": "Try a different search term or browse restaurants below.",
-        "backToHome": "Back to Home"
+        "backToHome": "Back to Home",
+        "popularSearches": "Popular Searches"
+    },
+    "nav": {
+        "home": "Home",
+        "restaurants": "Restaurants",
+        "cart": "Cart",
+        "favorites": "Favorites",
+        "search": "Search",
+        "profile": "Profile",
+        "menu": "Menu",
+        "orders": "Orders",
+        "deliveries": "Deliveries",
+        "earnings": "Earnings",
+        "dashboard": "Dashboard",
+        "couriers": "Couriers",
+        "about": "About",
+        "login": "Login",
+        "empty": "Empty",
+        "emptyCart": "Your cart is empty",
+        "addToCart": "Add items"
+    },
+    "popularFoods": {
+        "pageTitle": "Popular Foods",
+        "pageDescription": "Discover the most popular dishes from restaurants near you",
+        "description": "Scroll to discover the most popular foods in your area!",
+        "noItems": "No popular dishes found. Try again later.",
+        "endOfList": "That's all for now! More foods coming soon...",
+        "tryAgain": "Try again",
+        "loadingFailed": "Failed to load items. Please try again.",
+        "noAddress": "Please select a delivery address to see popular foods. Redirecting to home page..."
+    },
+    "myOrders": {
+        "title": "My Orders",
+        "orderNumber": "Order #{{id}}",
+        "note": "Note",
+        "review": "Review",
+        "noOrders": "You don't have any orders yet.",
+        "notAvailable": "N/A",
+        "addressNotAvailable": "Address not available",
+        "cityNotAvailable": "City not available",
+        "addressInfoUnavailable": "Address information unavailable",
+        "error": {
+            "unexpectedFormat": "Unexpected data format:",
+            "invalidFormat": "Received invalid data format from server",
+            "fetchingHistory": "Error fetching order history:",
+            "failedToLoad": "Failed to load order history. Please try again later.",
+            "fetchingDetails": "Error fetching order details:"
+        }
+    },
+    "admin": {
+        "actions": {
+            "action": "Actions",
+            "approve": "Approve",
+            "approveRestaurant": "Approve Restaurant",
+            "ban": "Ban",
+            "banCourier": "Ban Courier",
+            "banRestaurant": "Ban Restaurant",
+            "reject": "Reject",
+            "unban": "Unban",
+            "unbanCourier": "Unban Courier",
+            "unbanRestaurant": "Unban Restaurant",
+            "view": "View"
+        },
+        "status": {
+            "approved": "Approved",
+            "banned": "Banned",
+            "pending": "Pending",
+            "rejected": "Rejected"
+        },
+        "courier": {
+            "detailsTitle": "Courier Details",
+            "email": "Email",
+            "fetchError": "Failed to fetch couriers",
+            "firstName": "First Name",
+            "fullName": "Full Name",
+            "id": "ID",
+            "lastName": "Last Name",
+            "noCouriers": "No couriers found",
+            "phone": "Phone",
+            "ssn": "SSN",
+            "status": "Status",
+            "approveSuccess": "Courier approved successfully",
+            "approveError": "Failed to approve courier",
+            "rejectSuccess": "Courier rejected successfully",
+            "rejectError": "Failed to reject courier",
+            "banSuccess": "Courier banned successfully",
+            "banError": "Failed to ban courier",
+            "unbanSuccess": "Courier unbanned successfully",
+            "unbanError": "Failed to unban courier"
+        },
+        "restaurant": {
+            "detailsTitle": "Restaurant Details",
+            "email": "Email",
+            "fetchError": "Failed to fetch restaurants",
+            "id": "ID",
+            "manager": "Manager",
+            "name": "Restaurant Name",
+            "noRestaurants": "No restaurants found",
+            "phone": "Phone",
+            "status": "Status",
+            "taxId": "Tax ID",
+            "approveSuccess": "Restaurant approved successfully",
+            "approveError": "Failed to approve restaurant",
+            "rejectSuccess": "Restaurant rejected successfully",
+            "rejectError": "Failed to reject restaurant",
+            "banSuccess": "Restaurant banned successfully",
+            "banError": "Failed to ban restaurant",
+            "unbanSuccess": "Restaurant unbanned successfully",
+            "unbanError": "Failed to unban restaurant"
+        },
+        "dashboard": {
+            "welcome": "Welcome, Admin!",
+            "subtitle": "Manage users, restaurants, couriers, and platform settings from here.",
+            "totalRestaurants": "Total Restaurants",
+            "totalCouriers": "Total Couriers",
+            "pendingApprovals": "Pending Approvals",
+            "activeCoupons": "Active Coupons"
+        }
+    },
+    "menuManagement": {
+        "title": "Manage Menu",
+        "addNewCategory": "Add New Category",
+        "addNewItem": "Add New Item",
+        "addNew": "Add New",
+        "addElement": "Add Element",
+        "uploadImage": "Upload Image",
+        "aria": {
+            "deleteCategory": "Delete category",
+            "editItem": "Edit item",
+            "deleteItem": "Delete item"
+        },
+        "placeholder": {
+            "addRemovable": "Add removable element",
+            "newRemovable": "Enter new removable element"
+        },
+        "label": {
+            "categoryName": "Category Name",
+            "itemName": "Item Name",
+            "price": "Price (₺)",
+            "description": "Description",
+            "productImage": "Product Image",
+            "removableElements": "Removable Elements:"
+        },
+        "dialog": {
+            "addCategory": "Add New Category",
+            "editItem": "Edit Item",
+            "addItemTo": "Add New Item to {{name}}"
+        },
+        "error": {
+            "updateItem": "Failed to update item:",
+            "addItem": "Failed to add item:",
+            "addCategory": "Failed to add category:",
+            "deleteItem": "Failed to delete item:",
+            "deleteRemovable": "Failed to delete removable element:",
+            "deleteCategory": "Failed to delete category:",
+            "addRemovable": "Failed to add removable element:"
+        },
+        "alert": {
+            "fillRequired": "Please fill in all required fields (Name and Price)",
+            "deleteItemFailed": "Failed to delete item. Please try again.",
+            "deleteRemovableFailed": "Failed to delete removable element. Please try again.",
+            "deleteCategoryFailed": "Failed to delete category. Please try again.",
+            "addRemovableFailed": "Failed to add removable element. Please try again."
+        }
+    },
+    "order": {
+        "status": {
+            "readyForPickup": "READY FOR PICKUP",
+            "onTheWay": "ON THE WAY"
+        },
+        "table": {
+            "orderNumber": "Order #",
+            "customer": "Customer",
+            "items": "Items",
+            "time": "Time",
+            "orderedAt": "Ordered At",
+            "status": "Status",
+            "actions": "Actions"
+        },
+        "details": {
+            "title": "Order Details",
+            "number": "Order #{{id}}",
+            "ordered": "Ordered",
+            "rejected": "Rejected",
+            "preparingSince": "Preparing since",
+            "onTheWaySince": "On the way since",
+            "delivered": "Delivered",
+            "removables": "Removables",
+            "notes": "Notes",
+            "items": "items",
+            "noItems": "No items available for this order.",
+            "orderItems": "Order Items",
+            "noDetailedItems": "No detailed items available for this order.",
+            "price": "Price",
+            "totalAmount": "Total Amount"
+        },
+        "actions": {
+            "rejectAccept": "Reject / Accept",
+            "markAsPrepared": "Mark as Prepared",
+            "reject": "Reject",
+            "accept": "Accept"
+        }
+    },
+    "dashboard": {
+        "activeOrders": "Active Orders",
+        "noActiveOrders": "No active orders found",
+        "statistics": "Statistics",
+        "lastReviews": "Last Reviews",
+        "viewAll": "View All",
+        "review": {
+            "date": "2 days ago",
+            "text": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text"
+        },
+        "error": {
+            "fetchingOrders": "Error fetching orders:",
+            "loadOrders": "Failed to load orders.",
+            "rejectingOrder": "Error rejecting order:",
+            "rejectOrderFailed": "Failed to reject order. Please try again.",
+            "acceptingOrder": "Error accepting order:",
+            "acceptOrderFailed": "Failed to accept order. Please try again.",
+            "markingPrepared": "Error marking order as prepared:",
+            "markPreparedFailed": "Failed to mark order as prepared. Please try again.",
+            "fetchingStats": "Error fetching stats"
+        },
+        "log": {
+            "orderPlacedEvent": "Order placed event received"
+        }
+    },
+    "orderManagement": {
+        "yourOrders": "Your Orders",
+        "noOrders": "No orders found",
+        "error": {
+            "fetchingOrders": "Error fetching orders:",
+            "loadOrders": "Failed to load orders. Please try again later.",
+            "rejectingOrder": "Error rejecting order:",
+            "rejectOrderFailed": "Failed to reject order. Please try again.",
+            "acceptingOrder": "Error accepting order:",
+            "acceptOrderFailed": "Failed to accept order. Please try again.",
+            "markingPrepared": "Error marking order as prepared:",
+            "markPreparedFailed": "Failed to mark order as prepared. Please try again.",
+            "expectedArray": "Expected an array but received:"
+        }
+    },
+    "courier": {
+        "dashboard": {
+            "title": "Courier Dashboard",
+            "availability": "Availability",
+            "newOrder": "New Order",
+            "noOrders": "No orders available at this time",
+            "ordersAppearHere": "New orders will appear here when deliveries are assigned to you",
+            "statistics": "Statistics"
+        },
+        "order": {
+            "number": "Order #{{id}}",
+            "placedAt": "Placed at {{time}}",
+            "items": "{{count}} items"
+        },
+        "actions": {
+            "restaurantLocation": "Restaurant Location",
+            "navigateToCustomer": "Navigate to Customer",
+            "pickUp": "Pick Up",
+            "delivered": "Delivered",
+            "callCustomer": "Call Customer",
+            "openInMaps": "Open in Maps"
+        },
+        "success": {
+            "pickedUp": "Order picked up successfully!",
+            "delivered": "Order successfully delivered!"
+        },
+        "error": {
+            "fetchData": "Error fetching courier data:",
+            "updateAvailability": "Failed to update availability:",
+            "pickedUp": "Failed to mark order as picked up",
+            "delivered": "Failed to mark order as delivered"
+        },
+        "stats": {
+            "totalDeliveries": "Total Deliveries",
+            "todayDeliveries": "Today's Deliveries",
+            "totalEarnings": "Total Earnings"
+        },
+        "dialog": {
+            "queuedOrderTitle": "Queued Order Found",
+            "queuedOrderDescription": "You have a queued order assigned. If you become unavailable, your queued order will be reassigned to another courier. Are you sure you want to proceed?"
+        }
     },
     "contact": {
         "info": {

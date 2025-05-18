@@ -31,6 +31,7 @@ import SortIcon from '@mui/icons-material/Sort';
 import SearchIcon from '@mui/icons-material/Search';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import LoginIcon from '@mui/icons-material/Login';
 import AddIcon from '@mui/icons-material/Add';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import FastfoodIcon from '@mui/icons-material/Fastfood';
@@ -40,6 +41,7 @@ import { Restaurant, Ingredient, SearchResult } from '../types';
 import { Favorite, FavoriteBorder } from '@mui/icons-material';
 import FoodImageModal from '../components/menu/FoodImageModal';
 import Loading from '../components/Loading';
+import { getToken } from '../utils/auth';
 
 interface Food {
     id: number;
@@ -62,6 +64,8 @@ const SearchResultsPage = () => {
     const navigate = useNavigate();
     const theme = useTheme();
     const params = useParams<{ categoryName?: string }>();
+    const isAuthenticated = !!getToken();
+
 
     // Responsive breakpoints
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -95,6 +99,10 @@ const SearchResultsPage = () => {
     const [favorites, setFavorites] = useState<Record<number, boolean>>({});
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
+    const handleLogin = () => {
+        navigate('/login', { state: { from: location.pathname + location.search } });
+    };
+
     // Update search text when URL or category changes
     useEffect(() => {
         setSearchText(effectiveQuery);
@@ -116,7 +124,7 @@ const SearchResultsPage = () => {
                     restaurantName: result.restaurantName,
                     distanceInKm: result.distanceInKm >= 0 ? result.distanceInKm : 0,
                     profileImg: result.profileImg,
-                    rating: result.rating || 0,
+                    rating: result.ratings || 0,
                     reviews: result.reviews || 0
                 },
                 matchingFoods: result.matchedItems.map(item => ({
@@ -496,11 +504,12 @@ const SearchResultsPage = () => {
                             >
                                 <CardMedia
                                     component="img"
-                                    image={item.restaurant.profileImg}
+                                    image={item.restaurant.profileImg || "https://i.hizliresim.com/m0taj04.jpg"}
                                     alt={item.restaurant.restaurantName}
                                     sx={{
                                         width: '100%',
                                         height: '100%',
+                                        aspectRatio: '1/1',
                                         objectFit: 'cover'
                                     }}
                                 />
@@ -542,7 +551,7 @@ const SearchResultsPage = () => {
                                 flex: 1,
                                 display: 'flex',
                                 flexDirection: 'column',
-                                justifyContent: 'space-between'
+                                justifyContent: 'space-around'
                             }}>
                                 <Box>
                                     <Box sx={{
@@ -566,7 +575,7 @@ const SearchResultsPage = () => {
                                         }}>
                                             <FastfoodIcon sx={{ mr: 0.5, color: 'primary.main', fontSize: 16 }} />
                                             <Typography variant="caption" color="text.secondary">
-                                                {item.matchingFoods.length} {t('search.matchingItems')}
+                                                {t('search.matchingItems', { count: item.matchingFoods.length })}
                                             </Typography>
                                         </Box>
                                     </Box>
@@ -580,23 +589,27 @@ const SearchResultsPage = () => {
                                     }}>
                                         <Stack sx={{ mb: { xs: 2, sm: 0 } }}>
                                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                <Rating
-                                                    value={item.restaurant.rating}
-                                                    precision={0.5}
-                                                    readOnly
-                                                    size="small"
-                                                />
-                                                <Typography variant="body2" sx={{ ml: 1 }}>
-                                                    ({item.restaurant.rating}) - {item.restaurant.reviews} {t('reviews')}
+                                                {item.restaurant.reviews !== 0 && (
+                                                    <Rating
+                                                        value={item.restaurant.rating}
+                                                        precision={0.1}
+                                                        readOnly
+                                                        size="small"
+                                                    />
+                                                )}
+                                                <Typography variant="body2">
+                                                    {item.restaurant.reviews === 0 || item.restaurant.rating === 0
+                                                        ? t('restaurant.new')
+                                                        : `(${item.restaurant.rating?.toFixed(1)}) - ${item.restaurant.reviews}`}
                                                 </Typography>
                                             </Box>
 
-                                            <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                                            {isAuthenticated && <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
                                                 <LocationOnIcon sx={{ color: 'text.secondary', fontSize: 16, mr: 0.5 }} />
                                                 <Typography variant="body2" color="text.secondary">
-                                                    {item.restaurant.distanceInKm} km
+                                                    {item.restaurant.distanceInKm.toFixed(1)} km
                                                 </Typography>
-                                            </Box>
+                                            </Box>}
                                         </Stack>
 
                                         <Box sx={{
@@ -634,12 +647,13 @@ const SearchResultsPage = () => {
                             <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, bgcolor: 'rgba(0, 0, 0, 0.01)' }}>
                                 <Grid container spacing={2}>
                                     {item.matchingFoods.map((food) => (
-                                        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }} key={food.id}>
+                                        <Grid size={{ xs: 6, sm: 6, md: 4, lg: 2.4 }} key={food.id}>
                                             <Card sx={{
                                                 display: 'flex',
                                                 flexDirection: 'column',
                                                 borderRadius: 3,
                                                 overflow: 'hidden',
+                                                height: '100%',
                                                 transition: "transform 0.3s, box-shadow 0.3s",
                                                 "&:hover": {
                                                     transform: "translateY(-3px)",
@@ -696,20 +710,30 @@ const SearchResultsPage = () => {
                                                         >
                                                             {food.price}₺
                                                         </Typography>
-                                                        <Button
-                                                            variant="contained"
-                                                            sx={{
-                                                                minWidth: 0,
-                                                                width: { xs: 28, sm: 32 },
-                                                                height: { xs: 28, sm: 32 },
-                                                                borderRadius: '50%',
-                                                                p: 0
-                                                            }}
-                                                            onClick={() => handleOpenModal(food, item.restaurant)}
-                                                            disabled={isLoadingIngredients}
-                                                        >
-                                                            <AddIcon />
-                                                        </Button>
+                                                        {isAuthenticated ? (
+                                                            <Button
+                                                                variant="contained"
+                                                                sx={{
+                                                                    minWidth: 0,
+                                                                    width: { xs: 28, sm: 32 },
+                                                                    height: { xs: 28, sm: 32 },
+                                                                    borderRadius: '50%',
+                                                                    p: 0
+                                                                }}
+                                                                onClick={() => handleOpenModal(food, item.restaurant)}
+                                                                disabled={isLoadingIngredients}
+                                                            >
+                                                                <AddIcon />
+                                                            </Button>
+                                                        ) : (
+                                                            <Button
+                                                                variant="outlined"
+                                                                color="secondary"
+                                                                size="small"
+                                                                startIcon={<LoginIcon />}
+                                                                onClick={handleLogin}
+                                                            />
+                                                        )}
                                                     </Box>
                                                 </CardContent>
                                             </Card>

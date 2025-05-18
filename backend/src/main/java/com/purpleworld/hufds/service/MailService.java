@@ -18,4 +18,18 @@ public class MailService {
         message.setText("Your verification code is: " + code);
         mailSender.send(message);
     }
+
+
+    public void sendResetPasswordEmail(String toEmail, String resetLink) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(toEmail);
+        message.setSubject("Password Reset Request");
+        message.setText(
+                "You requested a password reset. Click the link below to set a new password:\n\n" +
+                        resetLink +
+                        "\n\nNote: This link will expire in 1 hour."
+        );
+        mailSender.send(message);
+    }
+
 }

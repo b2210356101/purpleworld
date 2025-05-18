@@ -32,6 +32,7 @@ import {
 } from '../utils/api';
 import { CourierResponseForAdmin } from '../types';
 import Loading from '../components/Loading';
+import { useTranslation } from 'react-i18next';
 
 // Styled component for the page header
 const PageHeader = styled(Typography)(({ theme }) => ({
@@ -51,6 +52,8 @@ const InfoLabel = styled(Typography)(({ theme }) => ({
 
 // Main courier management component
 const AdminCourierManagementPage: React.FC = () => {
+    const { t } = useTranslation();
+    
     // State for couriers data
     const [couriers, setCouriers] = useState<CourierResponseForAdmin[]>([]);
     // State for pagination
@@ -87,7 +90,7 @@ const AdminCourierManagementPage: React.FC = () => {
             // Calculate total pages based on data length
             setTotalPages(Math.ceil(data.length / ITEMS_PER_PAGE));
         } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'Failed to fetch couriers';
+            const errorMessage = err instanceof Error ? err.message : t('admin.courier.fetchError');
             setError(errorMessage);
             console.error('Error fetching couriers:', err);
         } finally {
@@ -130,12 +133,12 @@ const AdminCourierManagementPage: React.FC = () => {
             // Show success notification
             setNotification({
                 open: true,
-                message: 'Courier banned successfully',
+                message: t('admin.courier.banSuccess'),
                 severity: 'success',
             });
         } catch (err) {
             // Show error notification
-            const errorMessage = err instanceof Error ? err.message : 'Failed to ban courier';
+            const errorMessage = err instanceof Error ? err.message : t('admin.courier.banError');
             setNotification({
                 open: true,
                 message: errorMessage,
@@ -165,12 +168,12 @@ const AdminCourierManagementPage: React.FC = () => {
             // Show success notification
             setNotification({
                 open: true,
-                message: 'Courier approved successfully',
+                message: t('admin.courier.approveSuccess'),
                 severity: 'success',
             });
         } catch (err) {
             // Show error notification
-            const errorMessage = err instanceof Error ? err.message : 'Failed to approve courier';
+            const errorMessage = err instanceof Error ? err.message : t('admin.courier.approveError');
             setNotification({
                 open: true,
                 message: errorMessage,
@@ -200,12 +203,12 @@ const AdminCourierManagementPage: React.FC = () => {
             // Show success notification
             setNotification({
                 open: true,
-                message: 'Courier rejected successfully',
+                message: t('admin.courier.rejectSuccess'),
                 severity: 'success',
             });
         } catch (err) {
             // Show error notification
-            const errorMessage = err instanceof Error ? err.message : 'Failed to reject courier';
+            const errorMessage = err instanceof Error ? err.message : t('admin.courier.rejectError');
             setNotification({
                 open: true,
                 message: errorMessage,
@@ -234,12 +237,12 @@ const AdminCourierManagementPage: React.FC = () => {
             // Show success notification
             setNotification({
                 open: true,
-                message: 'Courier unbanned successfully',
+                message: t('admin.courier.unbanSuccess'),
                 severity: 'success',
             });
         } catch (err) {
             // Show error notification
-            const errorMessage = err instanceof Error ? err.message : 'Failed to unban courier';
+            const errorMessage = err instanceof Error ? err.message : t('admin.courier.unbanError');
             setNotification({
                 open: true,
                 message: errorMessage,
@@ -288,13 +291,13 @@ const AdminCourierManagementPage: React.FC = () => {
     const getStatusLabel = (status: string) => {
         switch (status) {
             case 'APPROVED':
-                return 'Approved';
+                return t('admin.status.approved');
             case 'REJECTED':
-                return 'Rejected';
+                return t('admin.status.rejected');
             case 'BANNED':
-                return 'Banned';
+                return t('admin.status.banned');
             case 'PENDING':
-                return 'Pending';
+                return t('admin.status.pending');
             default:
                 return status.charAt(0) + status.slice(1).toLowerCase();
         }
@@ -302,7 +305,7 @@ const AdminCourierManagementPage: React.FC = () => {
 
     return (
         <Box sx={{ p: 3 }}>
-            <PageHeader variant="h4">Courier Management</PageHeader>
+            <PageHeader variant="h4">{t('menu.courierManagement')}</PageHeader>
 
             {error && (
                 <Alert severity="error" sx={{ mb: 2 }}>
@@ -314,12 +317,12 @@ const AdminCourierManagementPage: React.FC = () => {
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>Full Name</TableCell>
-                            <TableCell>ID</TableCell>
-                            <TableCell>Email</TableCell>
-                            <TableCell>Phone</TableCell>
-                            <TableCell>Status</TableCell>
-                            <TableCell align="right">Actions</TableCell>
+                            <TableCell>{t('admin.courier.fullName')}</TableCell>
+                            <TableCell>{t('admin.courier.id')}</TableCell>
+                            <TableCell>{t('admin.courier.email')}</TableCell>
+                            <TableCell>{t('admin.courier.phone')}</TableCell>
+                            <TableCell>{t('admin.courier.status')}</TableCell>
+                            <TableCell align="right">{t('admin.actions.action')}</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -332,7 +335,7 @@ const AdminCourierManagementPage: React.FC = () => {
                         ) : couriers.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={6} align="center">
-                                    No couriers found
+                                    {t('admin.courier.noCouriers')}
                                 </TableCell>
                             </TableRow>
                         ) : (
@@ -368,7 +371,7 @@ const AdminCourierManagementPage: React.FC = () => {
                                                         onClick={() => handleBanCourier(courier.id)}
                                                         disabled={loading}
                                                     >
-                                                        Ban
+                                                        {t('admin.actions.ban')}
                                                     </Button>
                                                 </Grid>
                                             )}
@@ -384,7 +387,7 @@ const AdminCourierManagementPage: React.FC = () => {
                                                             onClick={() => handleApproveCourier(courier.id)}
                                                             disabled={loading}
                                                         >
-                                                            Approve
+                                                            {t('admin.actions.approve')}
                                                         </Button>
                                                     </Grid>
                                                     <Grid size={{ xs: 'auto' }}>
@@ -395,7 +398,7 @@ const AdminCourierManagementPage: React.FC = () => {
                                                             onClick={() => handleRejectCourier(courier.id)}
                                                             disabled={loading}
                                                         >
-                                                            Reject
+                                                            {t('admin.actions.reject')}
                                                         </Button>
                                                     </Grid>
                                                 </>
@@ -411,7 +414,7 @@ const AdminCourierManagementPage: React.FC = () => {
                                                             onClick={() => handleApproveCourier(courier.id)}
                                                             disabled={loading}
                                                         >
-                                                            Approve
+                                                            {t('admin.actions.approve')}
                                                         </Button>
                                                     </Grid>
                                                 </>
@@ -426,7 +429,7 @@ const AdminCourierManagementPage: React.FC = () => {
                                                         onClick={() => handleUnbanCourier(courier.id)}
                                                         disabled={loading}
                                                     >
-                                                        Unban
+                                                        {t('admin.actions.unban')}
                                                     </Button>
                                                 </Grid>
                                             )}
@@ -444,7 +447,7 @@ const AdminCourierManagementPage: React.FC = () => {
                                                     onClick={() => handleViewCourier(courier)}
                                                     disabled={loading}
                                                 >
-                                                    View
+                                                    {t('admin.actions.view')}
                                                 </Button>
                                             </Grid>
                                         </Grid>
@@ -480,43 +483,43 @@ const AdminCourierManagementPage: React.FC = () => {
                     <>
                         <DialogTitle>
                             <Typography variant="h6" component="div">
-                                Courier Details
+                                {t('admin.courier.detailsTitle')}
                             </Typography>
                         </DialogTitle>
                         <DialogContent dividers>
                             <Stack spacing={2}>
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <InfoLabel>ID:</InfoLabel>
+                                    <InfoLabel>{t('admin.courier.id')}:</InfoLabel>
                                     <Typography>{selectedCourier.id}</Typography>
                                 </Box>
                                 <Divider />
 
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <InfoLabel>First Name:</InfoLabel>
+                                    <InfoLabel>{t('admin.courier.firstName')}:</InfoLabel>
                                     <Typography>{selectedCourier.firstName}</Typography>
                                 </Box>
                                 <Divider />
 
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <InfoLabel>Last Name:</InfoLabel>
+                                    <InfoLabel>{t('admin.courier.lastName')}:</InfoLabel>
                                     <Typography>{selectedCourier.lastName}</Typography>
                                 </Box>
                                 <Divider />
 
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <InfoLabel>Email:</InfoLabel>
+                                    <InfoLabel>{t('admin.courier.email')}:</InfoLabel>
                                     <Typography>{selectedCourier.email}</Typography>
                                 </Box>
                                 <Divider />
 
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <InfoLabel>Phone:</InfoLabel>
+                                    <InfoLabel>{t('admin.courier.phone')}:</InfoLabel>
                                     <Typography>{selectedCourier.phoneNumber}</Typography>
                                 </Box>
                                 <Divider />
 
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <InfoLabel>Status:</InfoLabel>
+                                    <InfoLabel>{t('admin.courier.status')}:</InfoLabel>
                                     <Chip
                                         label={getStatusLabel(selectedCourier.status)}
                                         size="small"
@@ -533,14 +536,14 @@ const AdminCourierManagementPage: React.FC = () => {
                                 <Divider />
 
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <InfoLabel>SSN:</InfoLabel>
+                                    <InfoLabel>{t('admin.courier.ssn')}:</InfoLabel>
                                     <Typography>{selectedCourier.ssn}</Typography>
                                 </Box>
                             </Stack>
                         </DialogContent>
                         <DialogActions>
                             <Button onClick={handleCloseDetailsDialog} sx={{ color: 'secondary.main' }}>
-                                Close
+                                {t('util.cancel')}
                             </Button>
 
                             {/* Conditional action buttons based on status */}
@@ -553,7 +556,7 @@ const AdminCourierManagementPage: React.FC = () => {
                                     sx={{ bgcolor: 'secondary.dark' }}
                                     variant="contained"
                                 >
-                                    Ban Courier
+                                    {t('admin.actions.banCourier')}
                                 </Button>
                             )}
                             {selectedCourier.status === 'REJECTED' && (
@@ -565,7 +568,7 @@ const AdminCourierManagementPage: React.FC = () => {
                                     sx={{ bgcolor: 'green' }}
                                     variant="contained"
                                 >
-                                    Approve
+                                    {t('admin.actions.approve')}
                                 </Button>
                             )}
 
@@ -579,7 +582,7 @@ const AdminCourierManagementPage: React.FC = () => {
                                         sx={{ bgcolor: 'secondary.light' }}
                                         variant="contained"
                                     >
-                                        Reject
+                                        {t('admin.actions.reject')}
                                     </Button>
                                     <Button
                                         onClick={() => {
@@ -589,7 +592,7 @@ const AdminCourierManagementPage: React.FC = () => {
                                         sx={{ bgcolor: 'primary' }}
                                         variant="contained"
                                     >
-                                        Approve
+                                        {t('admin.actions.approve')}
                                     </Button>
                                 </>
                             )}
@@ -603,7 +606,7 @@ const AdminCourierManagementPage: React.FC = () => {
                                     sx={{ bgcolor: 'teal' }}
                                     variant="contained"
                                 >
-                                    Unban Courier
+                                    {t('admin.actions.unbanCourier')}
                                 </Button>
                             )}
                         </DialogActions>

@@ -2,6 +2,7 @@ package com.purpleworld.hufds.controller;
 
 import com.purpleworld.hufds.dto.OrderGroupDTO;
 import com.purpleworld.hufds.dto.RestaurantStatsDTO;
+import com.purpleworld.hufds.dto.ReviewDTO;
 import com.purpleworld.hufds.service.RestaurantOrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -56,5 +57,19 @@ public class RestaurantController {
     @GetMapping("/stats")
     public ResponseEntity<List<RestaurantStatsDTO>> getStats(@AuthenticationPrincipal String email) {
         return ResponseEntity.ok(restaurantOrderService.getStatsForRestaurant(email));
+    }
+
+    @PostMapping("/reviews/{orderGroupId}/reply")
+    public ResponseEntity<Void> replyToReview(@PathVariable Long orderGroupId,
+                                          @RequestBody String reply,
+                                          @AuthenticationPrincipal String email) {
+    restaurantOrderService.replyToReview(email, orderGroupId, reply);
+    return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/reviews")
+    public ResponseEntity<List<ReviewDTO>> getRestaurantReviews(@AuthenticationPrincipal String email) {
+        List<ReviewDTO> reviews = restaurantOrderService.getReviewsForRestaurant(email);
+        return ResponseEntity.ok(reviews);
     }
 }

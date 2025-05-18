@@ -11,7 +11,6 @@ import {
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-// Takım üyeleri için tip tanımı
 interface TeamMember {
     name: string;
     position: string;

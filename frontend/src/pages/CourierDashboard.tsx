@@ -16,8 +16,10 @@ import { useEffect, useState } from "react";
 import { CourierOrder, Stat } from "../types";
 import { deliveredOrder, getCourierOrders, getCourierStats, markOrderAsPickedUp, updateCourierAvailability } from "../utils/api";
 import Loading from "../components/Loading";
+import { useTranslation } from 'react-i18next';
 
 const CourierDashboard = () => {
+    const { t } = useTranslation();
     const [stats, setStats] = useState<Stat[]>([]);
     const [isAvailable, setIsAvailable] = useState<boolean>(false);
     const [currentOrders, setCurrentOrders] = useState<CourierOrder[]>([]);
@@ -44,13 +46,13 @@ const CourierDashboard = () => {
                 setIsAvailable(statsData.available);
 
                 const statsArray: Stat[] = [
-                    { value: statsData.totalDeliveries, label: 'Total Deliveries', icon: '📊' },
-                    { value: statsData.todayDeliveries, label: 'Today\'s Deliveries', icon: '📊' },
-                    { value: `₺${statsData.totalEarnings.toFixed(2)}`, label: 'Total Earnings', icon: '📊' },
+                    { value: statsData.totalDeliveries, label: t('courier.stats.totalDeliveries'), icon: '📊' },
+                    { value: statsData.todayDeliveries, label: t('courier.stats.todayDeliveries'), icon: '📊' },
+                    { value: `₺${statsData.totalEarnings.toFixed(2)}`, label: t('courier.stats.totalEarnings'), icon: '📊' },
                 ];
                 setStats(statsArray);
             } catch (error) {
-                console.error("Error fetching courier data:", error);
+                console.error(t('courier.error.fetchData'), error);
             } finally {
                 setIsLoading(false);
             }
@@ -60,7 +62,7 @@ const CourierDashboard = () => {
 
         const intervalId = setInterval(fetchData, 10000); // 10 seconds
         return () => clearInterval(intervalId);
-    }, []);
+    }, [t]);
 
     const handleAvailabilityChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const newStatus = event.target.checked;
@@ -84,7 +86,7 @@ const CourierDashboard = () => {
             await updateCourierAvailability();
         } catch (error) {
             setIsAvailable(!status);
-            console.error("Failed to update availability:", error);
+            console.error(t('courier.error.updateAvailability'), error);
         }
     };
 
@@ -102,10 +104,10 @@ const CourierDashboard = () => {
                 )
             );
 
-            setSuccessMessage("Order picked up successfully!");
+            setSuccessMessage(t('courier.success.pickedUp'));
             setOpenSuccess(true);
         } catch (error) {
-            setErrorMessage("Failed to mark order as picked up");
+            setErrorMessage(t('courier.error.pickedUp'));
             setOpenError(true);
         }
     };
@@ -137,16 +139,16 @@ const CourierDashboard = () => {
             const statsData = await getCourierStats();
             setIsAvailable(statsData.available);
             const statsArray: Stat[] = [
-                { value: statsData.totalDeliveries, label: 'Total Deliveries', icon: '📊' },
-                { value: statsData.todayDeliveries, label: 'Today\'s Deliveries', icon: '📊' },
-                { value: `₺${statsData.totalEarnings.toFixed(2)}`, label: 'Total Earnings', icon: '📊' },
+                { value: statsData.totalDeliveries, label: t('courier.stats.totalDeliveries'), icon: '📊' },
+                { value: statsData.todayDeliveries, label: t('courier.stats.todayDeliveries'), icon: '📊' },
+                { value: `₺${statsData.totalEarnings.toFixed(2)}`, label: t('courier.stats.totalEarnings'), icon: '📊' },
             ];
             setStats(statsArray);
 
-            setSuccessMessage("Order successfully delivered!");
+            setSuccessMessage(t('courier.success.delivered'));
             setOpenSuccess(true);
         } catch (error) {
-            setErrorMessage("Failed to mark order as delivered");
+            setErrorMessage(t('courier.error.delivered'));
             setOpenError(true);
         }
     };
@@ -192,14 +194,14 @@ const CourierDashboard = () => {
     return (
         <Box>
             <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold', mb: 2 }}>
-                Courier Dashboard
+                {t('courier.dashboard.title')}
             </Typography>
 
             <Grid container spacing={5}>
                 <Grid size={{ xs: 12, sm: 8 }}>
                     <Stack direction='row' sx={{ justifyContent: 'space-between' }}>
                         <Typography variant="h6" component="h2" sx={{ fontWeight: 'bold' }}>
-                            Availability
+                            {t('courier.dashboard.availability')}
                         </Typography>
                         <Switch checked={isAvailable} onChange={handleAvailabilityChange} />
                     </Stack>
@@ -211,10 +213,10 @@ const CourierDashboard = () => {
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <Box>
                                         <Typography variant="h6">
-                                            Order #{activeOrder.orderGroupId}
+                                            {t('courier.order.number', { id: activeOrder.orderGroupId })}
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary">
-                                            Placed at {new Date(activeOrder.orderedDate).toLocaleString()}
+                                            {t('courier.order.placedAt', { time: new Date(activeOrder.orderedDate).toLocaleString() })}
                                         </Typography>
                                     </Box>
                                 </Box>
@@ -227,7 +229,7 @@ const CourierDashboard = () => {
                                                 {activeOrder.restaurantName}
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary">
-                                                {activeOrder.orderItems?.length || 0} items
+                                                {t('courier.order.items', { count: activeOrder.orderItems?.length || 0 })}
                                             </Typography>
                                         </Box>
                                     </Box>
@@ -241,8 +243,8 @@ const CourierDashboard = () => {
                                         target="_blank"
                                     >
                                         {activeOrder.status === "READY_FOR_PICKUP"
-                                            ? "Restaurant Location"
-                                            : "Navigate to Customer"
+                                            ? t('courier.actions.restaurantLocation')
+                                            : t('courier.actions.navigateToCustomer')
                                         }
                                     </Button>
                                 </Stack>
@@ -250,11 +252,11 @@ const CourierDashboard = () => {
                                 <Stack direction={{ xs: "column", md: "row" }} gap={4} sx={{ mt: 2 }}>
                                     {activeOrder.status === "READY_FOR_PICKUP" ? (
                                         <Button fullWidth onClick={() => handlePickedUp(activeOrder.orderGroupId)} variant="contained">
-                                            Pick Up
+                                            {t('courier.actions.pickUp')}
                                         </Button>
                                     ) : (
                                         <Button fullWidth onClick={() => handleDelivered(activeOrder.orderGroupId)} variant="contained">
-                                            Delivered
+                                            {t('courier.actions.delivered')}
                                         </Button>
                                     )}
                                     <Button
@@ -265,7 +267,7 @@ const CourierDashboard = () => {
                                         disabled={activeOrder.status === "READY_FOR_PICKUP"}
                                         href={`tel:0${activeOrder.customerPhone}`}
                                     >
-                                        Call Customer
+                                        {t('courier.actions.callCustomer')}
                                     </Button>
                                 </Stack>
                             </Box>
@@ -277,7 +279,7 @@ const CourierDashboard = () => {
                             <Stack spacing={2} sx={{ p: 4 }}>
                                 <Typography variant="h5" sx={{
                                     color: 'primary.main', fontWeight: 'bold'
-                                }}>New Order</Typography>
+                                }}>{t('courier.dashboard.newOrder')}</Typography>
 
                                 {readyForPickupOrders.map(order => (
                                     <Paper key={order.orderGroupId} sx={{ borderRadius: 4 }}>
@@ -285,10 +287,10 @@ const CourierDashboard = () => {
                                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                 <Box>
                                                     <Typography variant="h6">
-                                                        Order #{order.orderGroupId}
+                                                        {t('courier.order.number', { id: order.orderGroupId })}
                                                     </Typography>
                                                     <Typography variant="body2" color="text.secondary">
-                                                        Placed at {new Date(order.orderedDate).toLocaleString()}
+                                                        {t('courier.order.placedAt', { time: new Date(order.orderedDate).toLocaleString() })}
                                                     </Typography>
                                                 </Box>
                                             </Box>
@@ -301,7 +303,7 @@ const CourierDashboard = () => {
                                                             {order.restaurantName}
                                                         </Typography>
                                                         <Typography variant="body2" color="text.secondary">
-                                                            {order.orderItems?.length || 0} items
+                                                            {t('courier.order.items', { count: order.orderItems?.length || 0 })}
                                                         </Typography>
                                                     </Box>
                                                 </Box>
@@ -313,7 +315,7 @@ const CourierDashboard = () => {
                                                         href={`https://www.google.com/maps/dir/?api=1&destination=${order.restaurantLatitude},${order.restaurantLongitude}`}
                                                         target="_blank"
                                                     >
-                                                        Open in Maps
+                                                        {t('courier.actions.openInMaps')}
                                                     </Button>
                                                 </Stack>
                                             </Stack>
@@ -328,16 +330,16 @@ const CourierDashboard = () => {
 
                     {!isLoading && currentOrders.length === 0 && (
                         <Paper sx={{ borderRadius: 4, p: 4, textAlign: 'center' }}>
-                            <Typography variant="h6">No orders available at this time</Typography>
+                            <Typography variant="h6">{t('courier.dashboard.noOrders')}</Typography>
                             <Typography variant="body2" color="text.secondary">
-                                New orders will appear here when restaurants assign deliveries to you
+                                {t('courier.dashboard.ordersAppearHere')}
                             </Typography>
                         </Paper>
                     )}
                 </Grid>
                 <Grid size={{ xs: 12, sm: 4 }}>
                     <Typography variant="h6" component="h2" sx={{ fontWeight: 'bold' }}>
-                        Statistics
+                        {t('courier.dashboard.statistics')}
                     </Typography>
                     <Divider sx={{ mb: 3 }} />
 
@@ -413,18 +415,18 @@ const CourierDashboard = () => {
                 open={openConfirmDialog}
                 onClose={handleCancelAvailabilityChange}
             >
-                <DialogTitle>Queued Order Found</DialogTitle>
+                <DialogTitle>{t('courier.dialog.queuedOrderTitle')}</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        You have a queued order assigned. If you become unavailable, your queued order will be reassigned to another courier. Are you sure you want to proceed?
+                        {t('courier.dialog.queuedOrderDescription')}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCancelAvailabilityChange} color="primary">
-                        Cancel
+                        {t('util.cancel')}
                     </Button>
                     <Button onClick={handleConfirmAvailabilityChange} color="error" autoFocus>
-                        Confirm
+                        {t('util.confirm')}
                     </Button>
                 </DialogActions>
             </Dialog>

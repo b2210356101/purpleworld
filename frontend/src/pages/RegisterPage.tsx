@@ -1,14 +1,30 @@
 import { Container, Tabs, Tab, Box, Paper, useTheme } from '@mui/material';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import RegisterCustomer from '../components/registerTabs/RegisterCustomer';
 import RegisterRestaurant from '../components/registerTabs/RegisterRestaurant';
 import RegisterCourier from '../components/registerTabs/RegisterCourier';
 import { useTranslation } from 'react-i18next';
+import { useLocation } from 'react-router-dom';
 
 const RegisterPage = () => {
     const { t } = useTranslation();
-    const [activeTab, setActiveTab] = useState(0);
+    const location = useLocation();
     const theme = useTheme();
+    
+    const getInitialTab = () => {
+        const searchParams = new URLSearchParams(location.search);
+        const tabParam = searchParams.get('tab');
+        
+        const parsedTab = tabParam ? parseInt(tabParam, 10) : 0;
+        
+        return isNaN(parsedTab) || parsedTab < 0 || parsedTab > 2 ? 0 : parsedTab;
+    };
+    
+    const [activeTab, setActiveTab] = useState(getInitialTab());
+    
+    useEffect(() => {
+        setActiveTab(getInitialTab());
+    }, [location.search]);
 
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setActiveTab(newValue);

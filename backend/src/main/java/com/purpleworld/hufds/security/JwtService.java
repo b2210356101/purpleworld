@@ -74,5 +74,20 @@ public class JwtService {
         final String token = authHeader.substring(7);
         return extractUsername(token);
     }
+
+    public String generateResetToken(String email) {
+        return Jwts.builder()
+                .setSubject(email)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String extractEmailFromResetToken(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+
 }
 // ai-gen end
