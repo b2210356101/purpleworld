@@ -40,4 +40,7 @@ public class OrderGroupDTO {
     private LocalDateTime cancelledDate;
     
     private List<OrderItemDTO> orderItems;
+
+    private ReviewDTO review;
+
 }
