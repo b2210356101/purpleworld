@@ -2,6 +2,7 @@ package com.purpleworld.hufds.service.impl;
 
 import com.purpleworld.hufds.dto.OrderGroupDTO;
 import com.purpleworld.hufds.dto.OrderItemDTO;
+import com.purpleworld.hufds.dto.ReviewDTO;
 import com.purpleworld.hufds.dto.request.PlaceOrderRequest;
 import com.purpleworld.hufds.dto.response.OrderDTO;
 
@@ -29,6 +30,7 @@ public class OrderServiceImplCustomer implements OrderServiceForCustomer {
     private final RestaurantRepository restaurantRepository;
     private final RemovableElementRepository removableElementRepository;
     private final OrderRepository orderRepository;
+    private final ReviewRepository reviewRepository;
 
     @Transactional
     @Override
@@ -152,11 +154,19 @@ public class OrderServiceImplCustomer implements OrderServiceForCustomer {
             groupDTO.setDeliveredDate(group.getDeliveredDate());
             groupDTO.setOrderItems(itemDTOs);
             groupDTO.setImg(group.getRestaurant().getProfileImg());
-            if (group.getRating() != null){
-                groupDTO.setRating(group.getRating());
-            }else {
-                groupDTO.setRating(0.0);
-            }
+            groupDTO.setRating(group.getRating() != null ? group.getRating() : 0.0);
+
+            // Review varsa ekle
+            reviewRepository.findByOrderGroupId(group.getId()).ifPresent(review -> {
+                ReviewDTO reviewDTO = new ReviewDTO();
+                reviewDTO.setTasteRating(review.getTasteRating());
+                reviewDTO.setDeliveryRating(review.getDeliveryRating());
+                reviewDTO.setServiceRating(review.getServiceRating());
+                reviewDTO.setReview(review.getReview());
+                reviewDTO.setRestaurantAnswer(review.getRestaurantReply());
+                groupDTO.setReview(reviewDTO);
+            });
+
             return groupDTO;
         }).collect(Collectors.toList());
 
