@@ -11,11 +11,16 @@ import {
     Paper,
     List,
     ListItem,
-    Divider
+    Divider,
+    Button
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Search as SearchIcon, Close as CloseIcon } from '@mui/icons-material';
+import { 
+    Search as SearchIcon, 
+    Close as CloseIcon,
+    ErrorOutline as ErrorOutlineIcon
+} from '@mui/icons-material';
 import QuickSearchResults from './QuickSearchResults';
 import { searchRestaurants } from '../utils/api';
 import { SearchResult } from '../types';
@@ -33,6 +38,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [showResults, setShowResults] = useState(false);
+    const [searchError, setSearchError] = useState<string | null>(null);
 
     // Debounce search text to reduce API calls
     const debouncedSearchText = useDebounce(searchText, 300);
@@ -44,6 +50,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
             const timer = setTimeout(() => {
                 setSearchText('');
                 setSearchResults([]);
+                setSearchError(null);
             }, 300);
             return () => clearTimeout(timer);
         }
@@ -54,6 +61,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
         const fetchResults = async () => {
             if (debouncedSearchText.trim().length >= 2) {
                 setIsLoading(true);
+                setSearchError(null);
                 try {
                     const results = await searchRestaurants(debouncedSearchText);
                     setSearchResults(results);
@@ -61,12 +69,14 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
                 } catch (error) {
                     console.error('Error fetching search results:', error);
                     setSearchResults([]);
+                    setSearchError('Arama servisi şu anda kullanılamıyor');
                 } finally {
                     setIsLoading(false);
                 }
             } else {
                 setSearchResults([]);
                 setShowResults(false);
+                setSearchError(null);
             }
         };
 
@@ -87,6 +97,43 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
             onClose();
         }
     };
+
+    // Render Elasticsearch error message
+    const renderElasticsearchError = () => (
+        <Paper sx={{ p: { xs: 3, sm: 4 }, textAlign: 'center', borderRadius: 3, my: 4 }}>
+            <Box sx={{
+                maxWidth: 800,
+                mx: 'auto',
+                py: { xs: 2, sm: 3 }
+            }}>
+                <ErrorOutlineIcon color="secondary" sx={{ fontSize: { xs: 40, sm: 60 }, mb: 2 }} />
+                <Typography variant="h5" gutterBottom color="secondary">
+                    Arama Servisi Şu Anda Kullanılamıyor
+                </Typography>
+                <Typography
+                    variant="body1"
+                    color="text.secondary"
+                    sx={{ mb: 2 }}
+                >
+                    Bu sorun arama sunucusunun (Elastic Search) kapalı olması sebebiyle oluşmaktadır.
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                    Lütfen ana sayfaya dönerek restoranları ve yemekleri keşfetmeyi deneyin.
+                </Typography>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => {
+                        onClose();
+                        navigate('/'); 
+                    }}
+                    size="large"
+                >
+                    Ana Sayfaya Dön
+                </Button>
+            </Box>
+        </Paper>
+    );
 
     return (
         <Dialog
@@ -168,7 +215,9 @@ const SearchModal: React.FC<SearchModalProps> = ({ open, onClose }) => {
                     />
                 </Box>
 
-                {searchResults.length > 0 ? (
+                {searchError && debouncedSearchText.trim().length >= 2 ? (
+                    renderElasticsearchError()
+                ) : searchResults.length > 0 ? (
                     <Box sx={{ position: 'relative' }}>
                         <QuickSearchResults
                             results={searchResults}
