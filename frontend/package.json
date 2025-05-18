@@ -33,6 +33,7 @@
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@types/react-lottie": "^1.2.10",
+    "@types/react-slick": "^0.23.13",
     "@vitejs/plugin-react": "latest",
     "typescript": "latest",
     "vite": "latest"
