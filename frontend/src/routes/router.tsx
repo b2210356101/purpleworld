@@ -25,6 +25,13 @@ import CookiePolicyPage from '../pages/CookiePolicyPage';
 import RestaurantPage from '../pages/RestaurantPage';
 import SearchResultsPage from '../pages/SearchResultPage';
 import RestaurantsPage from '../pages/RestaurantsPage';
+import RestaurantReviewManagement from '../pages/RestaurantReviewManagement';
+import RestaurantReviewsPage from '../pages/RestaurantReviews';
+import { ResetPasswordPage } from "../pages/ResetPasswordPage";
+import { ForgotPasswordPage } from "../pages/ForgotPasswordPage";
+import FavoritesPage from '../pages/FavoritesPage';
+import StockManagementPage from '../pages/StockManagementPage';
+import PopularFoodsPage from '../pages/PopularFoodsPage';
 
 
 
@@ -149,6 +156,14 @@ const router = createBrowserRouter([
                         element: <AboutPage />
                     },
                     {
+                        path: 'forgot-password',
+                        element: <ForgotPasswordPage />
+                    },
+                    {
+                        path: 'reset-password',
+                        element: <ResetPasswordPage />
+                    },
+                    {
                         path: 'gdpr',
                         element: <GDPRPage />
                     },
@@ -175,6 +190,14 @@ const router = createBrowserRouter([
                         element: <RoleBasedRoute allowedRoles={['CUSTOMER']}> < CustomerOrdersPage /> </RoleBasedRoute>
                     },
                     {
+                        path: 'favorites',
+                        element: <RoleBasedRoute allowedRoles={['CUSTOMER']}> < FavoritesPage /> </RoleBasedRoute>
+                    },
+                    {
+                        path: 'popular-foods',
+                        element: <RoleBasedRoute allowedRoles={['CUSTOMER']}> <PopularFoodsPage /> </RoleBasedRoute>
+                    },
+                    {
                         path: 'restaurant/menu',
                         element: <RoleBasedRoute allowedRoles={['RESTAURANT']}> <MenuManagementPage /> </RoleBasedRoute>
                     },
@@ -185,6 +208,10 @@ const router = createBrowserRouter([
                     {
                         path: 'restaurant/menu',
                         element: <RoleBasedRoute allowedRoles={['RESTAURANT']}> <MenuManagementPage /> </RoleBasedRoute>
+                    },
+                    {
+                        path: 'restaurant/stock',
+                        element: <RoleBasedRoute allowedRoles={['RESTAURANT']}> <StockManagementPage /> </RoleBasedRoute>
                     },
                     {
                         path: 'cart',
@@ -193,10 +220,6 @@ const router = createBrowserRouter([
                     {
                         path: 'checkout',
                         element: <RoleBasedRoute allowedRoles={['CUSTOMER']}> <CheckoutPage /> </RoleBasedRoute>
-                    },
-                    {
-                        path: 'restaurant/orders',
-                        element: <RoleBasedRoute allowedRoles={['RESTAURANT']}> <RestaurantOrderPage /> </RoleBasedRoute>
                     },
                     {
                         path: 'admin/restaurants',
@@ -209,6 +232,14 @@ const router = createBrowserRouter([
                     {
                         path: 'restaurants/:id',
                         element: <RestaurantPage />
+                    },
+                    {
+                        path: 'restaurant/reviews',
+                        element: <RoleBasedRoute allowedRoles={['RESTAURANT']}> <RestaurantReviewManagement /> </RoleBasedRoute>
+                    },
+                    {
+                        path: 'restaurants/:id/reviews',
+                        element: <RestaurantReviewsPage />
                     },
                     {
                         path: '*',
