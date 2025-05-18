@@ -22,7 +22,7 @@ import {
     useTheme,
     IconButton,
     Tooltip,
-    CircularProgress
+    Alert,
 } from '@mui/material';
 import { useLocation, useNavigate, Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -35,6 +35,7 @@ import LoginIcon from '@mui/icons-material/Login';
 import AddIcon from '@mui/icons-material/Add';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import FastfoodIcon from '@mui/icons-material/Fastfood';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import RemoveIngredientsModal from '../components/cart/RemoveIngredientsModal';
 import { getIngredients, searchRestaurants } from '../utils/api';
 import { Restaurant, Ingredient, SearchResult } from '../types';
@@ -66,7 +67,6 @@ const SearchResultsPage = () => {
     const params = useParams<{ categoryName?: string }>();
     const isAuthenticated = !!getToken();
 
-
     // Responsive breakpoints
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -84,6 +84,7 @@ const SearchResultsPage = () => {
     const [expandedRestaurants, setExpandedRestaurants] = useState<Record<number, boolean>>({});
     const [searchText, setSearchText] = useState(effectiveQuery);
     const [isLoading, setIsLoading] = useState(false);
+    const [searchError, setSearchError] = useState<string | null>(null);
 
     // Search results
     const [restaurantsWithFoods, setRestaurantsWithFoods] = useState<RestaurantWithFoods[]>([]);
@@ -114,6 +115,7 @@ const SearchResultsPage = () => {
     // Fetch search results
     const fetchSearchResults = async (query: string) => {
         setIsLoading(true);
+        setSearchError(null); // Reset error state
         try {
             const results = await searchRestaurants(query);
 
@@ -154,6 +156,7 @@ const SearchResultsPage = () => {
             setFavorites(favState);
         } catch (error) {
             console.error('Error fetching search results:', error);
+            setSearchError('Arama servisi şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin.');
         } finally {
             setIsLoading(false);
         }
@@ -269,6 +272,40 @@ const SearchResultsPage = () => {
         setIsImageModalOpen(true);
     };
 
+    // Render error message for ElasticSearch issues
+    const renderElasticSearchError = () => (
+        <Paper sx={{ p: { xs: 3, sm: 4 }, textAlign: 'center', borderRadius: 3, my: 4 }}>
+            <Box sx={{
+                maxWidth: 800,
+                mx: 'auto',
+                py: { xs: 2, sm: 3 }
+            }}>
+                <ErrorOutlineIcon color="secondary" sx={{ fontSize: { xs: 40, sm: 60 }, mb: 2 }} />
+                <Typography variant="h5" gutterBottom color="secondary">
+                    Arama Servisi Şu Anda Kullanılamıyor
+                </Typography>
+                <Typography
+                    variant="body1"
+                    color="text.secondary"
+                    sx={{ mb: 2 }}
+                >
+                    Bu sorun arama sunucusunun (Elastic Search) kapalı olması sebebiyle oluşmaktadır.
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                    Lütfen ana sayfaya dönerek restoranları ve yemekleri keşfetmeyi deneyin.
+                </Typography>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => navigate('/')}
+                    size="large"
+                >
+                    Ana Sayfaya Dön
+                </Button>
+            </Box>
+        </Paper>
+    );
+
     return (
         <>
             {/* Search Hero Section */}
@@ -365,111 +402,118 @@ const SearchResultsPage = () => {
                 )}
             </Paper>
 
-            {/* Filter and Sort Area */}
-            <Box sx={{
-                display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' },
-                justifyContent: 'space-between',
-                alignItems: { xs: 'flex-start', sm: 'center' },
-                mb: 3
-            }}>
-                <Box sx={{ mb: { xs: 2, sm: 0 } }}>
-                    <Typography variant="h6" color="text.secondary">
-                        {restaurantsWithFoods.length} {t('search.resultsFound')}
-                    </Typography>
-                </Box>
+            {/* Show error alert if search API fails */}
+            {searchError && (
+                renderElasticSearchError()
+            )}
 
+            {/* Filter and Sort Area - Only show if no errors and we have results */}
+            {!searchError && restaurantsWithFoods.length > 0 && (
                 <Box sx={{
                     display: 'flex',
                     flexDirection: { xs: 'column', sm: 'row' },
-                    alignItems: { xs: 'stretch', sm: 'center' },
-                    width: { xs: '100%', sm: 'auto' },
-                    gap: 2
+                    justifyContent: 'space-between',
+                    alignItems: { xs: 'flex-start', sm: 'center' },
+                    mb: 3
                 }}>
-                    <Button
-                        variant="outlined"
-                        startIcon={<FilterAltIcon />}
-                        onClick={() => setIsFilterOpen(!isFilterOpen)}
-                        sx={{
-                            borderRadius: 2,
-                            width: { xs: '100%', sm: 'auto' },
-                            minHeight: 40
-                        }}
-                    >
-                        {t('search.filter')}
-                    </Button>
+                    <Box sx={{ mb: { xs: 2, sm: 0 } }}>
+                        <Typography variant="h6" color="text.secondary">
+                            {restaurantsWithFoods.length} {t('search.resultsFound')}
+                        </Typography>
+                    </Box>
 
-                    <FormControl sx={{ width: { xs: '100%', sm: 220 }, minHeight: 40 }} size="small">
-                        <Select
-                            value={sortOption}
-                            onChange={handleSortChange}
-                            displayEmpty
-                            startAdornment={
-                                <InputAdornment position="start">
-                                    <SortIcon fontSize="small" />
-                                </InputAdornment>
-                            }
-                            sx={{ borderRadius: 2 }}
-                        >
-                            <MenuItem value="rating">{t('search.byRating')}</MenuItem>
-                            <MenuItem value="distance">{t('search.byDistance')}</MenuItem>
-                            <MenuItem value="name">{t('search.byName')}</MenuItem>
-                        </Select>
-                    </FormControl>
-                </Box>
-            </Box>
-
-            {/* Filter Panel (Collapsed) */}
-            <Collapse in={isFilterOpen}>
-                <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 3, borderRadius: 3 }}>
-                    <Typography variant="h6" gutterBottom>
-                        {t('search.filterOptions')}
-                    </Typography>
-
-                    <Grid container spacing={2}>
-                        {/* Filter options would go here */}
-                        <Grid size={{ xs: 12, md: 4 }}>
-                            <Typography variant="subtitle2" gutterBottom>
-                                {t('search.cuisine')}
-                            </Typography>
-                            {/* Cuisine filters */}
-                        </Grid>
-
-                        <Grid size={{ xs: 12, md: 4 }}>
-                            <Typography variant="subtitle2" gutterBottom>
-                                {t('search.price')}
-                            </Typography>
-                            {/* Price filters */}
-                        </Grid>
-
-                        <Grid size={{ xs: 12, md: 4 }}>
-                            <Typography variant="subtitle2" gutterBottom>
-                                {t('search.distance')}
-                            </Typography>
-                            {/* Distance filters */}
-                        </Grid>
-                    </Grid>
-
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                    <Box sx={{
+                        display: 'flex',
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        alignItems: { xs: 'stretch', sm: 'center' },
+                        width: { xs: '100%', sm: 'auto' },
+                        gap: 2
+                    }}>
                         <Button
-                            variant="contained"
+                            variant="outlined"
+                            startIcon={<FilterAltIcon />}
+                            onClick={() => setIsFilterOpen(!isFilterOpen)}
                             sx={{
                                 borderRadius: 2,
-                                width: { xs: '100%', sm: 'auto' }
+                                width: { xs: '100%', sm: 'auto' },
+                                minHeight: 40
                             }}
                         >
-                            {t('search.applyFilters')}
+                            {t('search.filter')}
                         </Button>
-                    </Box>
-                </Paper>
-            </Collapse>
 
-            {isLoading && (
-                <Loading />
+                        <FormControl sx={{ width: { xs: '100%', sm: 220 }, minHeight: 40 }} size="small">
+                            <Select
+                                value={sortOption}
+                                onChange={handleSortChange}
+                                displayEmpty
+                                startAdornment={
+                                    <InputAdornment position="start">
+                                        <SortIcon fontSize="small" />
+                                    </InputAdornment>
+                                }
+                                sx={{ borderRadius: 2 }}
+                            >
+                                <MenuItem value="rating">{t('search.byRating')}</MenuItem>
+                                <MenuItem value="distance">{t('search.byDistance')}</MenuItem>
+                                <MenuItem value="name">{t('search.byName')}</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Box>
+                </Box>
             )}
 
+            {/* Filter Panel (Collapsed) */}
+            {!searchError && (
+                <Collapse in={isFilterOpen}>
+                    <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 3, borderRadius: 3 }}>
+                        <Typography variant="h6" gutterBottom>
+                            {t('search.filterOptions')}
+                        </Typography>
+
+                        <Grid container spacing={2}>
+                            {/* Filter options would go here */}
+                            <Grid size={{ xs: 12, md: 4 }}>
+                                <Typography variant="subtitle2" gutterBottom>
+                                    {t('search.cuisine')}
+                                </Typography>
+                                {/* Cuisine filters */}
+                            </Grid>
+
+                            <Grid size={{ xs: 12, md: 4 }}>
+                                <Typography variant="subtitle2" gutterBottom>
+                                    {t('search.price')}
+                                </Typography>
+                                {/* Price filters */}
+                            </Grid>
+
+                            <Grid size={{ xs: 12, md: 4 }}>
+                                <Typography variant="subtitle2" gutterBottom>
+                                    {t('search.distance')}
+                                </Typography>
+                                {/* Distance filters */}
+                            </Grid>
+                        </Grid>
+
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                            <Button
+                                variant="contained"
+                                sx={{
+                                    borderRadius: 2,
+                                    width: { xs: '100%', sm: 'auto' }
+                                }}
+                            >
+                                {t('search.applyFilters')}
+                            </Button>
+                        </Box>
+                    </Paper>
+                </Collapse>
+            )}
+
+            {isLoading && <Loading />}
+
             {/* Restaurant Results */}
-            {!isLoading && restaurantsWithFoods.length > 0 ? (
+            {!isLoading && !searchError && restaurantsWithFoods.length > 0 ? (
                 restaurantsWithFoods.map((item) => (
                     <Paper
                         key={item.restaurant.id}

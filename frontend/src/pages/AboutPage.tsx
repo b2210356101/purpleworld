@@ -132,8 +132,8 @@ const AboutPage: React.FC = () => {
                                 <Avatar
                                     src={
                                         member.name.split(' ')[0].length <= 2
-                                            ? `/src/assets/${member.name.split(' ')[1].toLowerCase()}.jpeg`
-                                            : `/src/assets/${member.name.split(' ')[0].toLowerCase()}.jpeg`
+                                            ? `/images/${member.name.split(' ')[1].toLowerCase()}.jpeg`
+                                            : `/images/${member.name.split(' ')[0].toLowerCase()}.jpeg`
                                     }
                                     alt={member.name}
                                     sx={{ width: 100, height: 100, mb: 2, border: '4px solid', borderColor: 'primary.light' }}
