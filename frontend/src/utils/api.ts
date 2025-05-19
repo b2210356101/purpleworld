@@ -15,7 +15,9 @@ import {
     CourierStats, AdminStats,
     MenuItemAvailabilityRequest,
     PageResponse,
-    SearchResult, ReviewRequest,ReviewDTO
+    SearchResult, ReviewRequest, ReviewDTO,
+    CouponResponse,
+    CouponRequest,
 } from '../types';
 
 const API_URL = 'https://purpleworld-production.up.railway.app';
@@ -835,36 +837,36 @@ export const submitReview = async (
 };
 
 export const getRestaurantReviews = async (): Promise<ReviewDTO[]> => {
-  try {
-    const response = await api.get('/restaurant/orders/reviews');
-    return response.data;
-  } catch (err) {
-    if (err instanceof AxiosError && err.response) {
-      throw err.response.data;
+    try {
+        const response = await api.get('/restaurant/orders/reviews');
+        return response.data;
+    } catch (err) {
+        if (err instanceof AxiosError && err.response) {
+            throw err.response.data;
+        }
+        throw err;
     }
-    throw err;
-  }
 };
 
 export const replyToReview = async (orderGroupId: string | number, reply: string): Promise<void> => {
-  try {
-    await api.post(`/restaurant/orders/reviews/${orderGroupId}/reply`, reply);
-  } catch (err) {
-    if (err instanceof AxiosError && err.response) {
-      throw err.response.data;
+    try {
+        await api.post(`/restaurant/orders/reviews/${orderGroupId}/reply`, reply);
+    } catch (err) {
+        if (err instanceof AxiosError && err.response) {
+            throw err.response.data;
+        }
+        throw err;
     }
-    throw err;
-  }
 };
 
 export const getRestaurantReviewsForCustomer = async (restaurantId: number): Promise<ReviewDTO[]> => {
-  try {
-    const response = await api.get(`/customer/restaurants/${restaurantId}/reviews`);
-    return response.data;
-  } catch (err) {
-    console.error("Error fetching customer reviews:", err);
-    throw err;
-  }
+    try {
+        const response = await api.get(`/customer/restaurants/${restaurantId}/reviews`);
+        return response.data;
+    } catch (err) {
+        console.error("Error fetching customer reviews:", err);
+        throw err;
+    }
 };
 
 
@@ -910,6 +912,189 @@ export const removeFromFavorites = async (restaurantId: number): Promise<boolean
     } catch (error) {
         console.error('Error removing from favorites:', error);
         return false;
+    }
+};
+
+// Coupon management API functions for admin
+export const getAllCoupons = async (): Promise<CouponResponse[]> => {
+    try {
+        const response = await api.get('/admin/coupons/list');
+        return response.data;
+    } catch (error) {
+        if (error instanceof AxiosError && error.response) {
+            const errData = error.response.data as BackendErrorResponse;
+            throw errData;
+        }
+        throw error;
+    }
+};
+
+export const createCoupon = async (couponData: CouponRequest): Promise<void> => {
+    try {
+        await api.post('/admin/coupons/create', couponData);
+    } catch (error) {
+        if (error instanceof AxiosError && error.response) {
+            const errData = error.response.data as BackendErrorResponse;
+            throw errData;
+        }
+        throw error;
+    }
+};
+
+export const updateCoupon = async (couponId: number, couponData: CouponRequest): Promise<void> => {
+    try {
+        await api.put(`/admin/coupons/update/${couponId}`, couponData);
+    } catch (error) {
+        if (error instanceof AxiosError && error.response) {
+            const errData = error.response.data as BackendErrorResponse;
+            throw errData;
+        }
+        throw error;
+    }
+};
+
+export const deleteCoupon = async (couponId: number): Promise<void> => {
+    try {
+        await api.delete(`/admin/coupons/delete/${couponId}`);
+    } catch (error) {
+        if (error instanceof AxiosError && error.response) {
+            const errData = error.response.data as BackendErrorResponse;
+            throw errData;
+        }
+        throw error;
+    }
+};
+// Functions needed for profile management
+export const getUserProfile = async (): Promise<any> => {
+    const userType = localStorage.getItem('roleType');
+    try {
+        // Route based on user type
+        let endpoint = '';
+        switch (userType) {
+            case 'CUSTOMER':
+                endpoint = '/customer/profile';
+                break;
+            case 'RESTAURANT':
+                endpoint = '/restaurant/profile';
+                break;
+            case 'COURIER':
+                endpoint = '/courier/profile';
+                break;
+            case 'ADMIN':
+                // If you have an admin profile endpoint
+                endpoint = '/admin/profile';
+                break;
+            default:
+                throw new Error('Unknown user type');
+        }
+
+        const response = await api.get(endpoint);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+        throw error;
+    }
+};
+
+export const updateUserProfile = async (profileData: any): Promise<any> => {
+    const userType = localStorage.getItem('roleType');
+    try {
+        // Route based on user type
+        let endpoint = '';
+        switch (userType) {
+            case 'CUSTOMER':
+                endpoint = '/customer/profile';
+                break;
+            case 'RESTAURANT':
+                endpoint = '/restaurant/profile';
+                break;
+            case 'COURIER':
+                endpoint = '/courier/profile';
+                break;
+            case 'ADMIN':
+                // If you have an admin profile endpoint
+                endpoint = '/admin/profile';
+                break;
+            default:
+                throw new Error('Unknown user type');
+        }
+
+        const response = await api.put(endpoint, profileData);
+        return response.data;
+    } catch (error) {
+        console.error('Error updating user profile:', error);
+        throw error;
+    }
+};
+
+export const changePassword = async ({ oldPassword, newPassword }: { oldPassword: string, newPassword: string }): Promise<any> => {
+    const userType = localStorage.getItem('roleType');
+    try {
+        // Route based on user type
+        let endpoint = '';
+        switch (userType) {
+            case 'CUSTOMER':
+                endpoint = '/customer/profile/change-password';
+                break;
+            case 'RESTAURANT':
+                endpoint = '/restaurant/profile/change-password';
+                break;
+            case 'COURIER':
+                endpoint = '/courier/profile/change-password';
+                break;
+            case 'ADMIN':
+                // If you have an admin change password endpoint
+                endpoint = '/admin/profile/change-password';
+                break;
+            default:
+                throw new Error('Unknown user type');
+        }
+
+        const response = await api.post(endpoint, {
+            currentPassword: oldPassword,
+            newPassword
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error changing password:', error);
+        throw error;
+    }
+};
+// Get restaurant statistics (for restaurant)
+export const getRestaurantProfileStats = async () => {
+    try {
+        const response = await api.get('/restaurant/profile');
+        return response.data;
+    } catch (error) {
+        console.error('Failed to fetch restaurant statistics:', error);
+        throw error;
+    }
+};
+
+// Get courier statistics (for courier)
+export const getCourierProfileStats = async () => {
+    try {
+        const response = await api.get('/courier/profile');
+        return response.data;
+    } catch (error) {
+        console.error('Failed to fetch courier statistics:', error);
+        throw error;
+    }
+};
+
+// Update restaurant details (for restaurant)
+export const updateRestaurantDetails = async (details: {
+    openingHours?: string;
+    closingHours?: string;
+    description?: string;
+    cuisineType?: string;
+}) => {
+    try {
+        const response = await api.put('/restaurant/profile/details', details);
+        return response.data;
+    } catch (error) {
+        console.error('Failed to update restaurant details:', error);
+        throw error;
     }
 };
 

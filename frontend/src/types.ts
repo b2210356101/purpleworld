@@ -383,3 +383,20 @@ export interface ReviewDTO {
     reviewDate: string;
     orderGroupId: number;
 }
+export interface CouponRequest {
+    name: string;
+    description: string;
+    discountAmount: number;
+    minOrderAmount: number;
+    expiryDate: string;
+}
+
+export interface CouponResponse {
+    id: number;
+    code: string;
+    description: string;
+    discountPercent: number;
+    minOrderPrice: number;
+    expiryDate: string;
+    isActive: boolean;
+}

@@ -27,11 +27,14 @@ import SearchResultsPage from '../pages/SearchResultPage';
 import RestaurantsPage from '../pages/RestaurantsPage';
 import RestaurantReviewManagement from '../pages/RestaurantReviewManagement';
 import RestaurantReviewsPage from '../pages/RestaurantReviews';
-import { ResetPasswordPage } from "../pages/ResetPasswordPage";
-import { ForgotPasswordPage } from "../pages/ForgotPasswordPage";
-import FavoritesPage from '../pages/FavoritesPage';
 import StockManagementPage from '../pages/StockManagementPage';
 import PopularFoodsPage from '../pages/PopularFoodsPage';
+import FavoritesPage from '../pages/FavoritesPage';
+import {ResetPasswordPage} from "../pages/ResetPasswordPage";
+import {ForgotPasswordPage} from "../pages/ForgotPasswordPage";
+import AdminPromotionManagementPage from '../pages/AdminPromotionManagementPage';
+import ProfileManagement from "../pages/ProfileManagement";
+
 
 
 
@@ -174,7 +177,7 @@ const router = createBrowserRouter([
                     {
                         path: 'profile',
                         element: (
-                            <RoleBasedRoute allowedRoles={['CUSTOMER', 'RESTAURANT', 'COURIER', 'ADMIN']}> <div>Profile Page</div> </RoleBasedRoute>
+                            <RoleBasedRoute allowedRoles={['CUSTOMER', 'RESTAURANT', 'COURIER', 'ADMIN']}> <ProfileManagement /> </RoleBasedRoute>
                         )
                     },
                     {
@@ -228,6 +231,10 @@ const router = createBrowserRouter([
                     {
                         path: 'admin/couriers',
                         element: <RoleBasedRoute allowedRoles={['ADMIN']}> <AdminCourierManagementPage /> </RoleBasedRoute>
+                    },
+                    {
+                        path: 'admin/promotions',
+                        element: <RoleBasedRoute allowedRoles={['ADMIN']}> <AdminPromotionManagementPage /> </RoleBasedRoute>
                     },
                     {
                         path: 'restaurants/:id',

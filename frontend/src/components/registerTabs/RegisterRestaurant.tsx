@@ -87,6 +87,8 @@ const RegisterRestaurant = () => {
     const [passwordErrorMsg, setPasswordErrorMsg] = useState("");
     const [confirmPasswordErrorMsg, setConfirmPasswordErrorMsg] = useState("");
     const [locationErrorMsg, setLocationErrorMsg] = useState("");
+    const [profileImageError, setProfileImageError] = useState(false);
+    const [profileImageErrorMsg, setProfileImageErrorMsg] = useState("");
 
     const [showVerificationDialog, setShowVerificationDialog] = useState(false);
     const [verificationCode, setVerificationCode] = useState("");
@@ -202,9 +204,21 @@ const RegisterRestaurant = () => {
     // Handle image upload
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] || null;
-        setProfileImage(file);
+
+        setProfileImageError(false);
+        setProfileImageErrorMsg("");
+        setProfileImage(null);
+        setBase64Image("");
 
         if (file) {
+            const maxSizeInBytes = 1 * 1024 * 1024; // 1 MB
+            if (file.size > maxSizeInBytes) {
+                setProfileImageError(true);
+                setProfileImageErrorMsg(t('profile.max'));
+                return;
+            }
+
+            setProfileImage(file);
             const reader = new FileReader();
             reader.onloadend = () => {
                 setBase64Image(reader.result as string);
@@ -328,8 +342,7 @@ const RegisterRestaurant = () => {
             setEmailErrorMsg("");
         }
 
-        const passwordRegex =
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*_])[A-Za-z\d!@#$%^&*_]{8,}$/;
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*_\.}\){?\]])[A-Za-z\d!@#$%^&*_\.}\){?\]]{8,}$/;
 
         if (!password || !passwordRegex.test(password)) {
             setPasswordError(true);
@@ -707,7 +720,7 @@ const RegisterRestaurant = () => {
                 />
             </FormControl>
 
-            <FormControl>
+            <FormControl error={profileImageError}>
                 <FormLabel htmlFor="profileImage">{t('register.restaurant.profileImage')}</FormLabel>
                 <input
                     type="file"
@@ -716,9 +729,14 @@ const RegisterRestaurant = () => {
                     accept="image/*"
                     onChange={handleImageChange}
                 />
+                {profileImageError && (
+                    <Typography variant="body2" color="error" mt={1}>
+                        {profileImageErrorMsg}
+                    </Typography>
+                )}
             </FormControl>
 
-            {profileImage && (
+            {profileImage && !profileImageError && (
                 <Box>
                     <Typography variant="body2" mt={1}>
                         {t('register.restaurant.profilePreview')}

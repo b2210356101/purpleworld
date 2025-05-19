@@ -53,6 +53,8 @@ const MenuManagementPage: React.FC = () => {
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
     const [selectedCategoryName, setSelectedCategoryName] = useState<string>('');
     const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+    const [imageError, setImageError] = useState(false);
+    const [imageErrorMsg, setImageErrorMsg] = useState("");
     const [newItem, setNewItem] = useState<Omit<MenuItem, 'id'>>({
         name: '',
         price: 0,
@@ -99,6 +101,14 @@ const MenuManagementPage: React.FC = () => {
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            const maxSizeInBytes = 1 * 1024 * 1024;
+            if (file.size > maxSizeInBytes) {
+                setImageError(true);
+                setImageErrorMsg(t('profile.max'));
+                return;
+            }
+            setImageError(false);
+            setImageErrorMsg("");
             const reader = new FileReader();
             reader.onloadend = () => {
                 const base64 = reader.result as string;
@@ -256,6 +266,8 @@ const MenuManagementPage: React.FC = () => {
             removableElements: []
         });
         setNewElement('');
+        setImageError(false);
+        setImageErrorMsg("");
     };
 
     // Handler for form changes
@@ -564,6 +576,11 @@ const MenuManagementPage: React.FC = () => {
                                 />
                             </Button>
                         </Box>
+                        {imageError && (
+                            <Typography variant="body2" color="error" mt={1}>
+                                {imageErrorMsg}
+                            </Typography>
+                        )}
                     </Box>
 
                     {/* Removable Elements Section */}
