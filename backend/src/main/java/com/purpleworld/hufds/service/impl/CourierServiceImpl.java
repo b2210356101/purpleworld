@@ -2,11 +2,11 @@ package com.purpleworld.hufds.service.impl;
 
 import com.purpleworld.hufds.dto.CourierOrderDTO;
 import com.purpleworld.hufds.dto.CourierStatsDTO;
-import com.purpleworld.hufds.dto.OrderGroupDTO;
 import com.purpleworld.hufds.dto.OrderItemDTO;
+import com.purpleworld.hufds.dto.request.CourierProfileUpdateRequest;
+import com.purpleworld.hufds.dto.response.CourierProfileResponse;
 import com.purpleworld.hufds.entity.Address;
 import com.purpleworld.hufds.entity.Courier;
-import com.purpleworld.hufds.entity.Order;
 import com.purpleworld.hufds.entity.OrderGroup;
 import com.purpleworld.hufds.enums.AccountStatus;
 import com.purpleworld.hufds.repository.AddressRepository;
@@ -14,6 +14,11 @@ import com.purpleworld.hufds.repository.CourierRepository;
 import com.purpleworld.hufds.repository.OrderGroupRepository;
 import com.purpleworld.hufds.service.CourierService;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,13 +34,8 @@ public class CourierServiceImpl implements CourierService {
     private final OrderGroupRepository orderGroupRepository;
     private final AddressRepository addressRepository;
     private final TrackingServiceImpl trackingServiceImpl;
+    private final PasswordEncoder passwordEncoder;
 
-    public CourierServiceImpl(CourierRepository courierRepository, OrderGroupRepository orderGroupRepository, AddressRepository addressRepository, TrackingServiceImpl trackingServiceImpl) {
-        this.courierRepository = courierRepository;
-        this.orderGroupRepository = orderGroupRepository;
-        this.addressRepository = addressRepository;
-        this.trackingServiceImpl = trackingServiceImpl;
-    }
 
     @Override
     @Transactional
@@ -242,6 +242,101 @@ public class CourierServiceImpl implements CourierService {
         }
 
         System.out.println("Sipariş teslim edildi olarak işaretlendi → Sipariş: #" + order.getId());
+    }
+
+
+
+    @Override
+    public ResponseEntity<?> getCourierProfile(String email) {
+        try {
+            if (email == null || email.isBlank()) {
+                return ResponseEntity.status(401).body("Unauthorized: Invalid or missing token");
+            }
+
+            Courier courier = courierRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Courier not found"));
+
+            CourierProfileResponse response = new CourierProfileResponse(
+                    courier.getId(),
+                    courier.getFirstName(),
+                    courier.getLastName(),
+                    courier.getEmail(),
+                    courier.getPhoneNumber(),
+                    courier.isAvailable(),
+                    courier.isWorking()
+            );
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(400).body("Error: " + ex.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Something went wrong: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<?> updateCourierProfile(String email, CourierProfileUpdateRequest request) {
+        try {
+            if (email == null || email.isBlank()) {
+                return ResponseEntity.status(401).body("Unauthorized: Invalid or missing token");
+            }
+
+            Courier courier = courierRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Courier not found"));
+
+            if (request.getFirstName() != null && !request.getFirstName().isBlank()) {
+                courier.setFirstName(request.getFirstName());
+            }
+
+            if (request.getLastName() != null && !request.getLastName().isBlank()) {
+                courier.setLastName(request.getLastName());
+            }
+
+            if (request.getPhoneNumber() != null && !request.getPhoneNumber().isBlank()) {
+                courier.setPhoneNumber(request.getPhoneNumber());
+            }
+
+            courierRepository.save(courier);
+
+            CourierProfileResponse response = new CourierProfileResponse(
+                    courier.getId(),
+                    courier.getFirstName(),
+                    courier.getLastName(),
+                    courier.getEmail(),
+                    courier.getPhoneNumber(),
+                    courier.isAvailable(),
+                    courier.isWorking()
+            );
+
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(400).body("Error: " + ex.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Something went wrong: " + e.getMessage());
+        }
+    }
+
+
+    @Override
+    @Transactional
+    public void changePassword(String currentPassword, String newPassword) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+
+        Optional<Courier> courierOpt = courierRepository.findByEmail(email);
+        if (courierOpt.isPresent()) {
+            Courier courier = courierOpt.get();
+            if (!passwordEncoder.matches(currentPassword, courier.getPassword())) {
+                throw new RuntimeException("Current password is incorrect");
+            }
+            courier.setPassword(passwordEncoder.encode(newPassword));
+            courierRepository.save(courier);
+            return;
+        }
+
+
+        throw new RuntimeException("User not found");
     }
 
 }

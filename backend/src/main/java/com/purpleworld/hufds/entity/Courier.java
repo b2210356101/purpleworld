@@ -26,7 +26,7 @@ public class Courier {
     private String lastName;
 
     @Column(name = "IsAvailable", nullable = false)
-    private boolean isAvailable;
+    private boolean isAvailable = true;
 
     @Column(name = "IsWorking", nullable = false)
     private boolean isWorking = false;
@@ -57,5 +57,4 @@ public class Courier {
             this.role = Role.COURIER;
         }
     }
-
 }

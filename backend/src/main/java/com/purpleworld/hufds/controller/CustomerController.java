@@ -3,6 +3,8 @@ package com.purpleworld.hufds.controller;
 import com.purpleworld.hufds.dto.OrderDetailsResponse;
 import com.purpleworld.hufds.dto.request.AddressRequest;
 import com.purpleworld.hufds.dto.request.ReviewRequest;
+import com.purpleworld.hufds.dto.request.ChangePasswordRequest;
+import com.purpleworld.hufds.dto.request.ProfileUpdateRequest;
 import com.purpleworld.hufds.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 
@@ -151,5 +153,30 @@ public class CustomerController {
         @AuthenticationPrincipal String email) {
     return customerService.checkIsFavorite(restaurantId, email);
 }
+
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfile(@AuthenticationPrincipal String email) {
+        return customerService.getCustomerProfile(email);
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(
+            @AuthenticationPrincipal String email,
+            @RequestBody ProfileUpdateRequest request) {
+        return customerService.updateCustomerProfile(email, request);
+    }
+
+    @PostMapping("/profile/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request) {
+        try {
+            // Burada authService içinde password değiştirme mantığını uygulayın
+            customerService.changePassword(request.getCurrentPassword(), request.getNewPassword());
+            return ResponseEntity.ok("Password changed successfully");
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(400).body(ex.getMessage());
+        }
+
+
+    }
 }
 

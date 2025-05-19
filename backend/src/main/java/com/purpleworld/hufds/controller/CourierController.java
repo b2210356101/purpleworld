@@ -3,8 +3,8 @@ package com.purpleworld.hufds.controller;
 
 import com.purpleworld.hufds.dto.CourierOrderDTO;
 import com.purpleworld.hufds.dto.CourierStatsDTO;
-import com.purpleworld.hufds.dto.OrderGroupDTO;
-import com.purpleworld.hufds.repository.CourierRepository;
+import com.purpleworld.hufds.dto.request.ChangePasswordRequest;
+import com.purpleworld.hufds.dto.request.CourierProfileUpdateRequest;
 import com.purpleworld.hufds.service.CourierService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,9 +17,6 @@ import java.util.List;
 @RequestMapping("/courier")
 @RequiredArgsConstructor
 public class CourierController {
-
-    private final CourierRepository courierRepository;
-
 
     private final CourierService courierService;
 
@@ -52,6 +49,30 @@ public class CourierController {
         return ResponseEntity.ok().build();
     }
 
+
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfile(@AuthenticationPrincipal String email) {
+        return courierService.getCourierProfile(email);
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(
+            @AuthenticationPrincipal String email,
+            @RequestBody CourierProfileUpdateRequest request) {
+        return courierService.updateCourierProfile(email, request);
+    }
+
+    @PostMapping("/profile/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request) {
+        try {
+            courierService.changePassword(request.getCurrentPassword(), request.getNewPassword());
+            return ResponseEntity.ok("Password changed successfully");
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(400).body(ex.getMessage());
+        }
+
+
+    }
 
 
 }

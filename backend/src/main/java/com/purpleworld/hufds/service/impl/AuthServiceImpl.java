@@ -177,7 +177,7 @@ public class AuthServiceImpl implements AuthService {
             }
 
             String token = jwtService.generateToken(email, "CUSTOMER");
-            return new LoginResponse(token, "CUSTOMER", customer.get().getFirstName(), null);
+            return new LoginResponse(token, "CUSTOMER", customer.get().getFirstName(), customer.get().getProfileImg());
         }
 
         var courier = courierRepository.findByEmail(email);
