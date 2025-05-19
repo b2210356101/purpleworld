@@ -5,6 +5,7 @@ import com.purpleworld.hufds.dto.request.AddressRequest;
 
 import org.springframework.data.domain.Pageable;
 import com.purpleworld.hufds.dto.request.ReviewRequest;
+import com.purpleworld.hufds.dto.request.ProfileUpdateRequest;
 import org.springframework.http.ResponseEntity;
 
 public interface CustomerService {
@@ -35,4 +36,10 @@ public interface CustomerService {
     ResponseEntity<?> removeFromFavorites(Long restaurantId, String email);
     ResponseEntity<?> getFavorites(String email);
     ResponseEntity<?> checkIsFavorite(Long restaurantId, String email);
+
+    ResponseEntity<?> getCustomerProfile(String email);
+    ResponseEntity<?> updateCustomerProfile(String email, ProfileUpdateRequest request);
+    void changePassword(String currentPassword, String newPassword);
+
+
 }

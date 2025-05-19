@@ -2,6 +2,8 @@ package com.purpleworld.hufds.service;
 
 import com.purpleworld.hufds.dto.CourierOrderDTO;
 import com.purpleworld.hufds.dto.CourierStatsDTO;
+import com.purpleworld.hufds.dto.request.CourierProfileUpdateRequest;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
@@ -12,5 +14,9 @@ public interface CourierService {
     void changeAvailability(String email);
 
     void delivered(String email, Long orderGroupId);
+
+    ResponseEntity<?> getCourierProfile(String email);
+    ResponseEntity<?> updateCourierProfile(String email, CourierProfileUpdateRequest request);
+    void changePassword(String currentPassword, String newPassword);
 
 }

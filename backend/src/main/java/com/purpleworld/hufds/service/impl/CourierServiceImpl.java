@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CourierServiceImpl implements CourierService {
     private final CourierRepository courierRepository;
     private final OrderGroupRepository orderGroupRepository;

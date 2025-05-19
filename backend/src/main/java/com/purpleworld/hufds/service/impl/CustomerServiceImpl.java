@@ -6,6 +6,7 @@ import com.purpleworld.hufds.dto.OrderDetailsResponse;
 import com.purpleworld.hufds.dto.OrderItemDTO;
 import com.purpleworld.hufds.dto.ReviewDTO;
 import com.purpleworld.hufds.dto.request.AddressRequest;
+import com.purpleworld.hufds.dto.request.ProfileUpdateRequest;
 import com.purpleworld.hufds.dto.request.ReviewRequest;
 import com.purpleworld.hufds.dto.response.*;
 import com.purpleworld.hufds.entity.*;
@@ -21,6 +22,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -41,8 +45,9 @@ public class CustomerServiceImpl implements CustomerService {
     private final CartRepository cartRepository;
     private final OrderGroupRepository orderGroupRepository;
     private final OrderRepository orderRepository;
-    private final ReviewRepository reviewRepository;
     private final FavoriteRepository favoriteRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final ReviewRepository reviewRepository;
 
     @Override
     public ResponseEntity<String> dashboard() {
@@ -1092,5 +1097,98 @@ public ResponseEntity<?> restaurantReviews(Long restaurantId, String email) {
         }
 
         return new double[]{avg, reviews.size()};
+    }
+
+        @Override
+    public ResponseEntity<?> getCustomerProfile(String email) {
+        try {
+            if (email == null || email.isBlank()) {
+                return ResponseEntity.status(401).body("Unauthorized: Invalid or missing token");
+            }
+
+            Customer customer = customerRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+            CustomerProfileResponse response = new CustomerProfileResponse(
+                    customer.getId(),
+                    customer.getFirstName(),
+                    customer.getLastName(),
+                    customer.getEmail(),
+                    customer.getPhoneNumber(),
+                    customer.getProfileImg(),
+                    customer.getCurrentAddressId()
+            );
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(400).body("Error: " + ex.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Something went wrong: " + e.getMessage());
+        }
+    }
+
+
+    @Override
+    @Transactional
+    public ResponseEntity<?> updateCustomerProfile(String email, ProfileUpdateRequest request) {
+        try {
+            if (email == null || email.isBlank()) {
+                return ResponseEntity.status(401).body("Unauthorized: Invalid or missing token");
+            }
+
+            Customer customer = customerRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+            if (request.getFirstName() != null && !request.getFirstName().isBlank()) {
+                customer.setFirstName(request.getFirstName());
+            }
+            if (request.getLastName() != null && !request.getLastName().isBlank()) {
+                customer.setLastName(request.getLastName());
+            }
+            if (request.getPhoneNumber() != null && !request.getPhoneNumber().isBlank()) {
+                customer.setPhoneNumber(request.getPhoneNumber());
+            }
+            if (request.getProfileImg() != null) {
+                customer.setProfileImg(request.getProfileImg());
+            }
+            customerRepository.save(customer);
+
+            CustomerProfileResponse response = new CustomerProfileResponse(
+                    customer.getId(),
+                    customer.getFirstName(),
+                    customer.getLastName(),
+                    customer.getEmail(),
+                    customer.getPhoneNumber(),
+                    customer.getProfileImg(),
+                    customer.getCurrentAddressId()
+            );
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(400).body("Error: " + ex.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Something went wrong: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    @Override
+    public void changePassword(String currentPassword, String newPassword) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        Optional<Customer> customerOpt = customerRepository.findByEmail(email);
+        if (customerOpt.isPresent()) {
+            Customer customer = customerOpt.get();
+
+            if (!passwordEncoder.matches(currentPassword, customer.getPassword())) {
+                throw new RuntimeException("Current password is incorrect");
+            }
+
+            customer.setPassword(passwordEncoder.encode(newPassword));
+            customerRepository.save(customer);
+            return;
+        }
+
+
+        throw new RuntimeException("User not found");
     }
 }
