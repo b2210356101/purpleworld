@@ -29,60 +29,71 @@ public class CartServiceImpl implements CartService {
     private final RestaurantRepository restaurantRepository;
     private final RemovableElementRepository removableElementRepository;
 
-        @Override
-        @Transactional
-        public AddToCartResponse addToCart(AddToCartRequest request, String email) {
-                // 1) Load customer, menuItem, restaurant
-                Customer customer = customerRepository.findByEmail(email)
-                        .orElseThrow(() -> new RuntimeException("Customer not found"));
+    @Override
+    @Transactional
+    public AddToCartResponse addToCart(AddToCartRequest request, String email) {
+        // 1) Load customer, menuItem, restaurant
+        Customer customer = customerRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
 
-                MenuItem menuItem = menuItemRepository.findById(request.getMenuItemId())
-                        .orElseThrow(() -> new RuntimeException("MenuItem not found"));
+        MenuItem menuItem = menuItemRepository.findById(request.getMenuItemId())
+                .orElseThrow(() -> new RuntimeException("MenuItem not found"));
 
-                Restaurant restaurant = menuItem.getCategory().getMenu().getRestaurant();
+        Restaurant restaurant = menuItem.getCategory().getMenu().getRestaurant();
 
-                // 2) Get or create the Cart
-                Cart cart = cartRepository.findByCustomerId(customer.getId())
-                        .orElseGet(() -> {
-                                Cart newCart = new Cart();
-                                newCart.setCustomer(customer);
-                                return cartRepository.save(newCart);
-                        });
-
-                // 3) Get or create the CartGroup for this restaurant
-                CartGroup cartGroup = cart.getCartGroups().stream()
-                        .filter(cg -> cg.getRestaurant().equals(restaurant))
-                        .findFirst()
-                        .orElseGet(() -> {
-                                CartGroup newGroup = new CartGroup();
-                                newGroup.setCart(cart);
-                                newGroup.setRestaurant(restaurant);
-                                cart.getCartGroups().add(newGroup);
-                                return cartGroupRepository.save(newGroup);
-                        });
-
-                // 4) Find existing CartItem for this menuItem, or make a new one
-                Optional<CartItem> existing = cartGroup.getCartItems().stream()
-                        .filter(ci -> ci.getMenuItem().equals(menuItem))
-                        .findFirst();
-
-                CartItem cartItem = existing.orElseGet(() -> {
-                        CartItem ci = new CartItem();
-                        ci.setCartGroup(cartGroup);
-                        ci.setMenuItem(menuItem);
-                        cartGroup.getCartItems().add(ci);
-                        return ci;
+        // 2) Get or create the Cart
+        Cart cart = cartRepository.findByCustomerId(customer.getId())
+                .orElseGet(() -> {
+                        Cart newCart = new Cart();
+                        newCart.setCustomer(customer);
+                        return cartRepository.save(newCart);
                 });
 
-                // 5) Update quantity
-                cartItem.setQuantity(cartItem.getQuantity() + request.getQuantity());
+        // 3) Get or create the CartGroup for this restaurant
+        CartGroup cartGroup = cart.getCartGroups().stream()
+                .filter(cg -> cg.getRestaurant().equals(restaurant))
+                .findFirst()
+                .orElseGet(() -> {
+                        CartGroup newGroup = new CartGroup();
+                        newGroup.setCart(cart);
+                        newGroup.setRestaurant(restaurant);
+                        cart.getCartGroups().add(newGroup);
+                        return cartGroupRepository.save(newGroup);
+                });
 
-                // 6) Handle removable elements
-                List<RemovableElement> removableElements = new ArrayList<>();
+        // 4) Find existing CartItem for this menuItem, or make a new one
+        Optional<CartItem> existing = cartGroup.getCartItems().stream()
+                .filter(ci -> ci.getMenuItem().equals(menuItem))
+                .findFirst();
 
+        CartItem cartItem = existing.orElseGet(() -> {
+                CartItem ci = new CartItem();
+                ci.setCartGroup(cartGroup);
+                ci.setMenuItem(menuItem);
+                cartGroup.getCartItems().add(ci);
+                return ci;
+        });
 
-                // 7) Persist the CartItem
-                cartItemRepository.save(cartItem);
+        // 5) Update quantity
+        cartItem.setQuantity(cartItem.getQuantity() + request.getQuantity());
+
+        // 6) Handle removable elements
+        List<RemovableElement> removableElements = new ArrayList<>();
+        cartItem.getRemovableElements().clear();
+
+        if (request.getRemovableElements() != null && !request.getRemovableElements().isEmpty()) {
+            for (RemovableElementDTO dto : request.getRemovableElements()) {
+                Optional<RemovableElement> elementOpt = removableElementRepository.findById(dto.getId());
+                if (elementOpt.isPresent()) {
+                    RemovableElement element = elementOpt.get();
+                    removableElements.add(element);
+                    cartItem.getRemovableElements().add(element);
+                }
+            }
+        }
+
+        // 7) Persist the CartItem
+        cartItemRepository.save(cartItem);
 
                 System.out.println("Cart Groups: " + cart.getCartGroups().size());
                 for (CartGroup group : cart.getCartGroups()) {
@@ -106,91 +117,84 @@ public class CartServiceImpl implements CartService {
                         .map(entity -> new RemovableElementDTO(entity.getId(), entity.getName()))
                         .collect(Collectors.toList());
 
-                if (request.getRemovableElements() != null && !request.getRemovableElements().isEmpty()) {
-                        for (RemovableElementDTO dto : request.getRemovableElements()) {
-                                Optional<RemovableElement> elementOpt = removableElementRepository.findById(dto.getId());
-                                if (elementOpt.isPresent()) {
-                                        RemovableElement element = elementOpt.get();
+        return new AddToCartResponse(
+                "Item added to cart successfully",
+                cart.getId(),
+                cartGroup.getId(),
+                cartItem.getId(),
+                totalQuantity,
+                menuItem.getName(),
+                menuItem.getPrice(),
+                cartTotal,
+                restaurant.getRestaurantName(),
+                groupCount,
+                removableDTOs);
+    }
 
-                                        removableElements.add(element);
-                                }
-                        }
+    @Override
+    @Transactional
+    public ViewCartResponse viewCart(String email) {
+        Customer customer = customerRepository.findByEmail(email)
+                        .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        Cart cart = cartRepository.findByCustomerId(customer.getId())
+                        .orElseThrow(() -> new RuntimeException("Cart not found"));
+
+        List<CartGroupResponse> groupResponses = new ArrayList<>();
+        int totalQuantity = 0;
+        int cartTotal = 0;
+
+        List<CartGroup> sortedGroups = new ArrayList<>(cart.getCartGroups());
+        sortedGroups.sort((a, b) -> a.getRestaurant().getRestaurantName()
+                .compareToIgnoreCase(b.getRestaurant().getRestaurantName()));
+
+        for (CartGroup group : sortedGroups) {
+                Restaurant restaurant = group.getRestaurant();
+
+                List<CartItem> sortedItems = new ArrayList<>(group.getCartItems());
+                sortedItems.sort((a, b) -> a.getMenuItem().getName()
+                                .compareToIgnoreCase(b.getMenuItem().getName()));
+
+                List<CartItemResponse> itemResponses = new ArrayList<>();
+
+                for (CartItem item : sortedItems) {
+                        MenuItem menuItem = item.getMenuItem();
+                        int quantity = item.getQuantity();
+                        int price = menuItem.getPrice();
+
+                        totalQuantity += quantity;
+                        cartTotal += quantity * price;
+
+                        // Convert removable elements to DTOs
+                        List<RemovableElementDTO> removableDTOs = item.getRemovableElements().stream()
+                                .map(re -> new RemovableElementDTO(re.getId(), re.getName()))
+                                .collect(Collectors.toList());
+
+                        itemResponses.add(new CartItemResponse(
+                                        item.getId(),
+                                        menuItem.getName(),
+                                        price,
+                                        quantity,
+                                        menuItem.getImg(),
+                                        removableDTOs));
                 }
-
-
-
-                return new AddToCartResponse(
-                        "Item added to cart successfully",
-                        cart.getId(),
-                        cartGroup.getId(),
-                        cartItem.getId(),
-                        totalQuantity,
-                        menuItem.getName(),
-                        menuItem.getPrice(),
-                        cartTotal,
-                        restaurant.getRestaurantName(),
-                        groupCount,
-                        removableDTOs);  // Return the DTOs instead of just names
-        }
-
-        @Override
-        @Transactional
-        public ViewCartResponse viewCart(String email) {
-                Customer customer = customerRepository.findByEmail(email)
-                                .orElseThrow(() -> new RuntimeException("Customer not found"));
-
-                Cart cart = cartRepository.findByCustomerId(customer.getId())
-                                .orElseThrow(() -> new RuntimeException("Cart not found"));
-
-                List<CartGroupResponse> groupResponses = new ArrayList<>();
-                int totalQuantity = 0;
-                int cartTotal = 0;
-
-                List<CartGroup> sortedGroups = new ArrayList<>(cart.getCartGroups());
-                sortedGroups.sort((a, b) -> a.getRestaurant().getRestaurantName()
-                        .compareToIgnoreCase(b.getRestaurant().getRestaurantName())); // sort by name
-
-                for (CartGroup group : sortedGroups) {
-                        Restaurant restaurant = group.getRestaurant();
-
-                        List<CartItem> sortedItems = new ArrayList<>(group.getCartItems());
-                        sortedItems.sort((a, b) -> a.getMenuItem().getName()
-                                        .compareToIgnoreCase(b.getMenuItem().getName())); // sort by name
-
-                        List<CartItemResponse> itemResponses = new ArrayList<>();
-
-                        for (CartItem item : sortedItems) {
-                                MenuItem menuItem = item.getMenuItem();
-                                int quantity = item.getQuantity();
-                                int price = menuItem.getPrice();
-
-                                totalQuantity += quantity;
-                                cartTotal += quantity * price;
-
-                                itemResponses.add(new CartItemResponse(
-                                                item.getId(),
-                                                menuItem.getName(),
-                                                price,
-                                                quantity,
-                                                menuItem.getImg(),
-                                                null));
-                        }
 
                         groupResponses.add(new CartGroupResponse(
                                         restaurant.getId(),
                                         restaurant.getRestaurantName(),
                                         group.getNote(),
                                         group.getId(),
-                                        itemResponses));
+                                        itemResponses,
+                                        restaurant.getMinOrderAmount()));
                 }
 
-                return new ViewCartResponse(
-                                cart.getId(),
-                                totalQuantity,
-                                cartTotal,
-                                groupResponses.size(),
-                                groupResponses);
-        }
+        return new ViewCartResponse(
+                        cart.getId(),
+                        totalQuantity,
+                        cartTotal,
+                        groupResponses.size(),
+                        groupResponses);
+    }
 
         @Override
         @Transactional
@@ -281,6 +285,36 @@ public class CartServiceImpl implements CartService {
                 cartGroupRepository.save(cartGroup);
 
 
+        }
+
+        @Override
+        @Transactional
+        public List<CartAmountResponse> checkCartAmount(String email) {
+
+                Customer customer = customerRepository.findByEmail(email)
+                        .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+                Optional<Cart> cart = cartRepository.findByCustomerId(customer.getId());
+
+                List<CartAmountResponse> responses = new ArrayList<>();
+                if (!cart.isPresent()) {
+                        throw new RuntimeException("Cart not found");
+                }
+                for (CartGroup cartGroup : cart.get().getCartGroups()) {
+                        int total = 0;
+                        for (CartItem cartItem : cartGroup.getCartItems()) {
+                                total += cartItem.getMenuItem().getPrice() * cartItem.getQuantity();
+                                System.out.println(total);
+                        }
+
+                        if (total < cartGroup.getRestaurant().getMinOrderAmount()){
+                                CartAmountResponse cartAmountResponse = new CartAmountResponse();
+                                cartAmountResponse.setRestaurantId(cartGroup.getRestaurant().getId());
+                                cartAmountResponse.setRestAmount(cartGroup.getRestaurant().getMinOrderAmount()-total);
+                                responses.add(cartAmountResponse);
+                        }
+                }
+                return responses;
         }
 
 }
