@@ -829,10 +829,10 @@ public ResponseEntity<?> getRestaurantById(Long restaurantId) {
     @Override
     public ResponseEntity<?> createReview(Long orderGroupId, String email, ReviewRequest dto) {
         Customer customer = customerRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
 
         OrderGroup orderGroup = orderGroupRepository.findById(orderGroupId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order group not found"));
+                .orElseThrow(() -> new RuntimeException("Order group not found"));
 
         if (!orderGroup.getStatus().equals("DELIVERED")) {
             return ResponseEntity.badRequest().body("Cannot review before delivery");
@@ -862,7 +862,7 @@ public ResponseEntity<?> getRestaurantById(Long restaurantId) {
     @Transactional
 public ResponseEntity<?> restaurantReviews(Long restaurantId, String email) {
     Restaurant restaurant = restaurantRepository.findById(restaurantId)
-            .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found"));
+            .orElseThrow(() -> new RuntimeException("Restaurant not found"));
 
     List<OrderGroup> orderGroups = orderGroupRepository.findByRestaurantId(restaurant.getId());
 
