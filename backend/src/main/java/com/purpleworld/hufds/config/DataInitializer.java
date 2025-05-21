@@ -120,26 +120,26 @@ public class DataInitializer implements CommandLineRunner {
 
         String[][] restaurantData = {
                 // Ankara Restaurants
-                { "Campus Feast", "restaurant@example.com", "5554445555", "Ayşe", "Yılmaz", "1122334455", "25", "8",
+                { "Campus Feast", "restaurant@example.com", "5554445555", "Ayşe", "Yılmaz", "1122334455", "50", "8",
                         "https://i.hizliresim.com/muzn8ec.jpeg", "Ankara" },
-                { "Beytepe Bistro", "restaurant2@example.com", "5555556666", "Mehmet", "Kaya", "2233445566", "20", "7",
+                { "Beytepe Bistro", "restaurant2@example.com", "5555556666", "Mehmet", "Kaya", "2233445566", "50", "7",
                         "https://i.hizliresim.com/2nqkwu4.jpeg", "Ankara" },
-                { "Hacettepe Haven", "restaurant3@example.com", "5556667777", "Elif", "Demir", "3344556677", "22", "9",
+                { "Hacettepe Haven", "restaurant3@example.com", "5556667777", "Elif", "Demir", "3344556677", "50", "9",
                         null, "Ankara" },
-                { "Uni Bites", "unibites@example.com", "5557778888", "Can", "Öztürk", "4455667788", "18", "6",
+                { "Uni Bites", "unibites@example.com", "5557778888", "Can", "Öztürk", "4455667788", "75", "6",
                         "https://i.hizliresim.com/9miem65.jpeg", "Ankara" },
-                { "Beste's Kitchen", "besteskitchen@example.com", "5558889999", "Bilge", "Çelik", "5566778899", "24",
+                { "Beste's Kitchen", "besteskitchen@example.com", "5558889999", "Bilge", "Çelik", "5566778899", "50",
                         "8", "https://i.hizliresim.com/ht6p5el.jpeg", "Ankara" },
-                { "Ankara Eats", "ankaraeats@example.com", "5559990000", "Zeynep", "Arslan", "6677889900", "20", "7",
+                { "Ankara Eats", "ankaraeats@example.com", "5559990000", "Zeynep", "Arslan", "6677889900", "50", "7",
                         "https://i.hizliresim.com/8agwydr.jpeg", "Ankara" },
                 // Antalya Restaurants
-                { "Hold & Bite", "kas@example.com", "5551112233", "Deniz", "Aksoy", "7788990011", "30", "5",
+                { "Hold & Bite", "kas@example.com", "5551112233", "Deniz", "Aksoy", "7788990011", "100", "5",
                         "https://i.hizliresim.com/jt5wpml.jpeg", "Antalya" },
                 { "Frida Kaş", "fridakas@example.com", "5552223344", "Ali", "Mert", "8899001122", "25", "6",
                         "https://i.hizliresim.com/3zwt2di.jpeg", "Antalya" },
-                { "Ege Restaurant", "kasege@example.com", "5553334455", "Selin", "Güneş", "9900112233", "28", "5",
+                { "Ege Restaurant", "kasege@example.com", "5553334455", "Selin", "Güneş", "9900112233", "50", "5",
                         "https://i.hizliresim.com/2ersrl6.jpeg", "Antalya" },
-                { "BunBun Kaş", "bunbunkas@example.com", "5554445566", "Ece", "Aydın", "0011223344", "20", "4",
+                { "BunBun Kaş", "bunbunkas@example.com", "5554445566", "Ece", "Aydın", "0011223344", "25", "4",
                         "https://i.hizliresim.com/sa4qxv2.jpeg", "Antalya" }
         };
 
@@ -740,7 +740,7 @@ public class DataInitializer implements CommandLineRunner {
                         orderItem.setMenuItemId(menuItemId);
                         orderItem.setPrice(menuItemPrice);
                         orderItem.setQuantity(quantity);
-                        orderItem.setRemovables(null);
+                        orderItem.setRemovableElements(new ArrayList<>());
 
                         orderItems.add(orderItem);
                         orderTotal += menuItemPrice * quantity;

@@ -1,6 +1,7 @@
 package com.purpleworld.hufds.service.impl;
 
 import com.purpleworld.hufds.dto.OrderItemDTO;
+import com.purpleworld.hufds.dto.RemovableElementDTO;
 import com.purpleworld.hufds.dto.OrderGroupDTO;
 import com.purpleworld.hufds.dto.RestaurantStatsDTO;
 import com.purpleworld.hufds.dto.ReviewDTO;
@@ -36,50 +37,52 @@ public class RestaurantOrderServiceImpl implements RestaurantOrderService {
     private final ReviewRepository reviewRepository;
 
     @Override
-    @Transactional
-    public List<OrderGroupDTO> getOrdersForRestaurant(String email) {
-        Restaurant restaurant = restaurantRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+@Transactional
+public List<OrderGroupDTO> getOrdersForRestaurant(String email) {
+    Restaurant restaurant = restaurantRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Restaurant not found"));
 
-        List<OrderGroup> orderGroups = orderGroupRepository.findByRestaurantId(restaurant.getId());
+    List<OrderGroup> orderGroups = orderGroupRepository.findByRestaurantId(restaurant.getId());
 
-        return orderGroups.stream()
-                .sorted(Comparator.comparing(
-                        (OrderGroup group) -> group.getOrder().getOrderedDate(),
-                        Comparator.nullsLast(Comparator.naturalOrder())
-                ).reversed()) // DESCENDING
-                .map(group -> {
-                    OrderGroupDTO dto = new OrderGroupDTO();
-                    dto.setOrderGroupId(group.getId());
-                    dto.setRestaurantName(group.getRestaurant().getRestaurantName());
-                    dto.setRestaurantTotal(group.getRestaurantTotal());
-                    dto.setNote(group.getNote());
-                    dto.setStatus(group.getStatus());
+    return orderGroups.stream()
+            .sorted(Comparator.comparing(
+                    (OrderGroup group) -> group.getOrder().getOrderedDate(),
+                    Comparator.nullsLast(Comparator.naturalOrder())
+            ).reversed())
+            .map(group -> {
+                OrderGroupDTO dto = new OrderGroupDTO();
+                dto.setOrderGroupId(group.getId());
+                dto.setRestaurantName(group.getRestaurant().getRestaurantName());
+                dto.setRestaurantTotal(group.getRestaurantTotal());
+                dto.setNote(group.getNote());
+                dto.setStatus(group.getStatus());
+                dto.setOrderedDate(group.getOrder().getOrderedDate());
+                dto.setPreperationDate(group.getPreperationDate());
+                dto.setTakenOverDate(group.getTakenOverDate());
+                dto.setDeliveredDate(group.getDeliveredDate());
+                dto.setRejectionDate(group.getRejectionDate());
+                dto.setCustomerId(group.getOrder().getCustomer().getId());
+                dto.setCustomerName(group.getOrder().getCustomer().getFirstName() + " " +
+                        group.getOrder().getCustomer().getLastName());
 
-                    // OrderedDate now pulled from related Order entity
-                    dto.setOrderedDate(group.getOrder().getOrderedDate());
-
-                    dto.setPreperationDate(group.getPreperationDate());
-                    dto.setTakenOverDate(group.getTakenOverDate());
-                    dto.setDeliveredDate(group.getDeliveredDate());
-                    dto.setRejectionDate(group.getRejectionDate());
-
-                    dto.setCustomerId(group.getOrder().getCustomer().getId());
-                    dto.setCustomerName(group.getOrder().getCustomer().getFirstName() + " " +
-                            group.getOrder().getCustomer().getLastName());
-
-                    dto.setOrderItems(
-                            group.getOrderItems().stream().map(item -> new OrderItemDTO(
-                                            item.getMenuItem().getName(),
-                                            item.getMenuItemId(),
-                                            item.getQuantity(),
-                                            item.getPrice(),
-                                            item.getRemovables()))
-                                    .collect(Collectors.toList()));
-                    return dto;
-                })
-                .collect(Collectors.toList());
-    }
+                dto.setOrderItems(
+                        group.getOrderItems().stream().map(item -> {
+                            // Convert removable elements to DTOs
+                            List<RemovableElementDTO> removableDTOs = item.getRemovableElements().stream()
+                                .map(re -> new RemovableElementDTO(re.getId(), re.getName()))
+                                .collect(Collectors.toList());
+                                
+                            return new OrderItemDTO(
+                                    item.getMenuItem().getName(),
+                                    item.getMenuItemId(),
+                                    item.getQuantity(),
+                                    item.getPrice(),
+                                    removableDTOs);
+                        }).collect(Collectors.toList()));
+                return dto;
+            })
+            .collect(Collectors.toList());
+}
 
     @Override
     @Transactional
@@ -121,13 +124,19 @@ public class RestaurantOrderServiceImpl implements RestaurantOrderService {
                     dto.setCustomerName(group.getOrder().getCustomer().getFirstName() + " " +
                             group.getOrder().getCustomer().getLastName());
                     dto.setOrderItems(
-                            group.getOrderItems().stream().map(item -> new OrderItemDTO(
-                                            item.getMenuItem().getName(),
-                                            item.getMenuItemId(),
-                                            item.getQuantity(),
-                                            item.getPrice(),
-                                            item.getRemovables()))
-                                    .collect(Collectors.toList()));
+    group.getOrderItems().stream().map(item -> {
+        // Convert removable elements to DTOs
+        List<RemovableElementDTO> removableDTOs = item.getRemovableElements().stream()
+            .map(re -> new RemovableElementDTO(re.getId(), re.getName()))
+            .collect(Collectors.toList());
+            
+        return new OrderItemDTO(
+            item.getMenuItem().getName(),
+            item.getMenuItemId(),
+            item.getQuantity(),
+            item.getPrice(),
+            removableDTOs);
+    }).collect(Collectors.toList()));
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -264,13 +273,20 @@ public List<ReviewDTO> getReviewsForRestaurant(String email) {
             
             // Map order items to DTOs
             List<OrderItemDTO> orderItemDTOs = orderGroup.getOrderItems().stream()
-                    .map(item -> new OrderItemDTO(
-                            item.getMenuItem().getName(),
-                            item.getMenuItemId(),
-                            item.getQuantity(),
-                            item.getPrice(),
-                            item.getRemovables()))
-                    .collect(Collectors.toList());
+    .map(item -> {
+        // Convert removable elements to DTOs
+        List<RemovableElementDTO> removableDTOs = item.getRemovableElements().stream()
+            .map(re -> new RemovableElementDTO(re.getId(), re.getName()))
+            .collect(Collectors.toList());
+            
+        return new OrderItemDTO(
+            item.getMenuItem().getName(),
+            item.getMenuItemId(),
+            item.getQuantity(),
+            item.getPrice(),
+            removableDTOs);
+    })
+    .collect(Collectors.toList());
             
             // Create ReviewDTO with order items
             ReviewDTO dto = new ReviewDTO(

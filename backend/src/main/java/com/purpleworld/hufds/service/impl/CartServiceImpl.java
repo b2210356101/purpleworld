@@ -21,13 +21,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CartServiceImpl implements CartService {
 
-        private final CustomerRepository customerRepository;
-        private final MenuItemRepository menuItemRepository;
-        private final CartRepository cartRepository;
-        private final CartGroupRepository cartGroupRepository;
-        private final CartItemRepository cartItemRepository;
-        private final RestaurantRepository restaurantRepository;
-        private final RemovableElementRepository removableElementRepository;
+    private final CustomerRepository customerRepository;
+    private final MenuItemRepository menuItemRepository;
+    private final CartRepository cartRepository;
+    private final CartGroupRepository cartGroupRepository;
+    private final CartItemRepository cartItemRepository;
+    private final RestaurantRepository restaurantRepository;
+    private final RemovableElementRepository removableElementRepository;
 
         @Override
         @Transactional

@@ -100,18 +100,90 @@ const RestaurantCard: React.FC<{
             }}
         >
             <Box sx={{ position: "relative" }}>
-                <Box
-                    component="img"
-                    src={restaurant.profileImg || "https://i.hizliresim.com/m0taj04.jpg"}
-                    alt={restaurant.restaurantName}
-                    sx={{
-                        width: "100%",
-                        borderRadius: 4,
-                        aspectRatio: "4/3",
-                        objectFit: "cover",
-                        filter: disabled ? 'grayscale(60%)' : 'none',
-                    }}
-                />
+                <Box sx={{ position: "relative", overflow: "hidden", borderRadius: 4 }}>
+                    <Box
+                        component="img"
+                        src={restaurant.profileImg || "https://i.hizliresim.com/m0taj04.jpg"}
+                        alt={restaurant.restaurantName}
+                        sx={{
+                            width: "100%",
+                            aspectRatio: "4/3",
+                            objectFit: "cover",
+                            filter: disabled ? 'grayscale(60%)' : 'none',
+                            display: "block",
+                        }}
+                    />
+                    
+                    {/* Minimum Order Amount Tag */}
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            bottom: 0,
+                            right: 0,
+                            bgcolor: 'secondary.main',
+                            color: 'white',
+                            px: 2,
+                            py: 0.7,
+                            borderTopLeftRadius: 16,
+                            fontSize: 14,
+                            fontWeight: 600,
+                            zIndex: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                    >
+                        <Typography variant="caption" fontWeight="medium">
+                            {t("cart.minAmount")} {restaurant.minAmount}₺
+                        </Typography>
+                    </Box>
+                    
+                    {/* Favorite Button */}
+                    <Tooltip
+                        title={
+                            !getToken() 
+                                ? t('restaurant.loginToFavorite')
+                                : isFavorite 
+                                    ? t('restaurant.removeFromFavorites') 
+                                    : t('restaurant.addToFavorites')
+                        }
+                        arrow
+                        placement="bottom"
+                    >
+                        <IconButton
+                            onClick={toggleFavorite}
+                            aria-label={isFavorite ? t('restaurant.removeFromFavorites') : t('restaurant.addToFavorites')}
+                            disabled={isLoading}
+                            sx={{
+                                position: 'absolute',
+                                top: 8,
+                                right: 8,
+                                bgcolor: isFavorite ? 'secondary.main' : 'rgba(255,255,255,0.9)',
+                                color: isFavorite ? 'white' : 'secondary.main',
+                                boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+                                zIndex: 2,
+                                transition: 'all 0.2s ease',
+                                width: 36,
+                                height: 36,
+                                opacity: 1, 
+                                '&:hover': {
+                                    bgcolor: isFavorite ? 'secondary.dark' : 'white',
+                                    transform: 'scale(1.1)',
+                                },
+                                '&.Mui-disabled': {
+                                    bgcolor: 'rgba(255,255,255,0.7)',
+                                    color: 'rgba(0,0,0,0.26)',
+                                }
+                            }}
+                        >
+                            {isLoading ? (
+                                <CircularProgress size={16} color="inherit" />
+                            ) : (
+                                isFavorite ? <Favorite fontSize="small" /> : <FavoriteBorder fontSize="small" />
+                            )}
+                        </IconButton>
+                    </Tooltip>
+                </Box>
                 
                 {/* Favorite Button */}
                 <Tooltip

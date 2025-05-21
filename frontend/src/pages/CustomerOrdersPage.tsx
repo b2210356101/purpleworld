@@ -171,8 +171,6 @@ const MyOrders: React.FC = () => {
       };
       setSelectedOrderDetails(orderDetails);
       setModalOpen(true);
-    } finally {
-      setDetailsLoading(false);
     }
   };
 
@@ -395,6 +393,7 @@ const MyOrders: React.FC = () => {
         <Alert 
           onClose={handleCloseNotification} 
           severity={notification.severity}
+          variant="filled"
           sx={{ width: '100%' }}
         >
           {notification.message}

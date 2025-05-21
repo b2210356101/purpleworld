@@ -4,12 +4,15 @@ import com.purpleworld.hufds.dto.request.AddToCartRequest;
 import com.purpleworld.hufds.dto.request.CartGroupNoteRequest;
 import com.purpleworld.hufds.dto.request.UpdateCartItemRequest;
 import com.purpleworld.hufds.dto.response.AddToCartResponse;
+import com.purpleworld.hufds.dto.response.CartAmountResponse;
 import com.purpleworld.hufds.service.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/customer/cart")
@@ -53,7 +56,11 @@ public class CartController {
 
     }
 
-
+    @GetMapping("/check-amount")
+    public ResponseEntity<List<CartAmountResponse>> checkAmount(@AuthenticationPrincipal String email) {
+        List<CartAmountResponse> response = cartService.checkCartAmount(email);
+        return ResponseEntity.ok(response);
+    }
 
 
 }

@@ -2,8 +2,10 @@ package com.purpleworld.hufds.service.impl;
 
 import com.purpleworld.hufds.dto.OrderGroupDTO;
 import com.purpleworld.hufds.dto.OrderItemDTO;
+import com.purpleworld.hufds.dto.RemovableElementDTO;
 import com.purpleworld.hufds.dto.ReviewDTO;
 import com.purpleworld.hufds.dto.request.PlaceOrderRequest;
+import com.purpleworld.hufds.dto.response.CartAmountResponse;
 import com.purpleworld.hufds.dto.response.OrderDTO;
 
 import com.purpleworld.hufds.dto.response.PlaceOrderResponse;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +35,7 @@ public class OrderServiceImplCustomer implements OrderServiceForCustomer {
     private final OrderRepository orderRepository;
     private final ReviewRepository reviewRepository;
 
+    
     @Transactional
     @Override
     public PlaceOrderResponse placeOrder(String email, PlaceOrderRequest request) {
@@ -48,6 +52,18 @@ public class OrderServiceImplCustomer implements OrderServiceForCustomer {
 
         if (cartIsEmpty) {
             throw new RuntimeException("Sepetinizde ürün bulunmamaktadır.");
+        }
+
+        for (CartGroup cartGroup : cart.getCartGroups()) {
+            int total = 0;
+            for (CartItem cartItem : cartGroup.getCartItems()) {
+                total += cartItem.getMenuItem().getPrice() * cartItem.getQuantity();
+                System.out.println(total);
+            }
+
+            if (total < cartGroup.getRestaurant().getMinOrderAmount()){
+                throw new RuntimeException("Minimum sepet tutarını geçmelisin.");
+            }
         }
         Order order = new Order();
         order.setCustomer(customer);
@@ -73,7 +89,11 @@ public class OrderServiceImplCustomer implements OrderServiceForCustomer {
                 orderItem.setMenuItem(cartItem.getMenuItem());
                 orderItem.setQuantity(cartItem.getQuantity());
                 orderItem.setPrice(cartItem.getMenuItem().getPrice());
-                orderItem.setRemovables(String.join(",", cartItem.getRemovableElements()));
+                
+                // Copy removable elements from cart item to order item
+                for (RemovableElement element : cartItem.getRemovableElements()) {
+                    orderItem.getRemovableElements().add(element);
+                }
 
                 groupTotal += orderItem.getPrice() * orderItem.getQuantity();
                 orderItems.add(orderItem);
@@ -95,7 +115,6 @@ public class OrderServiceImplCustomer implements OrderServiceForCustomer {
         cartGroupRepository.deleteAll(cart.getCartGroups());
         cart.getCartGroups().clear();
         cartRepository.save(cart);
-
 
         return new PlaceOrderResponse(
                 order.getId(),
@@ -134,12 +153,17 @@ public class OrderServiceImplCustomer implements OrderServiceForCustomer {
     private OrderDTO convertToDTO(Order order) {
         List<OrderGroupDTO> groupDTOs = order.getOrderGroups().stream().map(group -> {
             List<OrderItemDTO> itemDTOs = group.getOrderItems().stream().map(item -> {
+                // Convert removable elements to DTOs
+                List<RemovableElementDTO> removableDTOs = item.getRemovableElements().stream()
+                    .map(re -> new RemovableElementDTO(re.getId(), re.getName()))
+                    .collect(Collectors.toList());
+                
                 OrderItemDTO itemDTO = new OrderItemDTO();
                 itemDTO.setName(item.getMenuItem().getName());
                 itemDTO.setMenuItemId(item.getMenuItemId());
                 itemDTO.setQuantity(item.getQuantity());
                 itemDTO.setPrice(item.getPrice());
-                itemDTO.setRemovables(item.getRemovables());
+                itemDTO.setRemovableElements(removableDTOs);
                 return itemDTO;
             }).collect(Collectors.toList());
 

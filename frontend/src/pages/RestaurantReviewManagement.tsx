@@ -31,6 +31,8 @@ import SortIcon from "@mui/icons-material/Sort";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
 import { getRestaurantReviews, replyToReview } from "../utils/api";
+import { RemovableElementDTO } from "../types";
+import { useTranslation } from "react-i18next";
 
 // Interfaces
 interface OrderItem {
@@ -38,7 +40,7 @@ interface OrderItem {
   menuItemId: number;
   quantity: number;
   price: number;
-  removables: string | null;
+  removables: RemovableElementDTO[]; 
 }
 
 interface Review {
@@ -56,6 +58,7 @@ interface Review {
 }
 
 const RestaurantReviewManagement: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -83,13 +86,13 @@ const RestaurantReviewManagement: React.FC = () => {
         setError(null);
       } catch (err: any) {
         console.error("Error fetching reviews:", err);
-        setError(err.message || "Failed to load reviews");
+        setError(err.message || t('restaurantReviewManagement.errors.loadingError'));
       } finally {
         setLoading(false);
       }
     };
     fetchReviews();
-  }, []);
+  }, [t]);
 
   // Filter handler
   const handleFilterChange = (
@@ -146,7 +149,7 @@ const RestaurantReviewManagement: React.FC = () => {
       handleCloseReplyDialog();
     } catch (err: any) {
       console.error("Error updating review response:", err);
-      setError(err.message || "Failed to update review");
+      setError(err.message || t('restaurantReviewManagement.errors.loadingError'));
     } finally {
       setLoading(false);
     }
@@ -155,11 +158,14 @@ const RestaurantReviewManagement: React.FC = () => {
   // Date parsing
   const formatDate = (dateValue: any): string => {
     try {
+      // Get current locale from i18n
+      const locale = i18n.language === 'tr' ? 'tr-TR' : 'en-US';
+      
       if (Array.isArray(dateValue)) {
         const [year, month, day, hour = 0, minute = 0, second = 0] = dateValue;
         const date = new Date(year, month - 1, day, hour, minute, second);
         if (!isNaN(date.getTime())) {
-          return date.toLocaleDateString("en-US", {
+          return date.toLocaleDateString(locale, {
             year: "numeric",
             month: "long",
             day: "numeric",
@@ -168,7 +174,7 @@ const RestaurantReviewManagement: React.FC = () => {
       } else if (typeof dateValue === "string") {
         const date = new Date(dateValue);
         if (!isNaN(date.getTime())) {
-          return date.toLocaleDateString("en-US", {
+          return date.toLocaleDateString(locale, {
             year: "numeric",
             month: "long",
             day: "numeric",
@@ -176,10 +182,10 @@ const RestaurantReviewManagement: React.FC = () => {
         }
       }
       console.warn("Could not parse date:", dateValue);
-      return "Unknown date";
+      return t('restaurantReviewManagement.unknownDate');
     } catch (error) {
       console.error("Error parsing date:", error);
-      return "Unknown date";
+      return t('restaurantReviewManagement.unknownDate');
     }
   };
 
@@ -234,15 +240,15 @@ const RestaurantReviewManagement: React.FC = () => {
   const getSortLabel = () => {
     switch (sortOrder) {
       case "recent":
-        return "Recent First";
+        return t('restaurantReviewManagement.sortOptions.recent');
       case "oldest":
-        return "Oldest First";
+        return t('restaurantReviewManagement.sortOptions.oldest');
       case "highest":
-        return "Highest Rated";
+        return t('restaurantReviewManagement.sortOptions.highest');
       case "lowest":
-        return "Lowest Rated";
+        return t('restaurantReviewManagement.sortOptions.lowest');
       default:
-        return "Sort";
+        return t('restaurantReviewManagement.sortOptions.sort');
     }
   };
 
@@ -272,7 +278,7 @@ const RestaurantReviewManagement: React.FC = () => {
             sx={{ mr: 1, color: (theme) => theme.palette.text.secondary }}
           />
           <Typography variant="subtitle2" fontWeight={600}>
-            Order Details
+            {t('restaurantReviewManagement.orderDetails')}
           </Typography>
         </Box>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
@@ -339,11 +345,11 @@ const RestaurantReviewManagement: React.FC = () => {
             display: "inline-block",
           }}
         >
-          Reviews Management
+          {t('restaurantReviewManagement.title')}
         </Typography>
         <Chip
           icon={<StarOutlineIcon />}
-          label={`${reviews.length} Reviews`}
+          label={t('restaurantReviewManagement.totalReviews', { count: reviews.length })}
           sx={{
             fontWeight: 600,
             bgcolor: alpha(theme.palette.primary.main, 0.1),
@@ -391,13 +397,12 @@ const RestaurantReviewManagement: React.FC = () => {
           }}
         >
           <ToggleButton value="all" aria-label="all reviews">
-            All Reviews
+            {t('restaurantReviewManagement.filterOptions.all')}
           </ToggleButton>
           <ToggleButton value="unresponded" aria-label="unresponded reviews">
-            Unresponded
+            {t('restaurantReviewManagement.filterOptions.unresponded')}
           </ToggleButton>
         </ToggleButtonGroup>
-
         {/* Sort Chip and Menu */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <Chip
@@ -451,7 +456,7 @@ const RestaurantReviewManagement: React.FC = () => {
                 fontWeight: sortOrder === "recent" ? 600 : 400,
               }}
             >
-              Recent First
+              {t('restaurantReviewManagement.sortOptions.recent')}
             </MenuItem>
             <MenuItem
               onClick={() => handleSortChange("oldest")}
@@ -465,7 +470,7 @@ const RestaurantReviewManagement: React.FC = () => {
                 fontWeight: sortOrder === "oldest" ? 600 : 400,
               }}
             >
-              Oldest First
+              {t('restaurantReviewManagement.sortOptions.oldest')}
             </MenuItem>
             <MenuItem
               onClick={() => handleSortChange("highest")}
@@ -479,7 +484,7 @@ const RestaurantReviewManagement: React.FC = () => {
                 fontWeight: sortOrder === "highest" ? 600 : 400,
               }}
             >
-              Highest Rated
+              {t('restaurantReviewManagement.sortOptions.highest')}
             </MenuItem>
             <MenuItem
               onClick={() => handleSortChange("lowest")}
@@ -493,18 +498,16 @@ const RestaurantReviewManagement: React.FC = () => {
                 fontWeight: sortOrder === "lowest" ? 600 : 400,
               }}
             >
-              Lowest Rated
+              {t('restaurantReviewManagement.sortOptions.lowest')}
             </MenuItem>
           </Menu>
         </Box>
       </Box>
-
       {loading && (
         <Box sx={{ display: "flex", justifyContent: "center", py: 10 }}>
           <CircularProgress color="primary" />
         </Box>
       )}
-
       {error && (
         <Paper
           sx={{
@@ -515,7 +518,7 @@ const RestaurantReviewManagement: React.FC = () => {
           }}
         >
           <Typography variant="h6" mb={2} fontWeight={600} color="error">
-            Error loading reviews
+            {t('restaurantReviewManagement.errors.loadingError')}
           </Typography>
           <Typography color="text.secondary">{error}</Typography>
           <Button
@@ -523,11 +526,10 @@ const RestaurantReviewManagement: React.FC = () => {
             sx={{ mt: 2 }}
             variant="outlined"
           >
-            Try Again
+            {t('restaurantReviewManagement.errors.tryAgain')}
           </Button>
         </Paper>
       )}
-
       {!loading && !error && sortedReviews.length === 0 ? (
         <Paper
           sx={{
@@ -540,16 +542,16 @@ const RestaurantReviewManagement: React.FC = () => {
           <Box
             component="img"
             src="https://cdn-icons-png.flaticon.com/512/6194/6194008.png"
-            alt="No reviews"
+            alt={t('restaurantReviewManagement.empty.noReviews')}
             sx={{ width: 100, height: 100, mb: 3, opacity: 0.7 }}
           />
           <Typography variant="h6" mb={2} fontWeight={600}>
-            No reviews found
+            {t('restaurantReviewManagement.empty.noReviews')}
           </Typography>
           <Typography color="text.secondary">
             {filter === "unresponded"
-              ? "You have responded to all reviews."
-              : "You don't have any reviews yet."}
+              ? t('restaurantReviewManagement.empty.noUnrespondedReviews')
+              : t('restaurantReviewManagement.empty.noReviewsYet')}
           </Typography>
         </Paper>
       ) : (
@@ -664,7 +666,7 @@ const RestaurantReviewManagement: React.FC = () => {
                               fontWeight: 500,
                             }}
                           >
-                            Taste:
+                            {t('restaurantReviewManagement.ratings.taste')}:
                           </Typography>
                           <Rating
                             value={review.tasteRating}
@@ -693,7 +695,7 @@ const RestaurantReviewManagement: React.FC = () => {
                               fontWeight: 500,
                             }}
                           >
-                            Service:
+                            {t('restaurantReviewManagement.ratings.service')}:
                           </Typography>
                           <Rating
                             value={review.serviceRating}
@@ -722,7 +724,7 @@ const RestaurantReviewManagement: React.FC = () => {
                               fontWeight: 500,
                             }}
                           >
-                            Delivery:
+                            {t('restaurantReviewManagement.ratings.delivery')}:
                           </Typography>
                           <Rating
                             value={review.deliveryRating}
@@ -762,7 +764,6 @@ const RestaurantReviewManagement: React.FC = () => {
                         "{review.review}"
                       </Typography>
                     </Paper>
-
                     {review.restaurantAnswer && (
                       <Paper
                         elevation={0}
@@ -781,7 +782,7 @@ const RestaurantReviewManagement: React.FC = () => {
                           mb={1}
                           color="primary"
                         >
-                          Your Reply
+                          {t('restaurantReviewManagement.replyActions.yourReply')}
                         </Typography>
                         <Typography
                           variant="body2"
@@ -810,7 +811,9 @@ const RestaurantReviewManagement: React.FC = () => {
                           transition: "all 0.2s ease",
                         }}
                       >
-                        {review.isReplied ? "Edit Reply" : "Reply"}
+                        {review.isReplied 
+                          ? t('restaurantReviewManagement.replyActions.editReply') 
+                          : t('restaurantReviewManagement.replyActions.reply')}
                       </Button>
                     </Box>
                   </Box>
@@ -820,7 +823,6 @@ const RestaurantReviewManagement: React.FC = () => {
           </Box>
         )
       )}
-
       {/* Reply Dialog */}
       <Dialog
         open={replyDialogOpen}
@@ -846,7 +848,9 @@ const RestaurantReviewManagement: React.FC = () => {
             color: "transparent",
           }}
         >
-          {selectedReview?.isReplied ? "Edit your reply" : "Reply to review"}
+          {selectedReview?.isReplied 
+            ? t('restaurantReviewManagement.replyDialog.editReply') 
+            : t('restaurantReviewManagement.replyDialog.newReply')}
         </DialogTitle>
         <DialogContent sx={{ p: 3 }}>
           <Box sx={{ mb: 3 }}>
@@ -856,7 +860,7 @@ const RestaurantReviewManagement: React.FC = () => {
               gutterBottom
               fontWeight={600}
             >
-              Responding to {selectedReview?.userName}'s review:
+              {selectedReview && t('restaurantReviewManagement.replyDialog.respondingTo', { userName: selectedReview.userName })}
             </Typography>
             <Paper
               elevation={0}
@@ -884,7 +888,7 @@ const RestaurantReviewManagement: React.FC = () => {
               multiline
               rows={4}
               variant="outlined"
-              placeholder="Type your reply here..."
+              placeholder={t('restaurantReviewManagement.replyDialog.placeholder', { defaultValue: "Type your reply here..." })}
               value={replyText}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setReplyText(e.target.value)
@@ -923,7 +927,7 @@ const RestaurantReviewManagement: React.FC = () => {
               order: isMobile ? 1 : 1,
             }}
           >
-            Cancel
+            {t('restaurantReviewManagement.replyActions.cancel')}
           </Button>
           <Button
             variant="contained"
@@ -945,7 +949,7 @@ const RestaurantReviewManagement: React.FC = () => {
             {loading ? (
               <CircularProgress size={24} color="inherit" />
             ) : (
-              "Send Reply"
+              t('restaurantReviewManagement.replyActions.sendReply')
             )}
           </Button>
         </DialogActions>

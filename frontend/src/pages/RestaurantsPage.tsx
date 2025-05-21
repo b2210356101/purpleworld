@@ -23,7 +23,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import SortIcon from '@mui/icons-material/Sort';
 
 // Lazy loaded components
-const RestaurantCard = lazy(() => import('../components/restaurant/RestaurantCart'));
+const RestaurantCard = lazy(() => import('../components/restaurant/RestaurantCard'));
 const AddressDialog = lazy(() => import('../components/customer/AddressDialog'));
 const AddAddressModal = lazy(() => import('../components/address/AddAddressModal'));
 const ConfirmDialog = lazy(() => import('../components/customer/ConfirmDialog'));

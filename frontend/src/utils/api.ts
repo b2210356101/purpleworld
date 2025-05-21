@@ -583,6 +583,19 @@ export const getRestaurantStats = async (): Promise<Stat[]> => {
     return response.data;
 };
 
+export const getCourierOrderHistory = async (): Promise<CourierOrder[]> => {
+    try {
+        const response = await api.get('/courier/orders/history');
+        return response.data;
+    } catch (error) {
+        if (error instanceof AxiosError && error.response) {
+            const errData = error.response.data as BackendErrorResponse;
+            throw errData;
+        }
+        throw error;
+    }
+};
+
 // Get assigned orders for courier
 export const getCourierOrders = async (): Promise<CourierOrder[]> => {
     try {
@@ -1094,6 +1107,18 @@ export const updateRestaurantDetails = async (details: {
         return response.data;
     } catch (error) {
         console.error('Failed to update restaurant details:', error);
+        throw error;
+    }
+};
+
+export const checkMinimumAmounts = async (): Promise<MinAmountError[]> => {
+    try {
+        const response = await api.get('/customer/cart/check-amount');
+        return response.data;
+    } catch (error) {
+        if (error instanceof AxiosError && error.response) {
+            throw error.response.data;
+        }
         throw error;
     }
 };

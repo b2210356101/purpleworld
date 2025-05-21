@@ -391,9 +391,9 @@ const CourierDashboard = () => {
                 open={openSuccess}
                 autoHideDuration={6000}
                 onClose={handleCloseSuccess}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
-                <Alert onClose={handleCloseSuccess} severity="success" sx={{ width: '100%' }}>
+                <Alert onClose={handleCloseSuccess} severity="success" sx={{ width: '100%' }} variant="filled">
                     {successMessage}
                 </Alert>
             </Snackbar>
@@ -403,9 +403,9 @@ const CourierDashboard = () => {
                 open={openError}
                 autoHideDuration={6000}
                 onClose={handleCloseError}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
-                <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
+                <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }} variant="filled">
                     {errorMessage}
                 </Alert>
             </Snackbar>

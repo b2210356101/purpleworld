@@ -74,5 +74,9 @@ public class CourierController {
 
     }
 
-
+    @GetMapping("/orders/history")
+    public ResponseEntity<List<CourierOrderDTO>> getOrders(@AuthenticationPrincipal String email) {
+        List<CourierOrderDTO> orders = courierService.getOrdersForCourier(email);
+        return ResponseEntity.ok(orders);
+    }
 }

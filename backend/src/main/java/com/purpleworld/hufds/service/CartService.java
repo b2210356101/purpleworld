@@ -4,7 +4,10 @@ import com.purpleworld.hufds.dto.request.AddToCartRequest;
 import com.purpleworld.hufds.dto.request.CartGroupNoteRequest;
 import com.purpleworld.hufds.dto.request.UpdateCartItemRequest;
 import com.purpleworld.hufds.dto.response.AddToCartResponse;
+import com.purpleworld.hufds.dto.response.CartAmountResponse;
 import com.purpleworld.hufds.dto.response.ViewCartResponse;
+
+import java.util.List;
 
 public interface CartService {
     AddToCartResponse addToCart(AddToCartRequest request, String email);
@@ -13,4 +16,5 @@ public interface CartService {
     void updateCartItemQuantity( UpdateCartItemRequest request, String email);
 
     void updateCartGroupNote(CartGroupNoteRequest request, Long groupId, String email);
+    List<CartAmountResponse> checkCartAmount(String email);
 }

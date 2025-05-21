@@ -21,6 +21,7 @@ import "react-credit-cards-2/dist/es/styles-compiled.css";
 import PersonIcon from "@mui/icons-material/Person";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import {
+  checkMinimumAmounts,
   getCurrentAddress,
   getCustomerAddresses,
   placeOrder,
@@ -29,7 +30,7 @@ import {
 import {
   ViewCartResponse,
   CartGroupResponse,
-  CartItemResponse,
+  CartItemResponse, MinAmountError,
 } from "../types";
 import CheckoutSummary from "../components/CheckoutSummary";
 import { useTranslation } from "react-i18next";
@@ -94,11 +95,17 @@ const CheckoutPage: React.FC = () => {
     severity: "success" as "success" | "error" | "info" | "warning",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [minAmountErrors, setMinAmountErrors] = useState<MinAmountError[]>([]);
+
 
   // fetch address + cart once
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const minErrors = await checkMinimumAmounts();
+        if (minErrors.length !== 0){
+          navigate("/cart")
+        }
         const current = await getCurrentAddress(); // { addressId } or null
         if (current) {
           const { addressId } = current;
@@ -530,6 +537,7 @@ const CheckoutPage: React.FC = () => {
         <Alert
           onClose={handleCloseNotification}
           severity={notification.severity}
+          variant="filled"
           sx={{ width: "100%" }}
         >
           {notification.message}

@@ -18,4 +18,5 @@ public class RestaurantResponse {
     private double distanceInKm;
     private MenuResponse menu;
     private Double score;
+    private Integer minAmount;
 }

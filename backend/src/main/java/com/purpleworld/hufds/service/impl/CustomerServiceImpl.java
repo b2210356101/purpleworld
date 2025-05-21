@@ -4,6 +4,7 @@ import com.purpleworld.hufds.dto.CustomerCurrentOrderDTO;
 import com.purpleworld.hufds.dto.CustomerOrderSummaryDTO;
 import com.purpleworld.hufds.dto.OrderDetailsResponse;
 import com.purpleworld.hufds.dto.OrderItemDTO;
+import com.purpleworld.hufds.dto.RemovableElementDTO;
 import com.purpleworld.hufds.dto.ReviewDTO;
 import com.purpleworld.hufds.dto.request.AddressRequest;
 import com.purpleworld.hufds.dto.request.ProfileUpdateRequest;
@@ -17,6 +18,7 @@ import com.purpleworld.hufds.service.GoogleMapsService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.elasticsearch.ResourceNotFoundException;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -322,7 +324,7 @@ public class CustomerServiceImpl implements CustomerService {
             double restLng = currentRestaurantAddress.getLongitude();
 
             double distance = calculateHaversine(customerLat, customerLng, restLat, restLng);
-            if (distance <= 15.0 && restaurant.getStatus().equals(AccountStatus.APPROVED)) {
+            if (distance <= restaurant.getMaxDeliveryDistance() && restaurant.getStatus().equals(AccountStatus.APPROVED)) {
                 RestaurantResponse nearestRestaurant = new RestaurantResponse();
                 nearestRestaurant.setId(restaurant.getId());
                 nearestRestaurant.setRestaurantName(restaurant.getRestaurantName());
@@ -347,6 +349,7 @@ public class CustomerServiceImpl implements CustomerService {
                 nearestRestaurant.setRating(averageRating);
                 nearestRestaurant.setReviews(reviewCount);
                 nearestRestaurant.setDistanceInKm(distance);
+                nearestRestaurant.setMinAmount(restaurant.getMinOrderAmount());
                 nearestRestaurants.add(nearestRestaurant);
                 nearestRestaurant.setMenu(null);
                 nearestRestaurant.setScore(score);
@@ -413,7 +416,7 @@ public class CustomerServiceImpl implements CustomerService {
                 double restLng = restaurantAddress.getLongitude();
 
                 double distance = calculateHaversine(customerLat, customerLng, restLat, restLng);
-                if (distance <= 15.0 && restaurant.getStatus().equals(AccountStatus.APPROVED)) {
+                if (distance <= restaurant.getMaxDeliveryDistance() && restaurant.getStatus().equals(AccountStatus.APPROVED)) {
                     double[] ratingData = calculateRestaurantRatingAndReviews(restaurant.getId());
                     double avgRating = ratingData[0];
                     int reviewCount = (int) ratingData[1];
@@ -582,13 +585,20 @@ public class CustomerServiceImpl implements CustomerService {
                 .orElseThrow(() -> new RuntimeException("Address not found"));
 
         List<OrderItemDTO> itemDTOs = orderGroup.getOrderItems().stream()
-                .map(item -> new OrderItemDTO(
+            .map(item -> {
+                // Convert removable elements to DTOs
+                List<RemovableElementDTO> removableDTOs = item.getRemovableElements().stream()
+                    .map(re -> new RemovableElementDTO(re.getId(), re.getName()))
+                    .collect(Collectors.toList());
+                    
+                return new OrderItemDTO(
                         item.getMenuItem().getName(),
                         item.getMenuItemId(),
                         item.getQuantity(),
                         item.getPrice(),
-                        item.getRemovables()))
-                .toList();
+                        removableDTOs);
+            })
+            .toList();
 
         return new OrderDetailsResponse(
                 orderGroup.getId(),
@@ -623,7 +633,7 @@ public class CustomerServiceImpl implements CustomerService {
         itemResponse.setDescription(menuItem.getDescription());
         itemResponse.setImg(menuItem.getImg());
         itemResponse.setRestaurant(
-                new RestaurantResponse(restaurant.getId(), restaurant.getRestaurantName(), null, 0, 0, 0, null,null));
+                new RestaurantResponse(restaurant.getId(), restaurant.getRestaurantName(), null, 0, 0, 0, null,null, restaurant.getMinOrderAmount()));
         itemResponse.setIsAvailable(menuItem.getIsAvailable());
         return itemResponse;
     }
@@ -736,7 +746,8 @@ public ResponseEntity<?> getRestaurantById(Long restaurantId) {
                         stats[1],
                         100,
                         menuResponse,
-                        null);
+                        null,
+                        restaurant.getMinOrderAmount());
 
                 return ResponseEntity.ok(response);
             })
@@ -819,10 +830,10 @@ public ResponseEntity<?> getRestaurantById(Long restaurantId) {
     @Override
     public ResponseEntity<?> createReview(Long orderGroupId, String email, ReviewRequest dto) {
         Customer customer = customerRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
 
         OrderGroup orderGroup = orderGroupRepository.findById(orderGroupId)
-                .orElseThrow(() -> new RuntimeException("Order group not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Order group not found"));
 
         if (!orderGroup.getStatus().equals("DELIVERED")) {
             return ResponseEntity.badRequest().body("Cannot review before delivery");
@@ -852,7 +863,7 @@ public ResponseEntity<?> getRestaurantById(Long restaurantId) {
     @Transactional
 public ResponseEntity<?> restaurantReviews(Long restaurantId, String email) {
     Restaurant restaurant = restaurantRepository.findById(restaurantId)
-            .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found"));
 
     List<OrderGroup> orderGroups = orderGroupRepository.findByRestaurantId(restaurant.getId());
 
@@ -873,13 +884,20 @@ public ResponseEntity<?> restaurantReviews(Long restaurantId, String email) {
                 
                 // Map order items to DTOs
                 List<OrderItemDTO> orderItemDTOs = orderGroup.getOrderItems().stream()
-                        .map(item -> new OrderItemDTO(
-                                item.getMenuItem().getName(),
-                                item.getMenuItemId(),
-                                item.getQuantity(),
-                                item.getPrice(),
-                                item.getRemovables()))
-                        .collect(Collectors.toList());
+    .map(item -> {
+        // Convert removable elements to DTOs
+        List<RemovableElementDTO> removableDTOs = item.getRemovableElements().stream()
+            .map(re -> new RemovableElementDTO(re.getId(), re.getName()))
+            .collect(Collectors.toList());
+            
+        return new OrderItemDTO(
+            item.getMenuItem().getName(),
+            item.getMenuItemId(),
+            item.getQuantity(),
+            item.getPrice(),
+            removableDTOs);
+    })
+    .collect(Collectors.toList());
                 
                 // Create ReviewDTO with order items
                 ReviewDTO dto = new ReviewDTO(
@@ -1043,7 +1061,8 @@ public ResponseEntity<?> restaurantReviews(Long restaurantId, String email) {
                             stats[1],
                             distance,
                             null,
-                            null
+                            null,
+                            restaurant.getMinOrderAmount()
                     );
                     favoriteRestaurants.add(response);
                 }

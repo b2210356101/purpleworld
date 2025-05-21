@@ -9,7 +9,6 @@ import {
     InputAdornment,
     TextField,
     Button,
-    Stack,
     useTheme,
     useMediaQuery,
     Skeleton,
@@ -109,6 +108,10 @@ const RestaurantPage = () => {
                         setMenuItems(availableItems);
                     }
                 }
+                
+                // Check if restaurant is in favorites
+                const favoriteStatus = await checkIsFavorite(restaurantId);
+                setIsFavorite(favoriteStatus);
             } catch (error) {
                 console.error('Error fetching restaurant data:', error);
             } finally {

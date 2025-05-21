@@ -15,4 +15,5 @@ public class CartGroupResponse {
     private String note;
     private Long groupId;
     private List<CartItemResponse> items;
+    private Integer minAmount;
 }

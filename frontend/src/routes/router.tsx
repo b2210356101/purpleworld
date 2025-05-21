@@ -30,10 +30,11 @@ import RestaurantReviewsPage from '../pages/RestaurantReviews';
 import StockManagementPage from '../pages/StockManagementPage';
 import PopularFoodsPage from '../pages/PopularFoodsPage';
 import FavoritesPage from '../pages/FavoritesPage';
-import {ResetPasswordPage} from "../pages/ResetPasswordPage";
-import {ForgotPasswordPage} from "../pages/ForgotPasswordPage";
+import { ResetPasswordPage } from "../pages/ResetPasswordPage";
+import { ForgotPasswordPage } from "../pages/ForgotPasswordPage";
 import AdminPromotionManagementPage from '../pages/AdminPromotionManagementPage';
 import ProfileManagement from "../pages/ProfileManagement";
+import CourierOrdersPage from '../pages/CourierOrdersPage';
 
 
 
@@ -247,6 +248,10 @@ const router = createBrowserRouter([
                     {
                         path: 'restaurants/:id/reviews',
                         element: <RestaurantReviewsPage />
+                    },
+                    {
+                        path: 'courier/orders',
+                        element: <CourierOrdersPage />
                     },
                     {
                         path: '*',

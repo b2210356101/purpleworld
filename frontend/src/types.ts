@@ -19,6 +19,7 @@ export interface Restaurant {
         quantity: number;
         image: string;
     }[];
+    minAmount?: number;
 }
 
 export interface Food {
@@ -75,7 +76,7 @@ export interface MenuItem {
     description: string;
     img: string;
     restaurant: Restaurant;
-    removableElements: { id: number; name: string }[];
+    removableElements: RemovableElementDTO[]; 
     isAvailable: boolean;
 }
 
@@ -98,7 +99,7 @@ export interface AddToCartResponse {
     cartTotal: number;
     restaurantName: string;
     groupCount: number;
-    removedElements: string[];
+    removedElements: RemovableElementDTO[]; // Changed from removedElements: string[]
 }
 
 export interface CartItemResponse {
@@ -107,7 +108,7 @@ export interface CartItemResponse {
     itemPrice: number;
     quantity: number;
     itemImg: string;
-    removable?: string[];
+    removableElements: RemovableElementDTO[]; // Changed from removable?: string[]
 }
 
 
@@ -117,6 +118,7 @@ export interface CartGroupResponse {
     groupId: number;
     note?: string;
     items: CartItemResponse[];
+    minAmount?: number;
 }
 
 export interface ViewCartResponse {
@@ -194,7 +196,7 @@ export interface OrderItemDTO {
     menuItemId: number;
     quantity: number;
     price: number;
-    removables: string | null;
+    removableElements: RemovableElementDTO[]; // Changed from removables: string | null
 }
 
 export interface OrderGroupDTO {
@@ -362,7 +364,7 @@ export interface SearchResult {
         price: number;
         description: string;
         img: string;
-        removableElements: string[] | null;
+        removableElements: RemovableElementDTO[]; 
     }[];
 }
 
@@ -386,6 +388,7 @@ export interface ReviewDTO {
 export interface CouponRequest {
     name: string;
     description: string;
+    isPercent: boolean;
     discountAmount: number;
     minOrderAmount: number;
     expiryDate: string;
@@ -395,8 +398,15 @@ export interface CouponResponse {
     id: number;
     code: string;
     description: string;
-    discountPercent: number;
+    isPercent: boolean;
+    discountAmount: number;
     minOrderPrice: number;
     expiryDate: string;
     isActive: boolean;
+}
+
+
+export interface MinAmountError {
+    restaurantId: number;
+    restAmount: number;
 }

@@ -13,7 +13,8 @@ public class CouponResponse {
     private Long id;
     private String code;
     private String description;
-    private Integer discountPercent;
+    private Boolean isPercent;
+    private Integer discountAmount;
     private Integer minOrderPrice;
     private LocalDate expiryDate;
     private Boolean isActive;

@@ -22,8 +22,11 @@ public class Coupon {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "discount_percent", nullable = false)
-    private int discountPercent;
+    @Column(name = "is_percent", nullable = false)
+    private boolean isPercent = true;
+
+    @Column(name = "discount_amount", nullable = false)
+    private int discountAmount;
 
     @Column(name = "min_order_price")
     private int minOrderPrice;

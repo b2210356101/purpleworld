@@ -53,7 +53,7 @@ const InfoLabel = styled(Typography)(({ theme }) => ({
 // Main courier management component
 const AdminCourierManagementPage: React.FC = () => {
     const { t } = useTranslation();
-    
+
     // State for couriers data
     const [couriers, setCouriers] = useState<CourierResponseForAdmin[]>([]);
     // State for pagination
@@ -619,11 +619,12 @@ const AdminCourierManagementPage: React.FC = () => {
                 open={notification.open}
                 autoHideDuration={6000}
                 onClose={handleCloseNotification}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
                 <Alert
                     onClose={handleCloseNotification}
                     severity={notification.severity}
+                    variant="filled"
                     sx={{ width: '100%' }}
                 >
                     {notification.message}

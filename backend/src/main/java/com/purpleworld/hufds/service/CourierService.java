@@ -19,4 +19,6 @@ public interface CourierService {
     ResponseEntity<?> updateCourierProfile(String email, CourierProfileUpdateRequest request);
     void changePassword(String currentPassword, String newPassword);
 
+    List<CourierOrderDTO> getOrdersForCourier(String email);
+
 }

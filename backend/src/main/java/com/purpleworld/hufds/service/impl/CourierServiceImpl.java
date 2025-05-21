@@ -3,6 +3,7 @@ package com.purpleworld.hufds.service.impl;
 import com.purpleworld.hufds.dto.CourierOrderDTO;
 import com.purpleworld.hufds.dto.CourierStatsDTO;
 import com.purpleworld.hufds.dto.OrderItemDTO;
+import com.purpleworld.hufds.dto.RemovableElementDTO;
 import com.purpleworld.hufds.dto.request.CourierProfileUpdateRequest;
 import com.purpleworld.hufds.dto.response.CourierProfileResponse;
 import com.purpleworld.hufds.entity.Address;
@@ -22,10 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -93,17 +91,23 @@ public class CourierServiceImpl implements CourierService {
             });
 
             dto.setOrderItems(
-                    group.getOrderItems().stream().map(item -> new OrderItemDTO(
-                                    item.getMenuItem().getName(),
-                                    item.getMenuItemId(),
-                                    item.getQuantity(),
-                                    item.getPrice(),
-                                    item.getRemovables()))
-                            .collect(Collectors.toList()));
+    group.getOrderItems().stream().map(item -> {
+        // Convert removable elements to DTOs
+        List<RemovableElementDTO> removableDTOs = item.getRemovableElements().stream()
+            .map(re -> new RemovableElementDTO(re.getId(), re.getName()))
+            .collect(Collectors.toList());
+            
+        return new OrderItemDTO(
+            item.getMenuItem().getName(),
+            item.getMenuItemId(),
+            item.getQuantity(),
+            item.getPrice(),
+            removableDTOs);
+    }).collect(Collectors.toList()));
 
-            dto.setMainOrder(mainOrder.map(m -> m.getId().equals(group.getId())).orElse(false));
+dto.setMainOrder(mainOrder.map(m -> m.getId().equals(group.getId())).orElse(false));
 
-            return dto;
+return dto;
         }).collect(Collectors.toList());
     }
 
@@ -340,4 +344,60 @@ public class CourierServiceImpl implements CourierService {
         throw new RuntimeException("User not found");
     }
 
+    @Override
+    @Transactional
+    public List<CourierOrderDTO> getOrdersForCourier(String email) {
+        Courier courier = courierRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Courier not found"));
+
+        List<OrderGroup> orders = orderGroupRepository.findByCourierId(courier.getId())
+                .stream()
+                .filter(group -> group.getDeliveredDate() != null) // sadece teslim edilmiş olanlar
+                .collect(Collectors.toList());
+
+        return orders.stream().map(group -> {
+            CourierOrderDTO dto = new CourierOrderDTO();
+            dto.setOrderGroupId(group.getId());
+            dto.setStatus(group.getStatus());
+            dto.setOrderedDate(group.getOrder().getOrderedDate());
+            dto.setTakenOverDate(group.getTakenOverDate());
+
+            dto.setCustomerId(group.getOrder().getCustomer().getId());
+            dto.setCustomerName(group.getOrder().getCustomer().getFirstName() + " " +
+                    group.getOrder().getCustomer().getLastName());
+            dto.setCustomerPhone(group.getOrder().getCustomer().getPhoneNumber());
+
+            Long addressId = group.getOrder().getCustomer().getCurrentAddressId();
+            addressRepository.findById(addressId).ifPresent(addr -> {
+                dto.setCustomerLatitude(addr.getLatitude());
+                dto.setCustomerLongitude(addr.getLongitude());
+                dto.setCustomerFullAddress(addr.getFullAddress());
+            });
+
+            dto.setRestaurantName(group.getRestaurant().getRestaurantName());
+            Optional<Address> restaurantAddress = addressRepository.findByRestaurant(group.getRestaurant());
+            restaurantAddress.ifPresent(addr -> {
+                dto.setRestaurantLatitude(addr.getLatitude());
+                dto.setRestaurantLongitude(addr.getLongitude());
+                dto.setRestaurantPhone(group.getRestaurant().getPhoneNumber());
+            });
+
+            dto.setOrderItems(
+    group.getOrderItems().stream().map(item -> {
+        // Convert removable elements to DTOs
+        List<RemovableElementDTO> removableDTOs = item.getRemovableElements().stream()
+            .map(re -> new RemovableElementDTO(re.getId(), re.getName()))
+            .collect(Collectors.toList());
+            
+        return new OrderItemDTO(
+            item.getMenuItem().getName(),
+            item.getMenuItemId(),
+            item.getQuantity(),
+            item.getPrice(),
+            removableDTOs);
+    }).collect(Collectors.toList()));
+
+return dto;
+        }).collect(Collectors.toList());
+    }
 }

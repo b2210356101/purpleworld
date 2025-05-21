@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import {
     Box,
@@ -44,7 +43,6 @@ const ProfileManagement: React.FC = () => {
 
     // Use useMemo to prevent recreating the profile component on every render
     const profileContent = useMemo(() => {
-        // Use the value from Redux state first, fallback to localStorage
         const role = userType || userRole;
         
         switch (role) {
@@ -52,18 +50,8 @@ const ProfileManagement: React.FC = () => {
                 return <CustomerProfileSection updateSnackbar={updateSnackbar} />;
             case 'RESTAURANT':
                 return <RestaurantProfileSection updateSnackbar={updateSnackbar} />;
-                return (
-                    <Box sx={{ textAlign: 'center', mt: 4 }}>
-                        <Typography>Restaurant profile not yet implemented.</Typography>
-                    </Box>
-                );
             case 'COURIER':
                 return <CourierProfileSection updateSnackbar={updateSnackbar} />;
-                return (
-                    <Box sx={{ textAlign: 'center', mt: 4 }}>
-                        <Typography>Courier profile not yet implemented.</Typography>
-                    </Box>
-                );
             case 'ADMIN':
                 return (
                     <Box sx={{ textAlign: 'center', mt: 4 }}>
@@ -113,11 +101,12 @@ const ProfileManagement: React.FC = () => {
                 open={snackbar.open}
                 autoHideDuration={6000}
                 onClose={handleCloseSnackbar}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
                 <Alert
                     onClose={handleCloseSnackbar}
                     severity={snackbar.severity}
+                    variant="filled"
                     sx={{ width: '100%' }}
                 >
                     {snackbar.message}

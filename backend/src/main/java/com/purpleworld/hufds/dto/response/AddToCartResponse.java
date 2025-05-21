@@ -1,11 +1,9 @@
 package com.purpleworld.hufds.dto.response;
 
 import com.purpleworld.hufds.dto.RemovableElementDTO;
-import com.purpleworld.hufds.entity.RemovableElement;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.util.List;
 
 @Data
@@ -22,8 +20,5 @@ public class AddToCartResponse {
     private int cartTotal;
     private String restaurantName;
     private int groupCount;
-
     private List<RemovableElementDTO> removedElements;
-
 }
-

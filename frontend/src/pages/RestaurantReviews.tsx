@@ -21,6 +21,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 // Import icons
 import {
   ChevronLeft as ChevronLeftIcon,
@@ -42,8 +43,8 @@ import {
   addToFavorites,
   removeFromFavorites
 } from "../utils/api";
+import { RemovableElementDTO } from "../types";
 import { getToken } from "../utils/auth";
-
 
 // Updated interfaces to match backend DTOs
 interface ReviewDTO {
@@ -61,7 +62,7 @@ interface ReviewDTO {
     menuItemId: number;
     quantity: number;
     price: number;
-    removables: string | null;
+    removables: RemovableElementDTO[]; 
   }[];
 }
 
@@ -69,6 +70,7 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
   const { id } = useParams(); // Note: use "id" to match your route parameter name
   const parsedRestaurantId = id ? parseInt(id) : 1;
   const isAuthenticated = !!getToken();
+  const { t, i18n } = useTranslation();
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -153,9 +155,9 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
         console.error("Error fetching reviews:", err);
         // Safely extract error message
         if (err instanceof Error) {
-          setError(err.message || "Failed to load reviews");
+          setError(err.message || t('restaurantReviews.failedToLoad'));
         } else {
-          setError("Failed to load reviews");
+          setError(t('restaurantReviews.failedToLoad'));
         }
       } finally {
         setLoading(false);
@@ -164,7 +166,7 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
     
     fetchRestaurantData();
     fetchReviews();
-  }, [parsedRestaurantId]); 
+  }, [parsedRestaurantId, t]); 
 
   useEffect(() => {
     const checkFavoriteStatus = async () => {
@@ -235,6 +237,9 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
   // Format date string to locale date
   const formatDate = (dateValue: any): string => {
     try {
+      // Get current locale from i18n
+      const locale = i18n.language === 'tr' ? 'tr-TR' : 'en-US';
+
       // Check if the date is an array
       if (Array.isArray(dateValue)) {
         // If it's an array like [2025, 5, 17, 23, 5, 3, 222093000]
@@ -243,7 +248,7 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
         const date = new Date(year, month - 1, day, hour, minute, second);
         
         if (!isNaN(date.getTime())) {
-          return date.toLocaleDateString("en-US", {
+          return date.toLocaleDateString(locale, {
             year: "numeric",
             month: "long",
             day: "numeric",
@@ -253,7 +258,7 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
         // Handle string date format
         const date = new Date(dateValue);
         if (!isNaN(date.getTime())) {
-          return date.toLocaleDateString("en-US", {
+          return date.toLocaleDateString(locale, {
             year: "numeric",
             month: "long",
             day: "numeric",
@@ -263,10 +268,10 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
       
       // If we couldn't parse it or it's an unknown format
       console.warn("Could not parse date:", dateValue);
-      return "Unknown date";
+      return t('restaurantReviews.unknownDate');
     } catch (error) {
       console.error("Error parsing date:", error);
-      return "Unknown date";
+      return t('restaurantReviews.unknownDate');
     }
   };
 
@@ -382,15 +387,15 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
   const getSortLabel = () => {
     switch (sortOrder) {
       case "recent":
-        return "Recent First";
+        return t('restaurantReviews.sortOptions.recent');
       case "oldest":
-        return "Oldest First";
+        return t('restaurantReviews.sortOptions.oldest');
       case "highest":
-        return "Highest Rated";
+        return t('restaurantReviews.sortOptions.highest');
       case "lowest":
-        return "Lowest Rated";
+        return t('restaurantReviews.sortOptions.lowest');
       default:
-        return "Sort";
+        return t('restaurantReviews.sortOptions.sort');
     }
   };
 
@@ -421,7 +426,7 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
             sx={{ mr: 1, color: (theme) => theme.palette.text.secondary }}
           />
           <Typography variant="subtitle2" fontWeight={600}>
-            Order Details
+            {t('restaurantReviews.orderDetails')}
           </Typography>
         </Box>
         
@@ -475,7 +480,7 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
         {/* Favorite Button */}
        {isAuthenticated && <IconButton
           onClick={toggleFavorite}
-          aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+          aria-label={isFavorite ? t('restaurant.removeFromFavorites') : t('restaurant.addToFavorites')}
           sx={{
             position: "absolute",
             top: 16,
@@ -577,7 +582,7 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
                   >
                     <Box sx={{ mr: 1, display: "flex" }}>₺</Box>
                     <Typography variant={isMobile ? "caption" : "body2"}>
-                      Min Order: {restaurant.minOrder}
+                      {t('restaurant.min')}: {restaurant.minOrder}
                     </Typography>
                   </Box>
 
@@ -593,7 +598,7 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
                   >
                     <Box sx={{ mr: 1, display: "flex" }}>🕒</Box>
                     <Typography variant={isMobile ? "caption" : "body2"}>
-                      Delivery in {restaurant.deliveryTime}
+                      {t('restaurant.delivery', { min: restaurant.deliveryTime.split('-')[0], max: restaurant.deliveryTime.split('-')[1] })}
                     </Typography>
                   </Box>
                 </>
@@ -640,7 +645,7 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
                   height: "100%",
                   objectFit: "cover",
                 }}
-                alt={restaurant.restaurantName || "Restaurant image"}
+                alt={restaurant.restaurantName || t('restaurantReviews.restaurantImage')}
               />
             )}
           </Box>
@@ -702,7 +707,7 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
                   color="text.secondary"
                   sx={{ mb: 0.5 }}
                 >
-                  {restaurant.reviews} Reviews
+                  {restaurant.reviews} {t('restaurant.review')}
                 </Typography>
               </>
             )}
@@ -714,7 +719,7 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
           sx={{
             position: "absolute",
             bottom: 16,
-            left: "48%",
+            left: "46%",
             transform: "translateX(-50%)",
             zIndex: 1,
             backgroundColor: 'primary.light',
@@ -742,7 +747,7 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
               },
             }}
           >
-            View Menu{" "}
+            {t('restaurantReviews.viewMenu')}{" "}
             <Box component="span" sx={{ ml: 0.5 }}>
               ›
             </Box>
@@ -754,7 +759,7 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
       <Box sx={{ mb: 4 }}>
         <TextField
           fullWidth
-          placeholder="Search reviews..."
+          placeholder={t('restaurantReviews.searchPlaceholder')}
           variant="outlined"
           value={searchTerm}
           onChange={handleSearchChange}
@@ -793,12 +798,12 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
               display: "inline-block",
             }}
           >
-            Customer Reviews
+            {t('restaurantReviews.title')}
           </Typography>
           
           <Chip
             icon={<StarOutlineIcon />}
-            label={`${reviews.length} Reviews`}
+            label={t('restaurantReviews.reviewCount', { count: reviews.length })}
             sx={{
               fontWeight: 600,
               bgcolor: alpha(theme.palette.primary.main, 0.1),
@@ -870,7 +875,7 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
                 fontWeight: sortOrder === "recent" ? 600 : 400,
               }}
             >
-              Recent First
+              {t('restaurantReviews.sortOptions.recent')}
             </MenuItem>
             <MenuItem
               onClick={() => handleSortChange("oldest")}
@@ -884,7 +889,7 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
                 fontWeight: sortOrder === "oldest" ? 600 : 400,
               }}
             >
-              Oldest First
+              {t('restaurantReviews.sortOptions.oldest')}
             </MenuItem>
             <MenuItem
               onClick={() => handleSortChange("highest")}
@@ -894,11 +899,10 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
                 borderLeft:
                   sortOrder === "highest"
                     ? `4px solid ${theme.palette.primary.main}`
-                    : "4px solid transparent",
-                fontWeight: sortOrder === "highest" ? 600 : 400,
+                    : "4px solid transparent",fontWeight: sortOrder === "highest" ? 600 : 400,
               }}
             >
-              Highest Rated
+              {t('restaurantReviews.sortOptions.highest')}
             </MenuItem>
             <MenuItem
               onClick={() => handleSortChange("lowest")}
@@ -912,7 +916,7 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
                 fontWeight: sortOrder === "lowest" ? 600 : 400,
               }}
             >
-              Lowest Rated
+              {t('restaurantReviews.sortOptions.lowest')}
             </MenuItem>
           </Menu>
         </Box>
@@ -936,7 +940,7 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
             }}
           >
             <Typography variant="h6" mb={2} fontWeight={600} color="error">
-              Error loading reviews
+              {t('restaurantReviews.errorLoading')}
             </Typography>
             <Typography color="text.secondary">{error}</Typography>
             <Button
@@ -944,7 +948,7 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
               sx={{ mt: 2 }}
               variant="outlined"
             >
-              Try Again
+              {t('restaurantReviews.tryAgain')}
             </Button>
           </Paper>
         )}
@@ -963,14 +967,14 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
             <Box
               component="img"
               src="https://cdn-icons-png.flaticon.com/512/6194/6194008.png"
-              alt="No reviews"
+              alt={t('restaurantReviews.noReviews')}
               sx={{ width: 100, height: 100, mb: 3, opacity: 0.7 }}
             />
             <Typography variant="h6" mb={2} fontWeight={600}>
-              No reviews found
+              {t('restaurantReviews.noReviews')}
             </Typography>
             <Typography color="text.secondary">
-              Be the first to review this restaurant!
+              {t('restaurantReviews.beFirst')}
             </Typography>
           </Paper>
         )}
@@ -1096,7 +1100,7 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
                               fontWeight: 500,
                             }}
                           >
-                            Taste:
+                            {t('restaurantReviews.ratings.taste')}:
                           </Typography>
                           <Rating
                             value={review.tasteRating}
@@ -1125,7 +1129,7 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
                               fontWeight: 500,
                             }}
                           >
-                            Service:
+                            {t('restaurantReviews.ratings.service')}:
                           </Typography>
                           <Rating
                             value={review.serviceRating}
@@ -1154,7 +1158,7 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
                               fontWeight: 500,
                             }}
                           >
-                            Delivery:
+                            {t('restaurantReviews.ratings.delivery')}:
                           </Typography>
                           <Rating
                             value={review.deliveryRating}
@@ -1218,7 +1222,7 @@ const RestaurantReviewsCustomerView = ({ restaurantId = 1 }) => {
                           mb={1}
                           color="primary"
                         >
-                          Restaurant Reply
+                          {t('restaurantReviews.restaurantReply')}
                         </Typography>
                         <Typography
                           variant="body2"

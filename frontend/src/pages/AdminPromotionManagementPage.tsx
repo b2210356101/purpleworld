@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { 
   Box, 
   Typography, 
@@ -19,13 +18,20 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  ToggleButton,
+  ToggleButtonGroup,
+  Tooltip
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import PercentIcon from '@mui/icons-material/Percent';
+import LocalAtmIcon from '@mui/icons-material/LocalAtm';
 import { getAllCoupons, createCoupon, deleteCoupon, updateCoupon } from '../utils/api';
 import { CouponRequest, CouponResponse } from '../types';
 import Loading from '../components/Loading';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const PageHeader = styled(Typography)(({ theme }) => ({
   fontSize: '1.5rem',
@@ -36,6 +42,7 @@ const PageHeader = styled(Typography)(({ theme }) => ({
 }));
 
 const AdminPromotionManagementPage = () => {
+  const { t } = useTranslation();
     
   // State for form values
   const [name, setName] = useState('');
@@ -43,6 +50,7 @@ const AdminPromotionManagementPage = () => {
   const [discountAmount, setDiscountAmount] = useState('');
   const [minOrderAmount, setMinOrderAmount] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
+  const [isPercent, setIsPercent] = useState(true); // Default to percentage discount
   
   // State for existing coupons
   const [coupons, setCoupons] = useState<CouponResponse[]>([]);
@@ -60,6 +68,7 @@ const AdminPromotionManagementPage = () => {
   const [updateDiscountAmount, setUpdateDiscountAmount] = useState('');
   const [updateMinOrderAmount, setUpdateMinOrderAmount] = useState('');
   const [updateExpiryDate, setUpdateExpiryDate] = useState('');
+  const [updateIsPercent, setUpdateIsPercent] = useState(true);
 
   // Fetch existing coupons on component mount
   useEffect(() => {
@@ -74,7 +83,7 @@ const AdminPromotionManagementPage = () => {
       setCoupons(data);
     } catch (err: any) {
       console.error('Error fetching coupons:', err);
-      setError(err?.response?.data?.message || 'Failed to load coupons');
+      setError(err?.response?.data?.message || t('promotions.error.loadFailed'));
       setSnackbarType('error');
       setOpenSnackbar(true);
     } finally {
@@ -82,11 +91,29 @@ const AdminPromotionManagementPage = () => {
     }
   };
 
+  const handleDiscountTypeChange = (
+    _: React.MouseEvent<HTMLElement>,
+    newType: boolean | null
+  ) => {
+    if (newType !== null) {
+      setIsPercent(newType);
+    }
+  };
+
+  const handleUpdateDiscountTypeChange = (
+    _: React.MouseEvent<HTMLElement>,
+    newType: boolean | null
+  ) => {
+    if (newType !== null) {
+      setUpdateIsPercent(newType);
+    }
+  };
+
   // Function to create a new coupon
   const handleCreateCoupon = async () => {
     // Validate inputs
     if (!name || !discountAmount || !minOrderAmount || !expiryDate) {
-      setError('Name, discount amount, minimum order amount, and expiry date are required');
+      setError(t('promotions.error.requiredFields'));
       setSnackbarType('error');
       setOpenSnackbar(true);
       return;
@@ -99,7 +126,8 @@ const AdminPromotionManagementPage = () => {
         description,
         discountAmount: parseInt(discountAmount),
         minOrderAmount: parseInt(minOrderAmount),
-        expiryDate
+        expiryDate,
+        isPercent 
       };
 
       await createCoupon(couponRequest);
@@ -111,7 +139,7 @@ const AdminPromotionManagementPage = () => {
       setMinOrderAmount('');
       setExpiryDate('');
       
-      setSuccess('Coupon created successfully');
+      setSuccess(t('promotions.success.created'));
       setSnackbarType('success');
       setOpenSnackbar(true);
       
@@ -119,7 +147,7 @@ const AdminPromotionManagementPage = () => {
       fetchCoupons();
     } catch (err: any) {
       console.error('Error creating coupon:', err);
-      setError(err?.response?.data?.message || 'Failed to create coupon');
+      setError(err?.response?.data?.message || t('promotions.error.createFailed'));
       setSnackbarType('error');
       setOpenSnackbar(true);
     } finally {
@@ -133,7 +161,7 @@ const AdminPromotionManagementPage = () => {
       setLoading(true);
       await deleteCoupon(id);
       
-      setSuccess('Coupon deleted successfully');
+      setSuccess(t('promotions.success.deleted'));
       setSnackbarType('success');
       setOpenSnackbar(true);
       
@@ -141,7 +169,7 @@ const AdminPromotionManagementPage = () => {
       setCoupons(coupons.filter(coupon => coupon.id !== id));
     } catch (err: any) {
       console.error('Error deleting coupon:', err);
-      setError(err?.response?.data?.message || 'Failed to delete coupon');
+      setError(err?.response?.data?.message || t('promotions.error.deleteFailed'));
       setSnackbarType('error');
       setOpenSnackbar(true);
     } finally {
@@ -154,10 +182,11 @@ const AdminPromotionManagementPage = () => {
     setSelectedCoupon(coupon);
     setUpdateName(coupon.code);
     setUpdateDescription(coupon.description || '');
-    setUpdateDiscountAmount(coupon.discountPercent.toString());
+    setUpdateDiscountAmount(coupon.discountAmount.toString());
     setUpdateMinOrderAmount(coupon.minOrderPrice.toString());
     setUpdateExpiryDate(coupon.expiryDate ? 
       new Date(coupon.expiryDate).toISOString().split('T')[0] : '');
+    setUpdateIsPercent(coupon.isPercent !== undefined ? coupon.isPercent : true);
     setOpenUpdateDialog(true);
   };
 
@@ -173,7 +202,7 @@ const AdminPromotionManagementPage = () => {
     
     // Validate inputs
     if (!updateName || !updateDiscountAmount || !updateMinOrderAmount || !updateExpiryDate) {
-      setError('Name, discount amount, minimum order amount, and expiry date are required');
+      setError(t('promotions.error.requiredFields'));
       setSnackbarType('error');
       setOpenSnackbar(true);
       return;
@@ -186,12 +215,13 @@ const AdminPromotionManagementPage = () => {
         description: updateDescription,
         discountAmount: parseInt(updateDiscountAmount),
         minOrderAmount: parseInt(updateMinOrderAmount),
-        expiryDate: updateExpiryDate
+        expiryDate: updateExpiryDate,
+        isPercent: updateIsPercent // Include the discount type flag
       };
 
       await updateCoupon(selectedCoupon.id, couponRequest);
       
-      setSuccess('Coupon updated successfully');
+      setSuccess(t('promotions.success.updated'));
       setSnackbarType('success');
       setOpenSnackbar(true);
       
@@ -202,7 +232,7 @@ const AdminPromotionManagementPage = () => {
       fetchCoupons();
     } catch (err: any) {
       console.error('Error updating coupon:', err);
-      setError(err?.response?.data?.message || 'Failed to update coupon');
+      setError(err?.response?.data?.message || t('promotions.error.updateFailed'));
       setSnackbarType('error');
       setOpenSnackbar(true);
     } finally {
@@ -225,7 +255,7 @@ const AdminPromotionManagementPage = () => {
 
   // Format date to readable string
   const formatDate = (dateString: string) => {
-    if (!dateString) return 'No expiry';
+    if (!dateString) return t('promotions.noExpiry', 'No expiry');
     
     // Simple date formatting without using external libraries
     try {
@@ -243,13 +273,13 @@ const AdminPromotionManagementPage = () => {
   return (
     <Box sx={{ p:3 }}>
       <PageHeader>
-        Promotion Codes
+        {t('promotions.title')}
       </PageHeader>
       
       {/* Create Coupon Form */}
       <Paper sx={{ p: 3, mb: 4 }}>
         <Typography variant="h6" gutterBottom>
-          Create Promotion Code
+          {t('promotions.create')}
         </Typography>
         
         <Box sx={{ mt: 3 }}>
@@ -262,7 +292,7 @@ const AdminPromotionManagementPage = () => {
           }}>
             <Box sx={{ flex: 1 }}>
               <FormControl fullWidth>
-                <FormLabel>Coupon Code</FormLabel>
+                <FormLabel>{t('promotions.couponCode')}</FormLabel>
                 <TextField
                   fullWidth
                   placeholder="e.g., SUMMER2025"
@@ -276,7 +306,7 @@ const AdminPromotionManagementPage = () => {
             
             <Box sx={{ flex: 1 }}>
               <FormControl fullWidth>
-                <FormLabel>Description</FormLabel>
+                <FormLabel>{t('promotions.description')}</FormLabel>
                 <TextField
                   fullWidth
                   placeholder="e.g., Summer campaign discount"
@@ -289,34 +319,64 @@ const AdminPromotionManagementPage = () => {
             </Box>
           </Box>
 
-          {/* Second row - Discount and Min Order */}
           <Box sx={{ 
             display: 'flex', 
             flexDirection: { xs: 'column', sm: 'row' }, 
             gap: 2, 
             mb: 3 
           }}>
-            <Box sx={{ flex: 1 }}>
-              <FormControl fullWidth>
-                <FormLabel>Discount Amount</FormLabel>
-                <TextField
-                  fullWidth
-                  placeholder={"e.g., 10"}
-                  value={discountAmount}
-                  onChange={(e) => setDiscountAmount(e.target.value)}
-                  variant="outlined"
-                  size="small"
-                  type="number"
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">%</InputAdornment>
-                  }}
-                />
-              </FormControl>
+            <Box sx={{ flex: 1, display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' }, gap: 2,  }}>
+                <Box sx={{ flex: 1 }}>
+                    <FormControl fullWidth>
+                        <FormLabel>{t('promotions.discountAmount')}</FormLabel>
+                        <TextField
+                        fullWidth
+                        placeholder={isPercent ? "e.g., 10" : "e.g., 50"}
+                        value={discountAmount}
+                        onChange={(e) => setDiscountAmount(e.target.value)}
+                        variant="outlined"
+                        size="small"
+                        type="number"
+                        InputProps={{
+                            endAdornment: <InputAdornment position="end">
+                            {isPercent ? '%' : '₺'}
+                            </InputAdornment>
+                        }}
+                        />
+                    </FormControl>
+                    </Box>
+
+                    <Box sx={{ flex: 1.5 }}>
+                    <FormControl fullWidth>
+                        <FormLabel component="legend">{t('promotions.discountType')}</FormLabel>
+                        <ToggleButtonGroup
+                        value={isPercent}
+                        exclusive
+                        onChange={handleDiscountTypeChange}
+                        aria-label="discount type"
+                        size="small"
+                        >
+                        <ToggleButton value={true} aria-label="percentage discount" fullWidth>
+                            <Tooltip title={t('promotions.percentageDiscount')}>
+                            <PercentIcon sx={{ mr: 1 }} />
+                            </Tooltip>
+                            {t('promotions.percentage')}
+                        </ToggleButton>
+                        <ToggleButton value={false} aria-label="fixed amount discount" fullWidth>
+                            <Tooltip title={t('promotions.fixedAmountDiscount')}>
+                            <LocalAtmIcon sx={{ mr: 1 }} />
+                            </Tooltip>
+                            {t('promotions.fixedAmount')}
+                        </ToggleButton>
+                        </ToggleButtonGroup>
+                    </FormControl>
+                </Box>
             </Box>
             
             <Box sx={{ flex: 1 }}>
               <FormControl fullWidth>
-                <FormLabel>Minimum Order Amount</FormLabel>
+                <FormLabel>{t('promotions.minOrderAmount')}</FormLabel>
                 <TextField
                   fullWidth
                   placeholder="e.g., 150"
@@ -335,7 +395,7 @@ const AdminPromotionManagementPage = () => {
 
          
           <FormControl fullWidth>
-            <FormLabel>Expiry Date</FormLabel>
+            <FormLabel>{t('promotions.expiryDate')}</FormLabel>
             <TextField
               fullWidth
               type="date"
@@ -362,7 +422,7 @@ const AdminPromotionManagementPage = () => {
             disabled={loading}
             sx={{ borderRadius: 2, px: 4 }}
           >
-            {loading ? <CircularProgress sx={{color: 'white'}} size={24} /> : "Create Promotion"}
+            {loading ? <CircularProgress sx={{color: 'white'}} size={24} /> : t('promotions.createPromotion')}
           </Button>
         </Box>
       </Paper>
@@ -370,7 +430,7 @@ const AdminPromotionManagementPage = () => {
       {/* Coupons List */}
       <Paper sx={{ p: 3 }}>
         <Typography variant="h6" gutterBottom>
-          Promotions
+          {t('promotions.list')}
         </Typography>
         
         {loading && !coupons.length ? (
@@ -381,7 +441,7 @@ const AdminPromotionManagementPage = () => {
           <List>
             {coupons.length === 0 ? (
               <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
-                No promotions found
+                {t('promotions.noPromotions')}
               </Typography>
             ) : (
               coupons.map((coupon) => (
@@ -429,7 +489,7 @@ const AdminPromotionManagementPage = () => {
                               borderRadius: 1
                             }}
                           >
-                            Inactive
+                            {t('promotions.inactive')}
                           </Typography>
                         )}
                       </Box>
@@ -440,14 +500,17 @@ const AdminPromotionManagementPage = () => {
                           {coupon.description}
                         </Typography>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 1 }}>
-                          <Typography variant="body2" color="text.secondary">
-                            {`${coupon.discountPercent}%`}
+                          <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
+                            {coupon.isPercent !== false 
+                              ? <><PercentIcon fontSize="small" sx={{ mr: 0.5 }} /> {`${coupon.discountAmount}%`}</>
+                              : <><LocalAtmIcon fontSize="small" sx={{ mr: 0.5 }} /> {`${coupon.discountAmount}₺`}</>
+                            }
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            {`Min Order: ${coupon.minOrderPrice}₺`}
+                            {`${t('promotions.minOrder')}: ${coupon.minOrderPrice}₺`}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            {`Expires: ${formatDate(coupon.expiryDate)}`}
+                            {`${t('promotions.expires')}: ${formatDate(coupon.expiryDate)}`}
                           </Typography>
                         </Box>
                       </>
@@ -462,7 +525,7 @@ const AdminPromotionManagementPage = () => {
 
       {/* Update Coupon Dialog */}
       <Dialog open={openUpdateDialog} onClose={handleCloseUpdateDialog} maxWidth="md" fullWidth>
-        <DialogTitle>Update Promotion Code</DialogTitle>
+        <DialogTitle>{t('promotions.updatePromotion')}</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2 }}>
             {/* First row - Code and Description */}
@@ -474,7 +537,7 @@ const AdminPromotionManagementPage = () => {
             }}>
               <Box sx={{ flex: 1 }}>
                 <FormControl fullWidth>
-                  <FormLabel>Coupon Code</FormLabel>
+                  <FormLabel>{t('promotions.couponCode')}</FormLabel>
                   <TextField
                     fullWidth
                     placeholder="e.g., SUMMER2025"
@@ -488,7 +551,7 @@ const AdminPromotionManagementPage = () => {
               
               <Box sx={{ flex: 1 }}>
                 <FormControl fullWidth>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t('promotions.description')}</FormLabel>
                   <TextField
                     fullWidth
                     placeholder="e.g., Summer campaign discount"
@@ -501,6 +564,35 @@ const AdminPromotionManagementPage = () => {
               </Box>
             </Box>
 
+            {/* Discount Type Toggle for Update */}
+            <Box sx={{ mb: 3 }}>
+                <FormLabel component="legend" sx={{ mb: 1 }}>
+                    {t('promotions.discountType')}
+                </FormLabel>
+                <ToggleButtonGroup
+                    value={updateIsPercent}
+                    exclusive
+                    onChange={handleUpdateDiscountTypeChange}
+                    aria-label="discount type"
+                    size="small"
+                    fullWidth
+                >
+                    <ToggleButton value={true} aria-label="percentage discount" fullWidth>
+                    <Tooltip title={t('promotions.percentageDiscount')}>
+                        <PercentIcon sx={{ mr: 1 }} />
+                    </Tooltip>
+                    {t('promotions.percentage')}
+                    </ToggleButton>
+                    <ToggleButton value={false} aria-label="fixed amount discount" fullWidth>
+                    <Tooltip title={t('promotions.fixedAmountDiscount')}>
+                        <LocalAtmIcon sx={{ mr: 1 }} />
+                    </Tooltip>
+                    {t('promotions.fixedAmount')}
+                    </ToggleButton>
+                </ToggleButtonGroup>
+            </Box>
+
+
             {/* Second row - Discount and Min Order */}
             <Box sx={{ 
               display: 'flex', 
@@ -510,17 +602,19 @@ const AdminPromotionManagementPage = () => {
             }}>
               <Box sx={{ flex: 1 }}>
                 <FormControl fullWidth>
-                  <FormLabel>Discount Amount</FormLabel>
+                  <FormLabel>{t('promotions.discountAmount')}</FormLabel>
                   <TextField
                     fullWidth
-                    placeholder={"e.g., 10"}
+                    placeholder={updateIsPercent ? "e.g., 10" : "e.g., 50"}
                     value={updateDiscountAmount}
                     onChange={(e) => setUpdateDiscountAmount(e.target.value)}
                     variant="outlined"
                     size="small"
                     type="number"
                     InputProps={{
-                      endAdornment: <InputAdornment position="end">%</InputAdornment>
+                      endAdornment: <InputAdornment position="end">
+                        {updateIsPercent ? '%' : '₺'}
+                      </InputAdornment>
                     }}
                   />
                 </FormControl>
@@ -528,7 +622,7 @@ const AdminPromotionManagementPage = () => {
               
               <Box sx={{ flex: 1 }}>
                 <FormControl fullWidth>
-                  <FormLabel>Minimum Order Amount</FormLabel>
+                  <FormLabel>{t('promotions.minOrderAmount')}</FormLabel>
                   <TextField
                     fullWidth
                     placeholder="e.g., 150"
@@ -546,7 +640,7 @@ const AdminPromotionManagementPage = () => {
             </Box>
 
             <FormControl fullWidth>
-              <FormLabel>Expiry Date</FormLabel>
+              <FormLabel>{t('promotions.expiryDate')}</FormLabel>
               <TextField
                 fullWidth
                 type="date"
@@ -566,14 +660,16 @@ const AdminPromotionManagementPage = () => {
           </Box>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 3 }}>
-          <Button onClick={handleCloseUpdateDialog} color="inherit">Cancel</Button>
+          <Button onClick={handleCloseUpdateDialog} color="inherit">
+            {t('promotions.cancel')}
+          </Button>
           <Button 
             onClick={handleUpdateCoupon} 
             variant="contained" 
             color="primary"
             disabled={loading}
           >
-            {loading ? <CircularProgress size={24} /> : "Update Promotion"}
+            {loading ? <CircularProgress size={24} /> : t('promotions.updatePromotion')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -588,6 +684,7 @@ const AdminPromotionManagementPage = () => {
         <Alert 
           onClose={handleCloseSnackbar} 
           severity={snackbarType} 
+          variant="filled"
           sx={{ width: '100%' }}
         >
           {snackbarType === 'error' ? error : success}

@@ -183,7 +183,8 @@ public class AdminServiceImpl implements AdminService {
         Coupon coupon = new Coupon();
         coupon.setCode(request.getName());
         coupon.setDescription(request.getDescription());
-        coupon.setDiscountPercent(request.getDiscountAmount());
+        coupon.setPercent(request.getIsPercent());
+        coupon.setDiscountAmount(request.getDiscountAmount());
         coupon.setMinOrderPrice(request.getMinOrderAmount());
         coupon.setExpiryDate(LocalDate.now().plusMonths(1));
         coupon.setActive(true);
@@ -199,7 +200,8 @@ public class AdminServiceImpl implements AdminService {
         Coupon coupon = couponOpt.get();
         coupon.setCode(request.getName());
         coupon.setDescription(request.getDescription());
-        coupon.setDiscountPercent(request.getDiscountAmount());
+        coupon.setPercent(request.getIsPercent());
+        coupon.setDiscountAmount(request.getDiscountAmount());
         coupon.setMinOrderPrice(request.getMinOrderAmount());
         coupon.setExpiryDate(request.getExpiryDate());
         couponRepository.save(coupon);
@@ -223,7 +225,8 @@ public class AdminServiceImpl implements AdminService {
                         c.getId(),
                         c.getCode(),
                         c.getDescription(),
-                        c.getDiscountPercent(),
+                        c.isPercent(),
+                        c.getDiscountAmount(),
                         c.getMinOrderPrice(),
                         c.getExpiryDate(),
                         c.isActive()

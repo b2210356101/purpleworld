@@ -25,7 +25,7 @@ const FoodCategories = lazy(() => import('../components/menu/FoodCategories'));
 const PopularFoodCard = lazy(() => import('../components/menu/PopularFoodCard'));
 const OrderDetailsModal = lazy(() => import('../components/OrderDetailsModal'));
 const PaymentSuccessPopup = lazy(() => import('../components/PaymentSuccessPopUp'));
-const RestaurantCard = lazy(() => import('../components/restaurant/RestaurantCart'));
+const RestaurantCard = lazy(() => import('../components/restaurant/RestaurantCard'));
 
 const LoadingFallback = () => (
     <Box sx={{
@@ -134,6 +134,7 @@ const CustomerHomePage = () => {
                     profileImg: r.profileImg,
                     rating: r.rating,
                     reviews: r.reviews,
+                    minAmount: r.minAmount
                 })) as unknown as Restaurant[]
             );
         } catch (err) {
@@ -412,7 +413,7 @@ const CustomerHomePage = () => {
                         <Box sx={{ py: 6 }}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                                 <Typography variant="h5" fontWeight="bold">
-                                {t('homepage.popular')}
+                                    {t('homepage.popular')}
                                 </Typography>
                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                     <Typography
@@ -575,11 +576,12 @@ const CustomerHomePage = () => {
                 open={snackbarState.isOpen}
                 autoHideDuration={6000}
                 onClose={handleSnackbarClose}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
                 <Alert
                     onClose={handleSnackbarClose}
                     severity={snackbarState.severity}
+                    variant="filled"
                     sx={{ width: '100%' }}
                 >
                     {snackbarState.message}

@@ -12,7 +12,6 @@ import {
     SelectChangeEvent,
     Button,
     Paper,
-    Tooltip
 } from '@mui/material';
 import { Restaurant } from '../types';
 import { getFavoriteRestaurants } from '../utils/api';
@@ -22,7 +21,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import SortIcon from '@mui/icons-material/Sort';
 import { Link } from 'react-router-dom';
 
-const RestaurantCard = lazy(() => import('../components/restaurant/RestaurantCart'));
+const RestaurantCard = lazy(() => import('../components/restaurant/RestaurantCard'));
 
 // Constants
 const MAX_DELIVERY_DISTANCE = 15; // Maximum delivery distance in km

@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -25,12 +24,13 @@ public class CouponServiceImpl implements CouponService {
     @Transactional
     public ResponseEntity<?> createCoupon(CouponRequest request) {
         Coupon coupon = new Coupon();
-        coupon.setCode(request.getName()); // CouponRequest içindeki name → Coupon'daki code
+        coupon.setCode(request.getName());
         coupon.setDescription(request.getDescription());
-        coupon.setDiscountPercent(request.getDiscountAmount()); // discountAmount → discountPercent oldu
+        coupon.setPercent(request.getIsPercent());
+        coupon.setDiscountAmount(request.getDiscountAmount());
         coupon.setMinOrderPrice(request.getMinOrderAmount());
-        coupon.setExpiryDate(LocalDate.now().plusMonths(1)); // örnek olarak, 1 ay sonrasına expiry setliyoruz
         coupon.setActive(true);
+        coupon.setExpiryDate(request.getExpiryDate());
 
         couponRepository.save(coupon);
 
@@ -48,9 +48,10 @@ public class CouponServiceImpl implements CouponService {
         Coupon coupon = couponOpt.get();
         coupon.setCode(request.getName());
         coupon.setDescription(request.getDescription());
-        coupon.setDiscountPercent(request.getDiscountAmount());
+        coupon.setPercent(request.getIsPercent());
+        coupon.setDiscountAmount(request.getDiscountAmount());
         coupon.setMinOrderPrice(request.getMinOrderAmount());
-        // İstersen expiry veya active field'ını da burada değiştirebilirsin
+        coupon.setExpiryDate(request.getExpiryDate());
 
         couponRepository.save(coupon);
 
@@ -76,11 +77,11 @@ public class CouponServiceImpl implements CouponService {
                 coupon.getId(),
                 coupon.getCode(),
                 coupon.getDescription(),
-                coupon.getDiscountPercent(),
+                coupon.isPercent(),
+                coupon.getDiscountAmount(),
                 coupon.getMinOrderPrice(),
                 coupon.getExpiryDate(),
-                coupon.isActive()
-        )).collect(Collectors.toList());
+                coupon.isActive())).collect(Collectors.toList());
 
         return ResponseEntity.ok(responses);
     }
