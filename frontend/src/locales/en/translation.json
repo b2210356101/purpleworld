@@ -3,7 +3,12 @@
         "view": "View All",
         "yes": "Yes",
         "cancel": "Cancel",
-        "loading": "Loading..."
+        "add": "Add",
+        "details": "Details",
+        "loading": "Loading...",
+        "confirm": "Confirm",
+        "save": "Save",
+        "close": "Close"
     },
     "homepage": {
         "hero": {
@@ -69,6 +74,14 @@
         "change": "Change Address",
         "removeItems": "Changing your address will remove all items in your cart. Are you sure you want to proceed?",
         "dontHave": "You don't have any saved addresses yet. Please add a new address.",
+        "delete": "Delete",
+        "setDefault": "Set as Default",
+        "defaultSet": "Default address updated successfully",
+        "errorSettingDefault": "Failed to set default address",
+        "noAddresses": "No addresses found. Add an address to get started.",
+        "unnamed": "Unnamed Address",
+        "buildingDetails": "Building {{building}}, Floor {{floor}}, Apt {{apartment}}",
+        "note": "Delivery Note",
         "field": {
             "title": "Address Title",
             "full": "Full Address",
@@ -141,7 +154,10 @@
         "total": "Total",
         "deliveryTime": "Delivery in {{min}}–{{max}} mins",
         "proceedToCheckout": "Proceed To Checkout",
-        "noteUpdateError": "Failed to update note"
+        "noteUpdateError": "Failed to update note",
+        "minAmountMissing": "{{amount}}₺ more needs to be added.",
+        "minAmountWarningGlobal": "You must reach the minimum order amount for all restaurants.",
+        "minAmount": "Minimum Cart Amount: "
     },
     "restaurant": {
         "new": "New Restaurant",
@@ -437,6 +453,22 @@
         "backToHome": "Back to Home",
         "popularSearches": "Popular Searches"
     },
+    "orders": {
+        "orderCancelledSuccess": "Order cancelled successfully!",
+        "orderCancelledError": "Failed to cancel order. Please try again.",
+        "orderDetailsError": "Could not load order details. Please try again.",
+        "confirmed": "Confirmed",
+        "preparing": "Preparing",
+        "onTheWay": "On the way",
+        "delivered": "Delivered",
+        "arrivingSoon": "Arriving soon",
+        "minutes": "{minutes} mins"
+    },
+    "tracking": {
+        "trackingNotAvailable": "Tracking is not available yet.",
+        "orderDelivered": "Your order has already been delivered.",
+        "orderDeliveredSoon": "Your order will be delivered soon."
+    },
     "nav": {
         "home": "Home",
         "restaurants": "Restaurants",
@@ -636,6 +668,12 @@
             "markAsPrepared": "Mark as Prepared",
             "reject": "Reject",
             "accept": "Accept"
+        },
+        "cancelDialog": {
+            "title": "Cancel Order",
+            "confirmMessage": "Are you sure you want to cancel this order? This action cannot be undone.",
+            "keepOrder": "No, Keep Order",
+            "confirmCancel": "Yes, Cancel Order"
         }
     },
     "dashboard": {
@@ -718,7 +756,121 @@
         "dialog": {
             "queuedOrderTitle": "Queued Order Found",
             "queuedOrderDescription": "You have a queued order assigned. If you become unavailable, your queued order will be reassigned to another courier. Are you sure you want to proceed?"
+        },
+        "deliveredOrders": "Delivered Orders",
+        "ordersPage": {
+            "title": "Delivered Orders",
+            "noOrders": "You don't have any delivered orders yet.",
+            "loadingError": "An error occurred while loading your delivery history. Please try again later.",
+            "orderDetails": "Order Details",
+            "hideDetails": "Hide Details",
+            "showDetails": "Show Details",
+            "orderInfo": {
+                "orderDate": "Order Date",
+                "pickupTime": "Pickup Time"
+            },
+            "restaurant": {
+                "title": "Restaurant Information",
+                "call": "Call",
+                "viewOnMap": "View on Map"
+            },
+            "customer": {
+                "title": "Customer",
+                "totalItems": "Total Items"
+            },
+            "status": {
+                "delivered": "Delivered"
+            }
         }
+    },
+    "promotions": {
+        "title": "Promotion Codes",
+        "create": "Create Promotion Code",
+        "list": "Promotions",
+        "couponCode": "Coupon Code",
+        "description": "Description",
+        "discountAmount": "Discount Amount",
+        "discountType": "Discount Type",
+        "percentage": "Percentage",
+        "fixedAmount": "Fixed Amount",
+        "percentageDiscount": "Percentage Discount",
+        "fixedAmountDiscount": "Fixed Amount Discount",
+        "minOrderAmount": "Minimum Order Amount",
+        "expiryDate": "Expiry Date",
+        "createPromotion": "Create Promotion",
+        "updatePromotion": "Update Promotion",
+        "noPromotions": "No promotions found",
+        "inactive": "Inactive",
+        "minOrder": "Min Order",
+        "expires": "Expires",
+        "edit": "Edit",
+        "delete": "Delete",
+        "cancel": "Cancel",
+        "success": {
+            "created": "Coupon created successfully",
+            "updated": "Coupon updated successfully",
+            "deleted": "Coupon deleted successfully"
+        },
+        "error": {
+            "requiredFields": "Name, discount amount, minimum order amount, and expiry date are required",
+            "createFailed": "Failed to create coupon",
+            "updateFailed": "Failed to update coupon",
+            "deleteFailed": "Failed to delete coupon",
+            "loadFailed": "Failed to load coupons"
+        }
+    },
+    "profile": {
+        "title": "Profile Management",
+        "edit": "Edit Profile",
+        "save": "Save Changes",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "email": "Email Address",
+        "phoneNumber": "Phone Number",
+        "changePassword": "Change Password",
+        "oldPassword": "Current Password",
+        "newPassword": "New Password",
+        "confirmPassword": "Confirm New Password",
+        "passwordRequirements": "Password must be at least 8 characters long",
+        "passwordMismatch": "Passwords do not match",
+        "max": "The file size cannot exceed 1MB.",
+        "addresses": "My Addresses",
+        "update": {
+            "success": "Profile updated successfully",
+            "error": "Failed to update profile"
+        },
+        "password": {
+            "success": "Password changed successfully",
+            "error": "Failed to change password",
+            "mismatch": "Passwords do not match",
+            "tooShort": "Password must be at least 8 characters long"
+        },
+        "error": {
+            "fetch": "Failed to fetch profile data"
+        },
+        "restaurant": {
+            "details": "Restaurant Information",
+            "manager": "Manager Info",
+            "maxDistance": "Max Distance",
+            "minOrder": "Min Order Amount"
+        },
+        "courier": {
+            "details": "Courier Information",
+            "dashboard": "Track your deliveries and manage your availability"
+        },
+        "admin": {
+            "details": "Admin Dashboard",
+            "dashboard": "Manage system, users, and platform settings",
+            "restaurants": "Manage Restaurants",
+            "couriers": "Manage Couriers",
+            "promotions": "Manage Promotions"
+        }
+    },
+    "role": {
+        "customer": "Customer",
+        "restaurant": "Restaurant",
+        "courier": "Courier",
+        "admin": "Administrator"
     },
     "contact": {
         "info": {
@@ -987,5 +1139,102 @@
         "contact": "Contact",
         "support": "24/7 Support",
         "copyright": "All right reserved."
+    },
+    "restaurantReviews": {
+        "title": "Customer Reviews",
+        "searchPlaceholder": "Search reviews...",
+        "sortOptions": {
+            "recent": "Recent First",
+            "oldest": "Oldest First",
+            "highest": "Highest Rated",
+            "lowest": "Lowest Rated",
+            "sort": "Sort"
+        },
+        "reviewCount": "{{count}} Reviews",
+        "noReviews": "No reviews found",
+        "beFirst": "Be the first to review this restaurant!",
+        "tryAgain": "Try Again",
+        "errorLoading": "Error loading reviews",
+        "ratings": {
+            "taste": "Taste",
+            "service": "Service",
+            "delivery": "Delivery"
+        },
+        "orderDetails": "Order Details",
+        "restaurantReply": "Restaurant Reply",
+        "viewMenu": "View Menu"
+    },
+    "restaurantReviewManagement": {
+        "title": "Reviews Management",
+        "totalReviews": "{{count}} Reviews",
+        "filterOptions": {
+            "all": "All Reviews",
+            "unresponded": "Unresponded"
+        },
+        "sortOptions": {
+            "recent": "Recent First",
+            "oldest": "Oldest First",
+            "highest": "Highest Rated",
+            "lowest": "Lowest Rated",
+            "sort": "Sort"
+        },
+        "ratings": {
+            "taste": "Taste",
+            "service": "Service",
+            "delivery": "Delivery"
+        },
+        "orderDetails": "Order Details",
+        "replyActions": {
+            "reply": "Reply",
+            "editReply": "Edit Reply",
+            "yourReply": "Your Reply",
+            "cancel": "Cancel",
+            "sendReply": "Send Reply"
+        },
+        "replyDialog": {
+            "editReply": "Edit your reply",
+            "newReply": "Reply to review",
+            "respondingTo": "Responding to {{userName}}'s review:",
+            "placeholder": "Type your reply here..."
+        },
+        "errors": {
+            "loadingError": "Error loading reviews",
+            "tryAgain": "Try Again"
+        },
+        "empty": {
+            "noReviews": "No reviews found",
+            "noUnrespondedReviews": "You have responded to all reviews.",
+            "noReviewsYet": "You don't have any reviews yet."
+        },
+        "unknownDate": "Unknown date"
+    },
+    "orderCard": {
+        "orderPrefix": "Order #",
+        "items": {
+            "singular": "item",
+            "plural": "items"
+        },
+        "buttons": {
+            "details": "Details",
+            "review": "Review"
+        },
+        "review": {
+            "yourReview": "Your Review",
+            "ratings": {
+                "taste": "Taste",
+                "service": "Service",
+                "delivery": "Delivery"
+            },
+            "restaurantReply": "Restaurant Reply"
+        },
+        "status": {
+            "ORDERED": "ORDERED",
+            "PREPARING": "PREPARING",
+            "READY_FOR_PICKUP": "READY FOR PICKUP",
+            "ON_THE_WAY": "ON THE WAY",
+            "DELIVERED": "DELIVERED",
+            "REJECTED": "REJECTED",
+            "CANCELLED": "CANCELLED"
+        }
     }
 }

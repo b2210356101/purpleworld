@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import FastfoodIcon from "@mui/icons-material/Fastfood";
 import { OrderDTO, CustomerCurrentOrderDTO } from "../types";
+import { useTranslation } from "react-i18next";
 
 interface OrderCardProps {
   orderGroup: CustomerCurrentOrderDTO;
@@ -34,11 +35,16 @@ const OrderCard: React.FC<OrderCardProps> = ({
   parentOrder,
 }) => {
   const theme = useTheme();
+  const { t, i18n } = useTranslation();
 
   const formatDateTime = (dateString: string) => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toLocaleString("tr-TR", {
+    
+    // Use i18n's current language to determine the locale
+    const locale = i18n.language === 'tr' ? 'tr-TR' : 'en-US';
+    
+    return date.toLocaleString(locale, {
       day: "numeric",
       month: "long",
       year: "numeric",
@@ -58,11 +64,10 @@ const OrderCard: React.FC<OrderCardProps> = ({
       CANCELLED: { bg: "#F44336", text: "#FFFFFF" },
     };
     const color = colors[status] || { bg: "#9E9E9E", text: "#FFFFFF" };
-    const label = status.replace(/_/g, " ");
-
+    
     return (
       <Chip
-        label={label}
+        label={t(`orderCard.status.${status}`)}
         size="small"
         sx={{ bgcolor: color.bg, color: color.text }}
       />
@@ -90,7 +95,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
         }}
       >
         <Typography variant="body1" color="text.secondary">
-          Order #{orderGroup.orderGroupId}
+          {t('orderCard.orderPrefix')}{orderGroup.orderGroupId}
         </Typography>
         {getStatusChip(orderGroup.status)}
       </Box>
@@ -115,7 +120,9 @@ const OrderCard: React.FC<OrderCardProps> = ({
             {orderGroup.restaurantName}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {orderGroup.itemCount} item{orderGroup.itemCount !== 1 && "s"}
+            {orderGroup.itemCount} {orderGroup.itemCount === 1 
+              ? t('orderCard.items.singular') 
+              : t('orderCard.items.plural')}
           </Typography>
         </Box>
 
@@ -146,7 +153,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
             color="primary"
             onClick={() => onDetailsClick(orderGroup, parentOrder)}
           >
-            Details
+            {t('orderCard.buttons.details')}
           </Button>
           {orderGroup.status === "DELIVERED" && !orderGroup.review && (
             <Button
@@ -154,7 +161,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
               color="secondary"
               onClick={() => onReviewClick(orderGroup, parentOrder)}
             >
-              Review
+              {t('orderCard.buttons.review')}
             </Button>
           )}
         </Stack>
@@ -175,14 +182,14 @@ const OrderCard: React.FC<OrderCardProps> = ({
             }}
           >
             <Typography variant="subtitle2" fontWeight={600} mb={2} color="text.primary">
-              Your Review
+              {t('orderCard.review.yourReview')}
             </Typography>
 
             {/* Ratings with labels */}
             <Stack spacing={1.5} mb={2}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <Typography variant="body2" sx={{ width: 70, fontWeight: 500, color: "text.secondary" }}>
-                  Taste:
+                  {t('orderCard.review.ratings.taste')}:
                 </Typography>
                 <Rating
                   size="small"
@@ -193,7 +200,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
               </Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <Typography variant="body2" sx={{ width: 70, fontWeight: 500, color: "text.secondary" }}>
-                  Service:
+                  {t('orderCard.review.ratings.service')}:
                 </Typography>
                 <Rating
                   size="small"
@@ -204,7 +211,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
               </Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <Typography variant="body2" sx={{ width: 70, fontWeight: 500, color: "text.secondary" }}>
-                  Delivery:
+                  {t('orderCard.review.ratings.delivery')}:
                 </Typography>
                 <Rating
                   size="small"
@@ -248,7 +255,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
                   mb: 1 
                 }}
               >
-                Restaurant Reply
+                {t('orderCard.review.restaurantReply')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 {orderGroup.review.restaurantAnswer}

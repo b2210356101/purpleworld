@@ -54,7 +54,7 @@ const CustomerProfileSection: React.FC<CustomerProfileSectionProps> = ({ updateS
         phoneNumber: '',
         profileImg: userInfo?.profileImage || ''
     });
-    
+
     const [profileImgFile, setProfileImgFile] = useState<File | null>(null);
     const [profileImgPreview, setProfileImgPreview] = useState<string | undefined>(
         userInfo?.profileImage
@@ -190,7 +190,7 @@ const CustomerProfileSection: React.FC<CustomerProfileSectionProps> = ({ updateS
             return;
         }
 
-        const passwordRegex = 
+        const passwordRegex =
             /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
         if (!passwordData.confirmPassword || !passwordRegex.test(passwordData.confirmPassword)) {
             updateSnackbar(t('register.validation.passwordRequirements'), 'error');
@@ -482,30 +482,26 @@ const CustomerProfileSection: React.FC<CustomerProfileSectionProps> = ({ updateS
                                             </Typography>
                                         )}
 
-                                        {addr.addressId !== address.selectedAddress && (
-                                            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-                                                <Button
-                                                    size="small"
-                                                    variant="contained"
-                                                    onClick={async () => {
-                                                        try {
-                                                            await setCurrentAddress(addr.addressId);
+                                        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                                            <Button
+                                                size="small"
+                                                variant="contained"
+                                                disabled={address.selectedAddress === addr.addressId}
+                                                onClick={async () => {
+                                                    try {
+                                                        await setCurrentAddress(addr.addressId);
+                                                        updateSnackbar(t('address.defaultSet'), 'success');
 
-                                                            // Show success message
-                                                            updateSnackbar(t('address.defaultSet'), 'success');
-
-                                                            // Refresh addresses to update UI
-                                                            await address.fetchAddresses();
-                                                        } catch (error) {
-                                                            console.error('Error setting default address:', error);
-                                                            updateSnackbar(t('address.errorSettingDefault'), 'error');
-                                                        }
-                                                    }}
-                                                >
-                                                    {t('address.setDefault')}
-                                                </Button>
-                                            </Box>
-                                        )}
+                                                        await address.fetchAddresses();
+                                                    } catch (error) {
+                                                        console.error('Error setting default address:', error);
+                                                        updateSnackbar(t('address.errorSettingDefault'), 'error');
+                                                    }
+                                                }}
+                                            >
+                                                {t('address.setDefault')}
+                                            </Button>
+                                        </Box>
                                     </Paper>
                                 </Grid>
                             ))}

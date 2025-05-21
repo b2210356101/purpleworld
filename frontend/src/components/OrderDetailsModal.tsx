@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import { OrderDetailsData } from "../types";
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   open: boolean;
@@ -22,6 +23,7 @@ const OrderDetailsModal: React.FC<Props> = ({
   onClose,
   orderDetails,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const totalItems = orderDetails.restaurants.reduce(
     (sum, restaurant) => sum + restaurant.items.reduce(
@@ -56,7 +58,7 @@ const OrderDetailsModal: React.FC<Props> = ({
               color: theme.palette.text.primary,
             }}
           >
-            Order Details
+            {t('orderDetailsModal.title')}
           </Typography>
           <Typography
             variant="body1"
@@ -65,7 +67,7 @@ const OrderDetailsModal: React.FC<Props> = ({
               color: theme.palette.text.secondary,
             }}
           >
-            {totalItems} {totalItems > 1 ? "Items" : "Item"}
+            {totalItems} {totalItems > 1 ? t('orderDetailsModal.items') : t('orderDetailsModal.item')}
           </Typography>
         </Box>
       </DialogTitle>
@@ -80,7 +82,7 @@ const OrderDetailsModal: React.FC<Props> = ({
               color: theme.palette.text.secondary,
             }}
           >
-            Date
+            {t('orderDetailsModal.date')}
           </Typography>
           <Typography
             variant="body1"
@@ -165,7 +167,7 @@ const OrderDetailsModal: React.FC<Props> = ({
             color: theme.palette.text.primary,
           }}
         >
-          Delivery Address
+          {t('orderDetailsModal.deliveryAddress')}
         </Typography>
         <Box
           sx={{
@@ -235,7 +237,7 @@ const OrderDetailsModal: React.FC<Props> = ({
             color: theme.palette.text.secondary,
           }}
         >
-          Bill details
+          {t('orderDetailsModal.billDetails')}
         </Typography>
         <Box mb={1} display="flex" justifyContent="space-between">
           <Typography
@@ -245,7 +247,7 @@ const OrderDetailsModal: React.FC<Props> = ({
               color: theme.palette.text.secondary,
             }}
           >
-            Item Total
+            {t('orderDetailsModal.itemTotal')}
           </Typography>
           <Typography
             variant="body1"
@@ -265,7 +267,7 @@ const OrderDetailsModal: React.FC<Props> = ({
               color: theme.palette.text.secondary,
             }}
           >
-            Discount
+            {t('orderDetailsModal.discount')}
           </Typography>
           <Typography
             variant="body1"
@@ -288,7 +290,7 @@ const OrderDetailsModal: React.FC<Props> = ({
               color: theme.palette.text.primary,
             }}
           >
-            Total Payment
+            {t('orderDetailsModal.totalPayment')}
           </Typography>
           <Typography
             variant="h5"
@@ -317,7 +319,7 @@ const OrderDetailsModal: React.FC<Props> = ({
             },
           }}
         >
-          Close
+          {t('util.close')}
         </Button>
       </Box>
     </Dialog>

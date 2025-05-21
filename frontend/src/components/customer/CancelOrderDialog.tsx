@@ -1,5 +1,6 @@
 import React from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 interface CancelOrderDialogProps {
     open: boolean;
@@ -12,6 +13,8 @@ const CancelOrderDialog: React.FC<CancelOrderDialogProps> = ({
     onClose,
     onConfirm
 }) => {
+    const { t } = useTranslation();
+    
     return (
         <Dialog
             open={open}
@@ -20,19 +23,19 @@ const CancelOrderDialog: React.FC<CancelOrderDialogProps> = ({
             aria-describedby="cancel-order-dialog-description"
         >
             <DialogTitle id="cancel-order-dialog-title">
-                Cancel Order
+                {t('order.cancelDialog.title')}
             </DialogTitle>
             <DialogContent>
                 <DialogContentText id="cancel-order-dialog-description">
-                    Are you sure you want to cancel this order? This action cannot be undone.
+                    {t('order.cancelDialog.confirmMessage')}
                 </DialogContentText>
             </DialogContent>
             <DialogActions>
                 <Button onClick={onClose} color="secondary">
-                    No, Keep Order
+                    {t('order.cancelDialog.keepOrder')}
                 </Button>
                 <Button onClick={onConfirm} color="error" variant="contained">
-                    Yes, Cancel Order
+                    {t('order.cancelDialog.confirmCancel')}
                 </Button>
             </DialogActions>
         </Dialog>

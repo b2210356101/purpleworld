@@ -112,8 +112,7 @@ const RegisterCustomer = () => {
             setEmailErrorMsg("");
         }
 
-        const passwordRegex =
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*_])[A-Za-z\d!@#$%^&*_]{8,}$/;
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*_\.}\){?\]])[A-Za-z\d!@#$%^&*_\.}\){?\]]{8,}$/;
         if (!password || !passwordRegex.test(password)) {
             setPasswordError(true);
             setPasswordErrorMsg(t('register.validation.passwordRequirements'));

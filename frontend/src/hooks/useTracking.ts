@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { TrackingInfoResponseDTO } from '../types';
 import { getNextLocation } from '../utils/api';
+import { useTranslation } from 'react-i18next';
 
 export const useTracking = () => {
+    const { t } = useTranslation();
     const [isTrackingDialogOpen, setIsTrackingDialogOpen] = useState(false);
     const [trackingInfo, setTrackingInfo] = useState<TrackingInfoResponseDTO | null>(null);
     const [activeTrackingOrderId, setActiveTrackingOrderId] = useState<number | null>(null);
@@ -30,7 +32,7 @@ export const useTracking = () => {
             }
 
             if (nextPoint.lat === 0 && nextPoint.lng === 0 && nextPoint.completed) {
-                setSnackbarMessage("Your order has already been delivered.");
+                setSnackbarMessage(t("tracking.orderDelivered"));
                 setSnackbarSeverity('info');
                 setSnackbarOpen(true);
                 return;
@@ -42,7 +44,7 @@ export const useTracking = () => {
         } catch (error) {
             if (!isMounted.current) return;
             
-            setSnackbarMessage("Tracking is not available yet.");
+            setSnackbarMessage(t("tracking.trackingNotAvailable"));
             setSnackbarSeverity('error');
             setSnackbarOpen(true);
         }
@@ -66,7 +68,7 @@ export const useTracking = () => {
                     if (!isMounted.current) return;
                     
                     if (data.completed) {
-                        alert("Your order will be delivered soon.");
+                        alert(t("tracking.orderDeliveredSoon"));
                         setIsTrackingDialogOpen(false);
                     } else {
                         setTrackingInfo(data);

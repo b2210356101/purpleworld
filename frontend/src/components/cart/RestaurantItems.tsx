@@ -4,6 +4,7 @@ import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Restaurant } from "../../types";
+import {t} from "i18next";
 
 interface RestaurantItemsProps {
   restaurant: Restaurant;
@@ -12,11 +13,13 @@ interface RestaurantItemsProps {
     operation: "+" | "-",
     quantity: number
   ) => void;
+  minAmountError?: { restAmount: number }
 }
 
 const RestaurantItems: React.FC<RestaurantItemsProps> = ({
-  restaurant,
-  onQuantityChange,
+    restaurant,
+    onQuantityChange,
+    minAmountError,
 }) => {
   return (
     <Paper sx={{ borderRadius: 2, overflow: "hidden", boxShadow: 1 }}>
@@ -30,17 +33,35 @@ const RestaurantItems: React.FC<RestaurantItemsProps> = ({
           alignItems: "center",
         }}
       >
-        {restaurant.profileImg && (
-          <Box
-            component="img"
-            src={restaurant.profileImg}
-            sx={{ width: 40, height: 40, borderRadius: "50%", mr: 2 }}
-          />
-        )}
-        <Typography variant="subtitle1" fontWeight={600}>
-          {restaurant.restaurantName}
-        </Typography>
+          <Box sx={{display:'flex',justifyContent:'space-between',width:'100%'}}>
+              <Typography fontWeight={600}>
+                  {restaurant.restaurantName}
+              </Typography>
+              <Typography>
+                  Min: {restaurant.minAmount}₺
+              </Typography>
+          </Box>
       </Box>
+
+        {minAmountError && (
+            <Box
+                sx={{
+                    bgcolor: 'rgba(255, 234, 234, 0.7)',
+                    color: 'error.dark',
+                    px: 2,
+                    py: 1,
+                    fontSize: 13,
+                    fontWeight: 500,
+                    borderLeft: '3px solid',
+                    borderColor: 'error.main',
+                }}
+            >
+                <Typography variant="body2">
+                    {t('cart.minAmountMissing', { amount: minAmountError.restAmount })}
+                </Typography>
+            </Box>
+        )}
+
 
       {/* Restaurant Items */}
       <Box sx={{ p: 2 }}>

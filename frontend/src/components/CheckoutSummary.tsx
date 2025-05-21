@@ -8,6 +8,7 @@ import {
   useTheme,
   CircularProgress,
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 // Define proper TypeScript interfaces
 interface CartItem {

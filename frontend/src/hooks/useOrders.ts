@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { CustomerOrderSummaryDTO, CustomerCurrentOrderDTO, OrderDetailsData } from '../types';
 import { getOrderDetails, cancelOrder, getCurrentOrders } from '../utils/api';
 import { parseBackendDate } from '../utils/date';
+import { useTranslation } from 'react-i18next';
 
 export const useOrders = () => {
+    const { t } = useTranslation();
     const [customerOrders, setCustomerOrders] = useState<CustomerOrderSummaryDTO[]>([]);
     const [activeOrderGroups, setActiveOrderGroups] = useState<CustomerCurrentOrderDTO[]>([]);
     const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false);
@@ -13,9 +15,9 @@ export const useOrders = () => {
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
-    
+
     const isMounted = useRef(true);
-    
+
     // Debounce API call timer
     const fetchOrdersTimerRef = useRef<number | null>(null);
 
@@ -34,7 +36,7 @@ export const useOrders = () => {
         const now = new Date();
         const deliveryTime = new Date(estimatedDeliveryTime);
         const diffInMinutes = Math.round((deliveryTime.getTime() - now.getTime()) / 60000);
-        return diffInMinutes > 0 ? `${diffInMinutes} mins` : 'Arriving soon';
+        return diffInMinutes > 0 ? t("orders.minutes", {minutes: diffInMinutes}) : t("orders.arrivingSoon");
     }, []);
 
     // Memoize order status helper to prevent recreation on each render
@@ -121,7 +123,7 @@ export const useOrders = () => {
         } catch (error) {
             console.error("Failed to load order details:", error);
             if (isMounted.current) {
-                setSnackbarMessage("Could not load order details. Please try again.");
+                setSnackbarMessage(t("orders.orderDetailsError"));
                 setSnackbarSeverity('error');
                 setSnackbarOpen(true);
             }
@@ -141,7 +143,7 @@ export const useOrders = () => {
             .then(() => {
                 if (isMounted.current) {
                     setCancelOrderDialogOpen(false);
-                    setSnackbarMessage("Order cancelled successfully!");
+                    setSnackbarMessage(t("orders.orderCancelledSuccess"));
                     setSnackbarSeverity('success');
                     setSnackbarOpen(true);
                     window.dispatchEvent(new CustomEvent("order-placed"));
@@ -153,7 +155,7 @@ export const useOrders = () => {
             .catch((err) => {
                 if (isMounted.current) {
                     setCancelOrderDialogOpen(false);
-                    setSnackbarMessage("Failed to cancel order. Please try again.");
+                    setSnackbarMessage(t("ordersorderCancelledError"));
                     setSnackbarSeverity('error');
                     setSnackbarOpen(true);
                 }
@@ -166,16 +168,16 @@ export const useOrders = () => {
         if (fetchOrdersTimerRef.current) {
             clearTimeout(fetchOrdersTimerRef.current);
         }
-        
+
         // Set a debounce timeout
         fetchOrdersTimerRef.current = window.setTimeout(async () => {
             if (!isMounted.current) return;
-            
+
             try {
                 const response = await getCurrentOrders();
-                
+
                 if (!isMounted.current) return;
-                
+
                 setCustomerOrders(response);
 
                 const allActiveGroups: CustomerCurrentOrderDTO[] = [];
@@ -198,7 +200,7 @@ export const useOrders = () => {
     useEffect(() => {
         isMounted.current = true;
         fetchOrders();
-        
+
         // Set up polling interval for order updates
         const ordersRefreshInterval = setInterval(() => {
             fetchOrders();
@@ -221,7 +223,7 @@ export const useOrders = () => {
         };
 
         window.addEventListener("order-placed", handleOrderPlaced);
-        
+
         return () => {
             window.removeEventListener("order-placed", handleOrderPlaced);
         };

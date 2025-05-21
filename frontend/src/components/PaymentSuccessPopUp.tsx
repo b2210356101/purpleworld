@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 // PaymentSuccessPopup.tsx
 interface OrderSuccessProps {
@@ -30,6 +31,7 @@ const PaymentSuccessPopup: React.FC<OrderSuccessProps> = ({
   onClose,
   orderData
 }) => {
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
   const navigate = useNavigate();
 
@@ -40,9 +42,17 @@ const PaymentSuccessPopup: React.FC<OrderSuccessProps> = ({
 
   if (!orderData) return null;
 
-  // Format date for display
   const currentDate = new Date();
-  const formattedDate = `${currentDate.toLocaleString('default', { month: 'long' })} ${currentDate.getDate()}, ${currentDate.getFullYear()}, ${currentDate.getHours()}:${String(currentDate.getMinutes()).padStart(2, '0')}`;
+  const formattedDate = currentDate.toLocaleString(
+    i18n.language === 'tr' ? 'tr-TR' : 'en-US', 
+    { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit', 
+      minute: '2-digit'
+    }
+  );
 
   return (
     <Dialog
@@ -91,7 +101,7 @@ const PaymentSuccessPopup: React.FC<OrderSuccessProps> = ({
           color={theme.palette.text.primary}
           mb={2}
         >
-          Payment Success!
+          {t('payment.success.title')}
         </Typography>
 
         {/* Total Amount */}
@@ -110,28 +120,30 @@ const PaymentSuccessPopup: React.FC<OrderSuccessProps> = ({
         {/* Order Details */}
         <Box sx={{ mb: 4 }}>
           <Box display="flex" justifyContent="space-between" mb={2}>
-            <Typography color={theme.palette.text.secondary}>Ref Number</Typography>
+            <Typography color={theme.palette.text.secondary}>{t('payment.details.refNumber')}</Typography>
             <Typography fontWeight={500} color={theme.palette.text.primary}>
               {String(orderData.orderId).padStart(13, '0')}
             </Typography>
           </Box>
 
           <Box display="flex" justifyContent="space-between" mb={2}>
-            <Typography color={theme.palette.text.secondary}>Payment Time</Typography>
+            <Typography color={theme.palette.text.secondary}>{t('payment.details.paymentTime')}</Typography>
             <Typography fontWeight={500} color={theme.palette.text.primary}>
               {formattedDate}
             </Typography>
           </Box>
 
           <Box display="flex" justifyContent="space-between" mb={2}>
-            <Typography color={theme.palette.text.secondary}>Payment Method</Typography>
+            <Typography color={theme.palette.text.secondary}>{t('payment.details.paymentMethod')}</Typography>
             <Typography fontWeight={500} color={theme.palette.text.primary}>
-              {orderData.paymentType === "cash" ? "Cash on Delivery" : "Credit Card"}
+              {orderData.paymentType === "cash" 
+                ? t('payment.methods.cash') 
+                : t('payment.methods.creditCard')}
             </Typography>
           </Box>
 
           <Box display="flex" justifyContent="space-between" mb={2}>
-            <Typography color={theme.palette.text.secondary}>Total Amount</Typography>
+            <Typography color={theme.palette.text.secondary}>{t('payment.details.totalAmount')}</Typography>
             <Typography fontWeight={500} color={theme.palette.text.primary}>
               {orderData.totalPrice}₺
             </Typography>
@@ -139,7 +151,7 @@ const PaymentSuccessPopup: React.FC<OrderSuccessProps> = ({
 
           {orderData.estimatedDuration && (
             <Box display="flex" justifyContent="space-between" mb={2}>
-              <Typography color={theme.palette.text.secondary}>Estimated Delivery</Typography>
+              <Typography color={theme.palette.text.secondary}>{t('payment.details.estimatedDelivery')}</Typography>
               <Typography fontWeight={500} color={theme.palette.text.primary}>
                 {orderData.estimatedDuration}
               </Typography>
@@ -150,7 +162,7 @@ const PaymentSuccessPopup: React.FC<OrderSuccessProps> = ({
           {orderData.note && (
             <Box mt={2}>
               <Typography color={theme.palette.text.secondary} mb={1}>
-                Order Notes:
+                {t('payment.details.orderNotes')}:
               </Typography>
               <Box 
                 sx={{ 
@@ -180,7 +192,7 @@ const PaymentSuccessPopup: React.FC<OrderSuccessProps> = ({
             fontWeight: 600
           }}
         >
-          Close
+          {t('payment.close')}
         </Button>
       </DialogContent>
     </Dialog>

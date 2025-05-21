@@ -73,6 +73,14 @@
         "change": "Adres Değiştir",
         "removeItems": "Adresinizi değiştirdiğinizde sepetinizdeki tüm ürünler kaldırılacaktır. Devam etmek istediğinizden emin misiniz?",
         "dontHave": "Henüz kayıtlı adresiniz yok. Lütfen yeni bir adres ekleyin.",
+        "delete": "Sil",
+        "setDefault": "Varsayılan Yap",
+        "defaultSet": "Varsayılan adres başarıyla güncellendi",
+        "errorSettingDefault": "Varsayılan adres ayarlanırken hata oluştu",
+        "noAddresses": "Adres bulunamadı. Başlamak için bir adres ekleyin.",
+        "unnamed": "İsimsiz Adres",
+        "buildingDetails": "Bina {{building}}, Kat {{floor}}, Daire {{apartment}}",
+        "note": "Teslimat Notu",
         "field": {
             "title": "Adres Adı",
             "full": "Açık Adres",
@@ -145,7 +153,10 @@
         "total": "Toplam",
         "deliveryTime": "{{min}}–{{max}} dakika içinde teslimat",
         "proceedToCheckout": "Ödeme Adımına Geç",
-        "noteUpdateError": "Not güncellenemedi"
+        "noteUpdateError": "Not güncellenemedi",
+        "minAmountMissing": "{{amount}}₺'lik ürün daha eklenmeli.",
+        "minAmountWarningGlobal": "Tüm restoranlar için minimum sepet tutarını geçmelisiniz.",
+        "minAmount": "Minimum Sepet Tutarı: "
     },
     "restaurant": {
         "new": "Yeni Restaurant",
@@ -328,6 +339,22 @@
         "tryDifferent": "Farklı bir arama terimi deneyin veya aşağıdaki restoranları inceleyin.",
         "backToHome": "Ana Sayfaya Dön",
         "popularSearches": "Popüler Aramalar"
+    },
+    "orders": {
+        "orderCancelledSuccess": "Sipariş başarıyla iptal edildi!",
+        "orderCancelledError": "Sipariş iptal edilemedi, lütfen tekrar deneyin.",
+        "orderDetailsError": "Sipariş detayları yüklenemedi, lütfen tekrar deneyin.",
+        "confirmed": "Onaylandı",
+        "preparing": "Hazırlanıyor",
+        "onTheWay": "Yolda",
+        "delivered": "Teslim Edildi",
+        "arrivingSoon": "Yakında teslim edilecek",
+        "minutes": "{minutes} dakika"
+    },
+    "tracking": {
+        "trackingNotAvailable": "Takip henüz kullanılamıyor.",
+        "orderDelivered": "Siparişiniz zaten teslim edildi.",
+        "orderDeliveredSoon": "Siparişiniz yakında teslim edilecek."
     },
     "nav": {
         "home": "Ana Sayfa",
@@ -640,6 +667,12 @@
             "markAsPrepared": "Hazır Olarak İşaretle",
             "reject": "Reddet",
             "accept": "Kabul Et"
+        },
+        "cancelDialog": {
+            "title": "Siparişi İptal Et",
+            "confirmMessage": "Bu siparişi iptal etmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+            "keepOrder": "Hayır, Siparişi Koru",
+            "confirmCancel": "Evet, Siparişi İptal Et"
         }
     },
     "dashboard": {
@@ -722,7 +755,121 @@
         "dialog": {
             "queuedOrderTitle": "Sırada Bekleyen Sipariş Bulundu",
             "queuedOrderDescription": "Size atanmış sırada bekleyen bir siparişiniz var. Uygun olmadığınızı belirtirseniz, bu sipariş başka bir kuryeye atanacaktır. Devam etmek istediğinizden emin misiniz?"
+        },
+        "deliveredOrders": "Teslim Edilen Siparişler",
+        "ordersPage": {
+            "title": "Teslim Edilen Siparişler",
+            "noOrders": "Henüz teslim ettiğiniz bir sipariş bulunmuyor.",
+            "loadingError": "Teslimat geçmişiniz yüklenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.",
+            "orderDetails": "Sipariş Detayları",
+            "hideDetails": "Detayları Gizle",
+            "showDetails": "Detayları Göster",
+            "orderInfo": {
+                "orderDate": "Sipariş Tarihi",
+                "pickupTime": "Teslim Alınma"
+            },
+            "restaurant": {
+                "title": "Restoran Bilgileri",
+                "call": "Ara",
+                "viewOnMap": "Haritada Gör"
+            },
+            "customer": {
+                "title": "Müşteri",
+                "totalItems": "Toplam Ürün"
+            },
+            "status": {
+                "delivered": "Teslim Edildi"
+            }
         }
+    },
+    "promotions": {
+        "title": "Promosyon Kodları",
+        "create": "Promosyon Kodu Oluştur",
+        "list": "Promosyonlar",
+        "couponCode": "Kupon Kodu",
+        "description": "Açıklama",
+        "discountAmount": "İndirim Miktarı",
+        "discountType": "İndirim Türü",
+        "percentage": "Yüzde",
+        "fixedAmount": "Sabit Tutar",
+        "percentageDiscount": "Yüzde İndirim",
+        "fixedAmountDiscount": "Sabit Tutar İndirim",
+        "minOrderAmount": "Minimum Sipariş Tutarı",
+        "expiryDate": "Son Kullanma Tarihi",
+        "createPromotion": "Promosyon Oluştur",
+        "updatePromotion": "Promosyonu Güncelle",
+        "noPromotions": "Promosyon bulunamadı",
+        "inactive": "Aktif Değil",
+        "minOrder": "Min. Sipariş",
+        "expires": "Son Tarih",
+        "edit": "Düzenle",
+        "delete": "Sil",
+        "cancel": "İptal",
+        "success": {
+            "created": "Kupon başarıyla oluşturuldu",
+            "updated": "Kupon başarıyla güncellendi",
+            "deleted": "Kupon başarıyla silindi"
+        },
+        "error": {
+            "requiredFields": "İsim, indirim miktarı, minimum sipariş tutarı ve son kullanma tarihi gereklidir",
+            "createFailed": "Kupon oluşturulamadı",
+            "updateFailed": "Kupon güncellenemedi",
+            "deleteFailed": "Kupon silinemedi",
+            "loadFailed": "Kuponlar yüklenemedi"
+        }
+    },
+    "profile": {
+        "title": "Profil Yönetimi",
+        "edit": "Profili Düzenle",
+        "save": "Değişiklikleri Kaydet",
+        "firstName": "Ad",
+        "lastName": "Soyad",
+        "email": "E-posta Adresi",
+        "phoneNumber": "Telefon Numarası",
+        "changePassword": "Şifre Değiştir",
+        "oldPassword": "Mevcut Şifre",
+        "newPassword": "Yeni Şifre",
+        "confirmPassword": "Yeni Şifreyi Onayla",
+        "passwordRequirements": "Şifre en az 8 karakter uzunluğunda olmalıdır",
+        "passwordMismatch": "Şifreler eşleşmiyor",
+        "max": "Dosya boyutu 1MB'dan büyük olamaz.",
+        "addresses": "Adreslerim",
+        "update": {
+            "success": "Profil başarıyla güncellendi",
+            "error": "Profil güncellenirken hata oluştu"
+        },
+        "password": {
+            "success": "Şifre başarıyla değiştirildi",
+            "error": "Şifre değiştirilirken hata oluştu",
+            "mismatch": "Şifreler eşleşmiyor",
+            "tooShort": "Şifre en az 8 karakter uzunluğunda olmalıdır"
+        },
+        "error": {
+            "fetch": "Profil bilgileri alınırken hata oluştu"
+        },
+        "restaurant": {
+            "details": "Restoran Bilgileri",
+            "manager": "Sahip Bilgileri",
+            "maxDistance": "Hizmet Alanı",
+            "minOrder": "Minimum Sepet Tutarı"
+        },
+        "courier": {
+            "details": "Kurye Bilgileri",
+            "dashboard": "Teslimatlarınızı takip edin ve uygunluğunuzu yönetin"
+        },
+        "admin": {
+            "details": "Yönetici Paneli",
+            "dashboard": "Sistemi, kullanıcıları ve platform ayarlarını yönetin",
+            "restaurants": "Restoranları Yönet",
+            "couriers": "Kuryeleri Yönet",
+            "promotions": "Promosyonları Yönet"
+        }
+    },
+    "role": {
+        "customer": "Müşteri",
+        "restaurant": "Restoran",
+        "courier": "Kurye",
+        "admin": "Yönetici"
     },
     "contact": {
         "info": {
@@ -991,5 +1138,102 @@
         "contact": "İletişim",
         "support": "7/24 Destek",
         "copyright": "Tüm hakları saklıdır."
+    },
+    "restaurantReviews": {
+        "title": "Müşteri Yorumları",
+        "searchPlaceholder": "Yorumlarda ara...",
+        "sortOptions": {
+            "recent": "En Yeni",
+            "oldest": "En Eski",
+            "highest": "En Yüksek Puan",
+            "lowest": "En Düşük Puan",
+            "sort": "Sırala"
+        },
+        "reviewCount": "{{count}} Yorum",
+        "noReviews": "Yorum bulunamadı",
+        "beFirst": "Bu restorana ilk yorumu siz yapın!",
+        "tryAgain": "Tekrar Dene",
+        "errorLoading": "Yorumlar yüklenirken hata oluştu",
+        "ratings": {
+            "taste": "Lezzet",
+            "service": "Hizmet",
+            "delivery": "Teslimat"
+        },
+        "orderDetails": "Sipariş Detayları",
+        "restaurantReply": "Restoran Yanıtı",
+        "viewMenu": "Menüyü Görüntüle"
+    },
+    "restaurantReviewManagement": {
+        "title": "Yorum Yönetimi",
+        "totalReviews": "{{count}} Yorum",
+        "filterOptions": {
+            "all": "Tüm Yorumlar",
+            "unresponded": "Yanıtlanmamış"
+        },
+        "sortOptions": {
+            "recent": "En Yeni",
+            "oldest": "En Eski",
+            "highest": "En Yüksek Puan",
+            "lowest": "En Düşük Puan",
+            "sort": "Sırala"
+        },
+        "ratings": {
+            "taste": "Lezzet",
+            "service": "Hizmet",
+            "delivery": "Teslimat"
+        },
+        "orderDetails": "Sipariş Detayları",
+        "replyActions": {
+            "reply": "Yanıtla",
+            "editReply": "Yanıtı Düzenle",
+            "yourReply": "Yanıtınız",
+            "cancel": "İptal",
+            "sendReply": "Yanıt Gönder"
+        },
+        "replyDialog": {
+            "editReply": "Yanıtınızı düzenleyin",
+            "newReply": "Yorumu yanıtlayın",
+            "respondingTo": "{{userName}}'in yorumuna yanıt veriliyor:",
+            "placeholder": "Yanıtınızı buraya yazın..."
+        },
+        "errors": {
+            "loadingError": "Yorumlar yüklenirken hata oluştu",
+            "tryAgain": "Tekrar Dene"
+        },
+        "empty": {
+            "noReviews": "Yorum bulunamadı",
+            "noUnrespondedReviews": "Tüm yorumlara yanıt verdiniz.",
+            "noReviewsYet": "Henüz hiç yorumunuz yok."
+        },
+        "unknownDate": "Bilinmeyen tarih"
+    },
+    "orderCard": {
+        "orderPrefix": "Sipariş #",
+        "items": {
+            "singular": "ürün",
+            "plural": "ürün"
+        },
+        "buttons": {
+            "details": "Detaylar",
+            "review": "Değerlendir"
+        },
+        "review": {
+            "yourReview": "Değerlendirmeniz",
+            "ratings": {
+                "taste": "Lezzet",
+                "service": "Hizmet",
+                "delivery": "Teslimat"
+            },
+            "restaurantReply": "Restoran Yanıtı"
+        },
+        "status": {
+            "ORDERED": "SİPARİŞ VERİLDİ",
+            "PREPARING": "HAZIRLANIYOR",
+            "READY_FOR_PICKUP": "TESLİMATA HAZIR",
+            "ON_THE_WAY": "YOLDA",
+            "DELIVERED": "TESLİM EDİLDİ",
+            "REJECTED": "REDDEDİLDİ",
+            "CANCELLED": "İPTAL EDİLDİ"
+        }
     }
 }

@@ -15,7 +15,7 @@ import RestaurantItems from "../cart/RestaurantItems";
 import {
   viewCart,
   updateItemQuantity,
-  removeItemFromCart,
+  removeItemFromCart, checkMinimumAmounts,
 } from "../../utils/api";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { Link } from "react-router-dom";
@@ -23,7 +23,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import {
   ViewCartResponse,
   CartGroupResponse,
-  CartItemResponse,
+  CartItemResponse, MinAmountError,
 } from "../../types";
 import { useTranslation } from "react-i18next";
 import Loading from "../Loading";
@@ -46,6 +46,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   const [discount, setDiscount] = useState<string>("0₺");
   const [totalAmount, setTotalAmount] = useState<string>("0₺");
   const [itemTotal, setItemTotal] = useState<string>("0₺");
+  const [minAmountErrors, setMinAmountErrors] = useState<MinAmountError[]>([]);
 
   useEffect(() => {
     if (isOpen) {
@@ -57,6 +58,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
     try {
       setLoading(true);
       const data: ViewCartResponse = await viewCart();
+      const minAmountResponse = await checkMinimumAmounts();
+      setMinAmountErrors(minAmountResponse);
 
       // Filter out restaurant groups with no items and preserve item order
       const cleanedGroups = data.groups
@@ -97,33 +100,32 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
   };
 
   const handleQuantityChange = async (
-    cartItemId: number,
-    operation: "+" | "-",
-    quantity: number,
-    groupId: number
+      cartItemId: number,
+      operation: "+" | "-",
+      quantity: number,
+      groupId: number,
+      restaurantId: number
   ) => {
     try {
       setCartItems((prev) =>
-        prev.map((group) => {
-          if (group.groupId === groupId) {
+          prev.map((group) => {
+            if (group.groupId !== groupId) return group;
+
             const updatedItems = group.items
-              .map((item) => {
-                if (item.itemId === cartItemId) {
-                  if (operation === "-" && quantity === 1) {
-                    return null; // Mark for removal
+                .map((item) => {
+                  if (item.itemId === cartItemId) {
+                    if (operation === "-" && quantity === 1) {
+                      return null; // Silinecek
+                    }
+                    const newQuantity = operation === "+" ? quantity + 1 : quantity - 1;
+                    return { ...item, quantity: newQuantity };
                   }
-                  const newQuantity =
-                    operation === "+" ? quantity + 1 : quantity - 1;
-                  return { ...item, quantity: newQuantity };
-                }
-                return item;
-              })
-              .filter((item): item is CartItemResponse => item !== null);
+                  return item;
+                })
+                .filter((item): item is CartItemResponse => item !== null);
 
             return { ...group, items: updatedItems };
-          }
-          return group;
-        }).filter((group) => group.items.length > 0)
+          }).filter((group) => group.items.length > 0)
       );
 
       if (operation === "-" && quantity === 1) {
@@ -132,40 +134,45 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
         await updateItemQuantity(cartItemId, operation);
       }
 
-      const data = await viewCart();
-      const cleanedGroups = data.groups
-        .filter((group: { items: any[]; }) => group.items.length > 0)
-        .map((group: { restaurantId: number; items: any[]; }) => {
-          const existingGroup = cartItems.find(
-            (g) => g.restaurantId === group.restaurantId
-          );
-          if (existingGroup) {
-            const orderedItems = existingGroup.items
-              .map((existingItem) =>
-                group.items.find((item) => item.itemId === existingItem.itemId)
-              )
-              .filter((item): item is CartItemResponse => !!item)
-              .concat(
-                group.items.filter(
-                  (item) =>
-                    !existingGroup.items.some((ei) => ei.itemId === item.itemId)
-                )
-              );
-            return { ...group, items: orderedItems };
-          }
-          return group;
-        });
+      const updatedCart = await viewCart();
+      const updatedGroup = updatedCart.groups.find((g: CartGroupResponse) => g.groupId === groupId);
+      if (!updatedGroup || updatedGroup.items.length === 0) {
+        setCartItems((prev) => prev.filter((g) => g.groupId !== groupId));
+      } else {
+        setCartItems((prev) =>
+            prev.map((group) => {
+              if (group.groupId !== groupId) return group;
 
-      setCartItems(cleanedGroups);
-      setItemTotal(`${data.cartTotal}₺`);
-      setTotalAmount(`${data.cartTotal}₺`);
+              const orderedItems = group.items
+                  .map((existingItem) =>
+                      updatedGroup.items.find((item: CartItemResponse) => item.itemId === existingItem.itemId)                  )
+                  .filter((item): item is CartItemResponse => !!item)
+                  .concat(
+                      updatedGroup.items.filter((item: CartItemResponse) =>
+                          !group.items.some((ei: CartItemResponse) => ei.itemId === item.itemId)
+                      )
+                  );
+
+              return { ...group, items: orderedItems };
+            })
+        );
+      }
+
+      const minErrors = await checkMinimumAmounts();
+      setMinAmountErrors((prev) => {
+        const updated = minErrors.find((e) => e.restaurantId === restaurantId);
+        const others = prev.filter((e) => e.restaurantId !== restaurantId);
+        return updated ? [...others, updated] : others;
+      });
+
+      setItemTotal(`${updatedCart.cartTotal}₺`);
+      setTotalAmount(`${updatedCart.cartTotal}₺`);
       refreshCartCount();
+
     } catch (err: any) {
       console.error("Cart update error:", err);
       setError(t('cart.error'));
       await fetchCart();
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -234,11 +241,15 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                       quantity: item.quantity,
                       image: item.itemImg,
                     })),
+                    minAmount: group.minAmount,
                   }}
                   onQuantityChange={(cartItemId, operation, quantity) =>
-                      handleQuantityChange(cartItemId, operation, quantity, group.groupId)
+                      handleQuantityChange(cartItemId, operation, quantity, group.groupId, group.restaurantId)
                   }
+                  minAmountError={minAmountErrors.find(e => e.restaurantId === group.restaurantId)}
+
               />
+
             </Box>
             ))
         )}
@@ -338,6 +349,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({
                   to="/checkout"
                   sx={{ py: 1.5, borderRadius: 0, bgcolor: "primary.main" }}
                   onClick={onClose}
+                  disabled={minAmountErrors.length > 0}
                 >
                   {t('cart.payNow')}
                 </Button>
