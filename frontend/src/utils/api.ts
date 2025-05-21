@@ -17,7 +17,7 @@ import {
     PageResponse,
     SearchResult, ReviewRequest, ReviewDTO,
     CouponResponse,
-    CouponRequest,
+    CouponRequest, MinAmountError,
 } from '../types';
 
 const API_URL = 'https://purpleworld-production.up.railway.app';

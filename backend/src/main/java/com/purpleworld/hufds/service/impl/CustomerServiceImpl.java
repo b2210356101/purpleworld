@@ -18,7 +18,6 @@ import com.purpleworld.hufds.service.GoogleMapsService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.elasticsearch.ResourceNotFoundException;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
