@@ -15,4 +15,8 @@ public class ViewCartResponse {
     private int cartTotal;
     private int groupCount;
     private List<CartGroupResponse> groups;
+    private String couponCode;
+    private Double discountAmount;
+    private Boolean isPercent;
+    private Double finalTotal;
 }

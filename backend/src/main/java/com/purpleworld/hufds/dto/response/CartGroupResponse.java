@@ -16,4 +16,6 @@ public class CartGroupResponse {
     private Long groupId;
     private List<CartItemResponse> items;
     private Integer minAmount;
+    private int calculatedDiscount;
+    private int afterDiscount;
 }

@@ -11,4 +11,5 @@ public class PlaceOrderResponse {
     private Long orderId;
     private int totalPrice;
     private String paymentType;
+    private double discountAmount;
 }

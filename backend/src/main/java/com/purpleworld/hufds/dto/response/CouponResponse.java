@@ -1,5 +1,6 @@
 package com.purpleworld.hufds.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,6 +17,8 @@ public class CouponResponse {
     private Boolean isPercent;
     private Integer discountAmount;
     private Integer minOrderPrice;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate expiryDate;
     private Boolean isActive;
 }

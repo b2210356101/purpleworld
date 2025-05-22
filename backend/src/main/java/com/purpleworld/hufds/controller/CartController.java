@@ -8,6 +8,7 @@ import com.purpleworld.hufds.dto.response.CartAmountResponse;
 import com.purpleworld.hufds.dto.response.CartSummaryResponse;
 import com.purpleworld.hufds.dto.response.CouponResponse;
 import com.purpleworld.hufds.service.CartService;
+import com.purpleworld.hufds.service.CouponService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
