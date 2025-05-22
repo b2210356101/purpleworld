@@ -3,8 +3,11 @@ package com.purpleworld.hufds.service;
 import com.purpleworld.hufds.dto.OrderDetailsResponse;
 import com.purpleworld.hufds.dto.request.AddressRequest;
 
+import java.util.List;
+
 import org.springframework.data.domain.Pageable;
 import com.purpleworld.hufds.dto.request.ReviewRequest;
+import com.purpleworld.hufds.dto.response.CouponResponse;
 import com.purpleworld.hufds.dto.request.ProfileUpdateRequest;
 import org.springframework.http.ResponseEntity;
 
@@ -40,6 +43,7 @@ public interface CustomerService {
     ResponseEntity<?> getCustomerProfile(String email);
     ResponseEntity<?> updateCustomerProfile(String email, ProfileUpdateRequest request);
     void changePassword(String currentPassword, String newPassword);
+    ResponseEntity<List<CouponResponse>> getAllCoupons();
 
 
 }

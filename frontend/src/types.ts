@@ -119,6 +119,8 @@ export interface CartGroupResponse {
     note?: string;
     items: CartItemResponse[];
     minAmount?: number;
+    calculatedDiscount?: number;
+    afterDiscount?: number;
 }
 
 export interface ViewCartResponse {
@@ -127,6 +129,10 @@ export interface ViewCartResponse {
     cartTotal: number;
     groupCount: number;
     groups: CartGroupResponse[];
+    couponCode?: string;
+    discountAmount?: number;
+    isPercent?: boolean;
+    finalTotal: number;
 }
 
 export interface RemovableElementDTO {
@@ -172,7 +178,7 @@ export interface MenuStats {
 
 export interface PlaceOrderRequest {
     paymentType: "credit" | "cash";
-    note?: string;
+    couponCode?: string;
 }
 
 export interface PlaceOrderResponse {
@@ -307,6 +313,7 @@ export interface OrderDetails {
     addressFull: string;
     addressCity: string;
     date: string;
+    discount: number;
     items: OrderItemDTO[];
 }
 
@@ -386,11 +393,11 @@ export interface ReviewDTO {
     orderGroupId: number;
 }
 export interface CouponRequest {
-    name: string;
+    code: string;
     description: string;
     isPercent: boolean;
     discountAmount: number;
-    minOrderAmount: number;
+    minOrderPrice: number;
     expiryDate: string;
 }
 
@@ -409,4 +416,17 @@ export interface CouponResponse {
 export interface MinAmountError {
     restaurantId: number;
     restAmount: number;
+}
+
+export interface ReviewDTOforAdmin {
+  tasteRating: number;
+  deliveryRating: number;
+  serviceRating: number;
+  review: string;
+  restaurantReply?: string | null;
+  userName: string;
+  userAvatar: string;
+  reviewDate: string;
+  orderGroupId: number;
+  id?: number;
 }

@@ -12,6 +12,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +29,7 @@ public class CartServiceImpl implements CartService {
     private final CartItemRepository cartItemRepository;
     private final RestaurantRepository restaurantRepository;
     private final RemovableElementRepository removableElementRepository;
+    private final CouponRepository couponRepository;
 
     @Override
     @Transactional
@@ -94,6 +96,7 @@ public class CartServiceImpl implements CartService {
 
         // 7) Persist the CartItem
         cartItemRepository.save(cartItem);
+        checkCouponValidity(cart);
 
                 System.out.println("Cart Groups: " + cart.getCartGroups().size());
                 for (CartGroup group : cart.getCartGroups()) {
@@ -135,10 +138,10 @@ public class CartServiceImpl implements CartService {
     @Transactional
     public ViewCartResponse viewCart(String email) {
         Customer customer = customerRepository.findByEmail(email)
-                        .orElseThrow(() -> new RuntimeException("Customer not found"));
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
 
         Cart cart = cartRepository.findByCustomerId(customer.getId())
-                        .orElseThrow(() -> new RuntimeException("Cart not found"));
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
 
         List<CartGroupResponse> groupResponses = new ArrayList<>();
         int totalQuantity = 0;
@@ -148,52 +151,93 @@ public class CartServiceImpl implements CartService {
         sortedGroups.sort((a, b) -> a.getRestaurant().getRestaurantName()
                 .compareToIgnoreCase(b.getRestaurant().getRestaurantName()));
 
+        List<Integer> groupTotals = new ArrayList<>();
         for (CartGroup group : sortedGroups) {
-                Restaurant restaurant = group.getRestaurant();
+            int groupTotal = 0;
+            for (CartItem item : group.getCartItems()) {
+                int quantity = item.getQuantity();
+                int price = item.getMenuItem().getPrice();
+                groupTotal += quantity * price;
+            }
+            groupTotals.add(groupTotal);
+            cartTotal += groupTotal;
+        }
 
-                List<CartItem> sortedItems = new ArrayList<>(group.getCartItems());
-                sortedItems.sort((a, b) -> a.getMenuItem().getName()
-                                .compareToIgnoreCase(b.getMenuItem().getName()));
+        double discount = 0;
+        Coupon coupon = cart.getCoupon();
 
-                List<CartItemResponse> itemResponses = new ArrayList<>();
+        if (coupon != null && coupon.isActive() && !coupon.getExpiryDate().isBefore(LocalDate.now())) {
+            if (coupon.isPercent()) {
+                discount = (double) (cartTotal * coupon.getDiscountAmount()) / 100;
+            } else {
+                discount = Math.min(coupon.getDiscountAmount(), cartTotal);
+            }
+        }
 
-                for (CartItem item : sortedItems) {
-                        MenuItem menuItem = item.getMenuItem();
-                        int quantity = item.getQuantity();
-                        int price = menuItem.getPrice();
+        for (int i = 0; i < sortedGroups.size(); i++) {
+            CartGroup group = sortedGroups.get(i);
+            Restaurant restaurant = group.getRestaurant();
 
-                        totalQuantity += quantity;
-                        cartTotal += quantity * price;
+            List<CartItem> sortedItems = new ArrayList<>(group.getCartItems());
+            sortedItems.sort((a, b) -> a.getMenuItem().getName()
+                    .compareToIgnoreCase(b.getMenuItem().getName()));
 
-                        // Convert removable elements to DTOs
-                        List<RemovableElementDTO> removableDTOs = item.getRemovableElements().stream()
-                                .map(re -> new RemovableElementDTO(re.getId(), re.getName()))
-                                .collect(Collectors.toList());
+            List<CartItemResponse> itemResponses = new ArrayList<>();
+            for (CartItem item : sortedItems) {
+                MenuItem menuItem = item.getMenuItem();
+                int quantity = item.getQuantity();
+                int price = menuItem.getPrice();
+                totalQuantity += quantity;
 
-                        itemResponses.add(new CartItemResponse(
-                                        item.getId(),
-                                        menuItem.getName(),
-                                        price,
-                                        quantity,
-                                        menuItem.getImg(),
-                                        removableDTOs));
-                }
+                // Convert removable elements to DTOs
+                List<RemovableElementDTO> removableDTOs = item.getRemovableElements().stream()
+                        .map(re -> new RemovableElementDTO(re.getId(), re.getName()))
+                        .collect(Collectors.toList());
 
-                        groupResponses.add(new CartGroupResponse(
-                                        restaurant.getId(),
-                                        restaurant.getRestaurantName(),
-                                        group.getNote(),
-                                        group.getId(),
-                                        itemResponses,
-                                        restaurant.getMinOrderAmount()));
-                }
+                itemResponses.add(new CartItemResponse(
+                        item.getId(),
+                        menuItem.getName(),
+                        price,
+                        quantity,
+                        menuItem.getImg(),
+                        removableDTOs));
+            }
+
+            int groupTotal = groupTotals.get(i);
+
+            int groupDiscount = 0;
+            if (cartTotal > 0 && discount > 0) {
+                double share = (double) groupTotal / cartTotal;
+                groupDiscount = (int) Math.round(discount * share);
+            }
+
+            int afterDiscount = groupTotal - groupDiscount;
+
+            groupResponses.add(new CartGroupResponse(
+                    restaurant.getId(),
+                    restaurant.getRestaurantName(),
+                    group.getNote(),
+                    group.getId(),
+                    itemResponses,
+                    restaurant.getMinOrderAmount(),
+                    groupDiscount,
+                    afterDiscount
+            ));
+        }
+
+        double finalTotal = cartTotal - discount;
 
         return new ViewCartResponse(
-                        cart.getId(),
-                        totalQuantity,
-                        cartTotal,
-                        groupResponses.size(),
-                        groupResponses);
+                cart.getId(),
+                totalQuantity,
+                cartTotal,
+                groupResponses.size(),
+                groupResponses,
+                coupon != null ? coupon.getCode() : null,
+                discount != 0 ? discount : null,
+                coupon != null ? coupon.isPercent() : null,
+                finalTotal
+        );
     }
 
         @Override
@@ -220,6 +264,7 @@ public class CartServiceImpl implements CartService {
                 CartGroup group = item.getCartGroup();
                 group.getCartItems().remove(item);
                 cartItemRepository.delete(item);
+                checkCouponValidity(cart);
 
                 if (group.getCartItems().isEmpty()) {
                         cart.getCartGroups().remove(group);
@@ -257,10 +302,12 @@ public class CartServiceImpl implements CartService {
                 if ("+".equals(operation)) {
                         item.setQuantity(quantity + 1);
                         cartItemRepository.save(item);
+                        checkCouponValidity(cart);
                 } else if ("-".equals(operation)) {
                         if (quantity > 1) {
                                 item.setQuantity(quantity - 1);
                                 cartItemRepository.save(item);
+                                checkCouponValidity(cart);
                         }
                 } else {
                         throw new RuntimeException("Invalid operation: must be '+' or '-'.");
@@ -317,4 +364,99 @@ public class CartServiceImpl implements CartService {
                 return responses;
         }
 
+
+    private Coupon validateCoupon(String code) {
+        return couponRepository.findByCode(code)
+                .filter(Coupon::isActive)
+                .filter(c -> !c.getExpiryDate().isBefore(LocalDate.now()))
+                .orElseThrow(() -> new RuntimeException("Coupon is invalid or expired."));
+    }
+
+
+    @Override
+    @Transactional
+    public CouponResponse applyCouponToCart(String email, String code) {
+        Customer customer = customerRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        Cart cart = cartRepository.findByCustomerId(customer.getId())
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+
+        Coupon coupon = validateCoupon(code);
+
+        int total = cart.getCartGroups().stream()
+                .flatMap(g -> g.getCartItems().stream())
+                .mapToInt(ci -> ci.getQuantity() * ci.getMenuItem().getPrice())
+                .sum();
+
+        if (total < coupon.getMinOrderPrice()) {
+            throw new RuntimeException("Minimum order price not satisfied for coupon.");
+        }
+
+        cart.setCoupon(coupon);
+        cartRepository.save(cart);
+
+        return new CouponResponse(
+                coupon.getId(),
+                coupon.getCode(),
+                coupon.getDescription(),
+                coupon.isPercent(),
+                coupon.getDiscountAmount(),
+                coupon.getMinOrderPrice(),
+                coupon.getExpiryDate(),
+                coupon.isActive()
+        );
+    }
+
+    private void checkCouponValidity(Cart cart) {
+        if (cart.getCoupon() == null) return;
+
+        Coupon coupon = cart.getCoupon();
+
+        int total = cart.getCartGroups().stream()
+                .flatMap(g -> g.getCartItems().stream())
+                .mapToInt(ci -> ci.getQuantity() * ci.getMenuItem().getPrice())
+                .sum();
+
+        if (!coupon.isActive() || coupon.getExpiryDate().isBefore(LocalDate.now()) || total < coupon.getMinOrderPrice()) {
+            cart.setCoupon(null);
+            cartRepository.save(cart);
+        }
+    }
+
+    @Override
+    @Transactional
+    public CartSummaryResponse getCartSummary(String email) {
+        Customer customer = customerRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        Cart cart = cartRepository.findByCustomerId(customer.getId())
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+
+        int cartTotal = cart.getCartGroups().stream()
+                .flatMap(g -> g.getCartItems().stream())
+                .mapToInt(ci -> ci.getQuantity() * ci.getMenuItem().getPrice())
+                .sum();
+
+        double discount = 0;
+        Coupon coupon = cart.getCoupon();
+
+        if (coupon != null && coupon.isActive() && !coupon.getExpiryDate().isBefore(LocalDate.now())) {
+            if (coupon.isPercent()) {
+                discount = (double) (cartTotal * coupon.getDiscountAmount()) / 100;
+            } else {
+                discount = Math.min(coupon.getDiscountAmount(), cartTotal);
+            }
+        }
+
+        double finalTotal = cartTotal - discount;
+
+        return new CartSummaryResponse(
+                cartTotal,
+                discount,
+                finalTotal,
+                coupon != null ? coupon.getCode() : null,
+                coupon != null ? coupon.isPercent() : null
+        );
+    }
 }

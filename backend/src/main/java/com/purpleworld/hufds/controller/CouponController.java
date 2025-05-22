@@ -6,6 +6,7 @@ import com.purpleworld.hufds.service.CouponService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,8 +18,8 @@ public class CouponController {
     private final CouponService couponService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createCoupon(@RequestBody CouponRequest request) {
-        return couponService.createCoupon(request);
+    public ResponseEntity<?> createCoupon(@AuthenticationPrincipal String email,@RequestBody CouponRequest request) {
+        return couponService.createCoupon(email,request);
     }
 
     @PutMapping("/update/{couponId}")

@@ -21,23 +21,69 @@ export const useOrders = () => {
     // Debounce API call timer
     const fetchOrdersTimerRef = useRef<number | null>(null);
 
+    // Helper function to safely parse dates
+    const safeDateParse = useCallback((dateValue: any): Date => {
+        // If it's already a Date object
+        if (dateValue instanceof Date) {
+            return dateValue;
+        }
+        
+        // If it's an array (backend date format)
+        if (Array.isArray(dateValue)) {
+            return parseBackendDate(dateValue);
+        }
+        
+        // If it's a string
+        if (typeof dateValue === 'string') {
+            // Try to parse ISO string first
+            const parsedDate = new Date(dateValue);
+            if (!isNaN(parsedDate.getTime())) {
+                return parsedDate;
+            }
+        }
+        
+        // If it's a number (timestamp)
+        if (typeof dateValue === 'number') {
+            return new Date(dateValue);
+        }
+        
+        // Fallback to current date if parsing fails
+        console.warn('Failed to parse date value:', dateValue);
+        return new Date();
+    }, []);
+
     // Memoize date formatters to prevent recreation on each render
-    const formatOrderDate = useCallback((isoDate: string) => {
-        const date = new Date(isoDate);
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }, []);
+    const formatOrderDate = useCallback((dateValue: any) => {
+        try {
+            const date = safeDateParse(dateValue);
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } catch (error) {
+            console.error('Error formatting order date:', error);
+            return 'Invalid Date';
+        }
+    }, [safeDateParse]);
 
-    const formatEstimatedTime = useCallback((isoDate: string) => {
-        const date = new Date(isoDate);
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }, []);
+    const formatEstimatedTime = useCallback((dateValue: any) => {
+        try {
+            const date = safeDateParse(dateValue);
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } catch (error) {
+            console.error('Error formatting estimated time:', error);
+            return 'Invalid Date';
+        }
+    }, [safeDateParse]);
 
-    const calculateRemainingTime = useCallback((estimatedDeliveryTime: string) => {
-        const now = new Date();
-        const deliveryTime = new Date(estimatedDeliveryTime);
-        const diffInMinutes = Math.round((deliveryTime.getTime() - now.getTime()) / 60000);
-        return diffInMinutes > 0 ? t("orders.minutes", {minutes: diffInMinutes}) : t("orders.arrivingSoon");
-    }, []);
+    const calculateRemainingTime = useCallback((estimatedDeliveryTime: any) => {
+        try {
+            const now = new Date();
+            const deliveryTime = safeDateParse(estimatedDeliveryTime);
+            const diffInMinutes = Math.round((deliveryTime.getTime() - now.getTime()) / 60000);
+            return diffInMinutes > 0 ? t("orders.minutes", {minutes: diffInMinutes}) : t("orders.arrivingSoon");
+        } catch (error) {
+            console.error('Error calculating remaining time:', error);
+            return t("orders.arrivingSoon");
+        }
+    }, [safeDateParse, t]);
 
     // Memoize order status helper to prevent recreation on each render
     const getOrderSteps = useCallback((status: string) => {
@@ -79,17 +125,23 @@ export const useOrders = () => {
                 0
             );
 
-            const rawDateArr = orderDetails.date as unknown as number[];
-            const dateObj = parseBackendDate(rawDateArr);
-            const formattedDate = dateObj
-                .toLocaleString('en-GB', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                })
-                .replace(/\//g, '.');
+            // Improved date handling
+            let formattedDate: string;
+            try {
+                const dateObj = safeDateParse(orderDetails.date);
+                formattedDate = dateObj
+                    .toLocaleString('en-GB', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })
+                    .replace(/\//g, '.');
+            } catch (error) {
+                console.error('Error formatting order details date:', error);
+                formattedDate = 'Invalid Date';
+            }
 
             const formattedDetails: OrderDetailsData = {
                 orderId: orderDetails.orderId,
@@ -111,8 +163,8 @@ export const useOrders = () => {
                 },
                 billing: {
                     itemTotal: `${itemTotal}₺`,
-                    discount: "0₺",
-                    totalPayment: `${orderDetails.totalPrice}₺`
+                    discount: `${orderDetails.discount}`,
+                    totalPayment: `${orderDetails.totalPrice-orderDetails.discount}₺`
                 }
             };
 
@@ -128,7 +180,7 @@ export const useOrders = () => {
                 setSnackbarOpen(true);
             }
         }
-    }, []);
+    }, [safeDateParse, t]);
 
     // Memoize cancel order handlers
     const handleCancelOrderClick = useCallback((orderGroup: CustomerCurrentOrderDTO) => {
@@ -155,12 +207,12 @@ export const useOrders = () => {
             .catch((err) => {
                 if (isMounted.current) {
                     setCancelOrderDialogOpen(false);
-                    setSnackbarMessage(t("ordersorderCancelledError"));
+                    setSnackbarMessage(t("orders.orderCancelledError"));
                     setSnackbarSeverity('error');
                     setSnackbarOpen(true);
                 }
             });
-    }, [orderToCancel]);
+    }, [orderToCancel, t]);
 
     // Improved fetchOrders with debouncing
     const fetchOrders = useCallback(async () => {

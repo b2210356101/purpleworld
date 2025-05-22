@@ -8,7 +8,6 @@ import { useTracking } from '../hooks/useTracking';
 import { Restaurant, CustomerCurrentOrderDTO, Food } from '../types';
 import { getNearestRestaurants, getPopularMenuItems } from '../utils/api';
 import { useTranslation } from 'react-i18next';
-import i18n from '../i18n';
 import Loading from '../components/Loading';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchCartCountAsync } from '../store/slices/cartSlice';
@@ -91,17 +90,19 @@ export const PopularFoodCardSkeleton = () => (
 );
 
 const CustomerHomePage = () => {
+    // CRITICAL: All hooks must be called at the top level, unconditionally
     const { t } = useTranslation();
-    // Custom hooks
+    const dispatch = useAppDispatch();
+    const { isAuthenticated } = useAppSelector((state) => state.auth);
+    const location = useLocation();
+    const navigate = useNavigate();
+    
+    // Custom hooks - MUST be called unconditionally
     const address = useAddress();
     const orders = useOrders();
     const tracking = useTracking();
-    const dispatch = useAppDispatch();
-    const { isAuthenticated } = useAppSelector((state) => state.auth);
 
-    const selectedAddressObj = useMemo(() => {
-        return address.addresses.find(a => a.addressId === address.selectedAddress) || null;
-    }, [address.addresses, address.selectedAddress]);
+    // Local state
     const [nearbyRestaurants, setNearbyRestaurants] = useState<Restaurant[]>([]);
     const [popularMenuItems, setPopularMenuItems] = useState<Food[]>([]);
     const [isPaymentSuccessOpen, setIsPaymentSuccessOpen] = useState(false);
@@ -115,8 +116,11 @@ const CustomerHomePage = () => {
     } | null>(null);
     const [isLoading, setIsLoading] = useState({ restaurants: false, popularItems: false, hero: true });
 
-    const location = useLocation();
-    const navigate = useNavigate();
+    // Memoized values
+    const selectedAddressObj = useMemo(() => {
+        return address.addresses.find(a => a.addressId === address.selectedAddress) || null;
+    }, [address.addresses, address.selectedAddress]);
+
     const selectedAddressName = selectedAddressObj?.name ?? '';
     const selectedAddressFull = selectedAddressObj?.fullAddress ?? '';
 
@@ -167,6 +171,7 @@ const CustomerHomePage = () => {
         }
     }, [address.selectedAddress]);
 
+    // Effects
     useEffect(() => {
         if (isAuthenticated) {
             dispatch(fetchCartCountAsync());
@@ -200,7 +205,6 @@ const CustomerHomePage = () => {
         }
     }, [address.selectedAddress, loadNearbyRestaurants, loadPopularMenuItems]);
 
-
     // Check for orderData in navigation state
     useEffect(() => {
         if (location.state?.orderData) {
@@ -211,19 +215,18 @@ const CustomerHomePage = () => {
         }
     }, [location.state, navigate, dispatch]);
 
-    // Memoize the handler to prevent unnecessary re-renders
+    // Memoized handlers
     const handlePaymentSuccessClose = useCallback(() => {
         dispatch(fetchCartCountAsync());
         setIsPaymentSuccessOpen(false);
         setOrderData(null);
     }, [dispatch]);
 
-    // Memoize the track order handler
     const handleTrackOrderClick = useCallback(async (orderGroup: CustomerCurrentOrderDTO): Promise<void> => {
         return tracking.handleTrackOrder(orderGroup.orderGroupId);
     }, [tracking]);
 
-    // Memoize the noRestaurantsFoundSection to prevent re-renders
+    // Memoized sections
     const noRestaurantsFoundSection = useMemo(() => (
         <Box sx={{ py: 6, textAlign: 'center' }}>
             <Paper elevation={3} sx={{ p: 5, borderRadius: 4, maxWidth: 600, mx: 'auto' }}>
@@ -243,45 +246,45 @@ const CustomerHomePage = () => {
                 </Button>
             </Paper>
         </Box>
-    ), [address.handleDialogOpen, i18n.language]);
+    ), [address.handleDialogOpen, t]);
 
-    // Memoize the hero section to prevent re-renders
     const heroSection = useMemo(() => (
-        <Grid container spacing={6} sx={{ bgcolor: 'primary.main', mt: { xs: 2, md: 6 }, p: 6, alignItems: 'center', justifyContent: 'space-between', borderRadius: 6, color: 'white' }}><Grid size={{ xs: 12, md: 6 }}>
-            <Typography variant="h4" fontWeight="bold" gutterBottom>
-                {t('homepage.hero.hello')}, {localStorage.getItem('username')}!
-            </Typography>
-            <Typography>
-                {t('homepage.hero.description1')}<br />
-                {t('homepage.hero.description2')}
-            </Typography>
+        <Grid container spacing={6} sx={{ bgcolor: 'primary.main', mt: { xs: 2, md: 6 }, p: 6, alignItems: 'center', justifyContent: 'space-between', borderRadius: 6, color: 'white' }}>
+            <Grid size={{ xs: 12, md: 6 }}>
+                <Typography variant="h4" fontWeight="bold" gutterBottom>
+                    {t('homepage.hero.hello')}, {localStorage.getItem('username')}!
+                </Typography>
+                <Typography>
+                    {t('homepage.hero.description1')}<br />
+                    {t('homepage.hero.description2')}
+                </Typography>
 
-            {selectedAddressName && (
-                <Box
-                    sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        mt: 2,
-                        p: 1.5,
-                        borderRadius: 2,
-                        bgcolor: 'rgba(255,255,255,0.15)',
-                    }}
-                >
-                    <Box>
-                        <Typography variant="subtitle2" fontWeight="bold" sx={{ lineHeight: 1.2 }}>
-                            {selectedAddressName}
-                        </Typography>
-                        <Typography variant="caption" sx={{ opacity: 0.9 }}>
-                            {selectedAddressFull}
-                        </Typography>
+                {selectedAddressName && (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            mt: 2,
+                            p: 1.5,
+                            borderRadius: 2,
+                            bgcolor: 'rgba(255,255,255,0.15)',
+                        }}
+                    >
+                        <Box>
+                            <Typography variant="subtitle2" fontWeight="bold" sx={{ lineHeight: 1.2 }}>
+                                {selectedAddressName}
+                            </Typography>
+                            <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                                {selectedAddressFull}
+                            </Typography>
+                        </Box>
                     </Box>
-                </Box>
-            )}
+                )}
 
-            <Button variant="contained" size="large" sx={{ mt: 2, color: 'primary.main', bgcolor: 'white' }} onClick={address.handleDialogOpen}>
-                {t('address.select')}
-            </Button>
-        </Grid>
+                <Button variant="contained" size="large" sx={{ mt: 2, color: 'primary.main', bgcolor: 'white' }} onClick={address.handleDialogOpen}>
+                    {t('address.select')}
+                </Button>
+            </Grid>
 
             <Grid size={{ xs: 12, md: 6 }} sx={{ textAlign: 'right' }}>
                 {isLoading.hero ? (
@@ -297,8 +300,7 @@ const CustomerHomePage = () => {
                 ) : (
                     <Box
                         component="img"
-                        src="https://i.hizliresim.com/1xcam90.jpeg"
-                        alt="Food Delivery"
+                        src="https://i.hizliresim.com/1xcam90.jpeg"                        alt="Food Delivery"
                         sx={{
                             maxWidth: '100%',
                             height: 'auto',
@@ -309,9 +311,8 @@ const CustomerHomePage = () => {
                 )}
             </Grid>
         </Grid>
-    ), [address.handleDialogOpen, i18n.language, isLoading.hero]);
+    ), [address.handleDialogOpen, t, isLoading.hero, selectedAddressName, selectedAddressFull]);
 
-    // Memoize the restaurants section header
     const restaurantsSectionHeader = useMemo(() => (
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="h5" fontWeight="bold">
@@ -334,7 +335,7 @@ const CustomerHomePage = () => {
                 </Typography>
             </Box>
         </Box>
-    ), [i18n.language]);
+    ), [t]);
 
     // Combined snackbar state for better performance
     const snackbarState = useMemo(() => {
@@ -350,7 +351,7 @@ const CustomerHomePage = () => {
     const handleSnackbarClose = useCallback(() => {
         if (orders.snackbarOpen) orders.setSnackbarOpen(false);
         if (tracking.snackbarOpen) tracking.setSnackbarOpen(false);
-    }, [orders, tracking, i18n.language]);
+    }, [orders, tracking]);
 
     return (
         <Box sx={{ pb: 6 }}>
@@ -476,9 +477,9 @@ const CustomerHomePage = () => {
                 </Suspense>
             )}
 
-            {/* Dialogs - only render when needed and lazy load them */}
-            {address.isAddressDialogOpen && (
-                <Suspense fallback={<LoadingFallback />}>
+            {/* Always render dialogs but conditionally show them */}
+            <Suspense fallback={null}>
+                {address.isAddressDialogOpen && (
                     <AddressDialog
                         open={address.isAddressDialogOpen}
                         onClose={address.handleDialogClose}
@@ -492,11 +493,11 @@ const CustomerHomePage = () => {
                         handleDeleteAddress={address.handleDeleteAddress}
                         error={address.error}
                     />
-                </Suspense>
-            )}
+                )}
+            </Suspense>
 
-            {address.isNewAddressDialogOpen && (
-                <Suspense fallback={<LoadingFallback />}>
+            <Suspense fallback={null}>
+                {address.isNewAddressDialogOpen && (
                     <AddAddressModal
                         open={address.isNewAddressDialogOpen}
                         onClose={() => {
@@ -508,11 +509,11 @@ const CustomerHomePage = () => {
                         isEditMode={address.isEditMode}
                         addressData={address.addressToEdit}
                     />
-                </Suspense>
-            )}
+                )}
+            </Suspense>
 
-            {address.isConfirmDialogOpen && (
-                <Suspense fallback={<LoadingFallback />}>
+            <Suspense fallback={null}>
+                {address.isConfirmDialogOpen && (
                     <ConfirmDialog
                         open={address.isConfirmDialogOpen}
                         onClose={() => address.setIsConfirmDialogOpen(false)}
@@ -525,53 +526,51 @@ const CustomerHomePage = () => {
                         confirmText={t('util.yes')}
                         cancelText={t('util.cancel')}
                     />
-                </Suspense>
-            )}
+                )}
+            </Suspense>
 
-            {tracking.isTrackingDialogOpen && (
-                <Suspense fallback={<LoadingFallback />}>
+            <Suspense fallback={null}>
+                {tracking.isTrackingDialogOpen && (
                     <TrackingDialog
                         open={tracking.isTrackingDialogOpen}
                         onClose={() => tracking.setIsTrackingDialogOpen(false)}
                         trackingInfo={tracking.trackingInfo}
                         orderId={tracking.activeTrackingOrderId}
                     />
-                </Suspense>
-            )}
+                )}
+            </Suspense>
 
-            {orders.cancelOrderDialogOpen && (
-                <Suspense fallback={<LoadingFallback />}>
+            <Suspense fallback={null}>
+                {orders.cancelOrderDialogOpen && (
                     <CancelOrderDialog
                         open={orders.cancelOrderDialogOpen}
                         onClose={() => orders.setCancelOrderDialogOpen(false)}
                         onConfirm={orders.handleCancelOrder}
                     />
-                </Suspense>
-            )}
+                )}
+            </Suspense>
 
-            {/* Order Details Modal - only render when needed */}
-            {orders.selectedOrderDetails && orders.isOrderDetailsOpen && (
-                <Suspense fallback={<LoadingFallback />}>
+            <Suspense fallback={null}>
+                {orders.selectedOrderDetails && orders.isOrderDetailsOpen && (
                     <OrderDetailsModal
                         open={orders.isOrderDetailsOpen}
                         onClose={() => orders.setIsOrderDetailsOpen(false)}
                         orderDetails={orders.selectedOrderDetails}
                     />
-                </Suspense>
-            )}
+                )}
+            </Suspense>
 
-            {/* Payment Success Popup - only render when needed */}
-            {isPaymentSuccessOpen && (
-                <Suspense fallback={<LoadingFallback />}>
+            <Suspense fallback={null}>
+                {isPaymentSuccessOpen && (
                     <PaymentSuccessPopup
                         open={isPaymentSuccessOpen}
                         onClose={handlePaymentSuccessClose}
                         orderData={orderData}
                     />
-                </Suspense>
-            )}
+                )}
+            </Suspense>
 
-            {/* Global Snackbar for notifications - Optimized */}
+            {/* Global Snackbar for notifications */}
             <Snackbar
                 open={snackbarState.isOpen}
                 autoHideDuration={6000}

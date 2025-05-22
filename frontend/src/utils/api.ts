@@ -882,7 +882,43 @@ export const getRestaurantReviewsForCustomer = async (restaurantId: number): Pro
     }
 };
 
+export const getAllReviews = async (): Promise<ReviewDTO[]> => {
+  try {
+    const response = await api.get('/admin/reviews');
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError && error.response) {
+      const errData = error.response.data as BackendErrorResponse;
+      throw errData;
+    }
+    throw error;
+  }
+};
 
+
+export const deleteReview = async (reviewId: number): Promise<void> => {
+  try {
+    await api.delete(`/admin/reviews/${reviewId}`);
+  } catch (error) {
+    if (error instanceof AxiosError && error.response) {
+      const errData = error.response.data as BackendErrorResponse;
+      throw errData;
+    }
+    throw error;
+  }
+};
+
+export const deleteRestaurantReply = async (reviewId: number): Promise<void> => {
+  try {
+    await api.delete(`/admin/reviews/${reviewId}/reply`);
+  } catch (error) {
+    if (error instanceof AxiosError && error.response) {
+      const errData = error.response.data as BackendErrorResponse;
+      throw errData;
+    }
+    throw error;
+  }
+};
 
 // Check if a restaurant is in favorites
 export const checkIsFavorite = async (restaurantId: number): Promise<boolean> => {
@@ -1121,6 +1157,31 @@ export const checkMinimumAmounts = async (): Promise<MinAmountError[]> => {
         }
         throw error;
     }
+};
+
+export const applyCoupon = async (code: string) => {
+    try {
+        const response = await api.post('/customer/cart/apply-coupon', null, {
+            params: { code }
+        });
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const getCartSummary = async () => {
+    const response = await api.get('/customer/cart/summary');
+    return response.data;
+};
+
+export const getAllCouponsforCustomer = async (): Promise<CouponResponse[]> => {
+  try {
+    const response = await api.get('/customer/coupons/list');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
 export default api;

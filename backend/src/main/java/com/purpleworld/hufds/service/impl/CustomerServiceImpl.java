@@ -499,7 +499,7 @@ public class CustomerServiceImpl implements CustomerService {
                 continue;
 
             String generalStatus = calculateOrderStatus(groups);
-            if (generalStatus.equals("COMPLETED") || generalStatus.equals("REJECTED"))
+            if (generalStatus.equals("COMPLETED") || generalStatus.equals("REJECTED") || generalStatus.equals("CANCELLED"))
                 continue;
 
             List<CustomerCurrentOrderDTO> groupDTOs = groups.stream().map(group -> {
@@ -608,20 +608,30 @@ public class CustomerServiceImpl implements CustomerService {
                 address.getFullAddress(),
                 address.getCity(),
                 orderGroup.getOrder().getOrderedDate(),
-                itemDTOs);
+                orderGroup.getDiscount(),
+                itemDTOs
+                );
     }
 
     private String calculateOrderStatus(List<OrderGroup> groups) {
         boolean allDelivered = true;
+        boolean allCancelled = true;
 
         for (OrderGroup g : groups) {
             if (g.getRejectionDate() != null)
                 return "REJECTED";
+
+            if (g.getCancelledDate() == null) {
+                allCancelled = false;
+            }
+
             if (g.getDeliveredDate() == null)
                 allDelivered = false;
         }
 
-        return allDelivered ? "COMPLETED" : "IN_PROGRESS";
+        if (allCancelled) return "CANCELLED";
+        if (allDelivered) return "COMPLETED";
+        return "IN_PROGRESS";
     }
 
     private static MenuItemCustomerResponse getMenuItemCustomerResponse(Restaurant restaurant, MenuItem menuItem) {
@@ -1208,5 +1218,20 @@ public ResponseEntity<?> restaurantReviews(Long restaurantId, String email) {
 
 
         throw new RuntimeException("User not found");
+    }
+    @Override
+    public ResponseEntity<List<CouponResponse>> getAllCoupons() {
+        List<Coupon> coupons = couponRepository.findAll();
+        List<CouponResponse> responses = coupons.stream().map(coupon -> new CouponResponse(
+                coupon.getId(),
+                coupon.getCode(),
+                coupon.getDescription(),
+                coupon.isPercent(),
+                coupon.getDiscountAmount(),
+                coupon.getMinOrderPrice(),
+                coupon.getExpiryDate(),
+                coupon.isActive())).collect(Collectors.toList());
+
+        return ResponseEntity.ok(responses);
     }
 }

@@ -141,8 +141,8 @@ const MyOrders: React.FC = () => {
         },
         billing: {
           itemTotal: `${orderGroup.totalPrice} ₺`,
-          discount: "0,00 ₺",
-          totalPayment: `${orderGroup.totalPrice} ₺`
+          discount: `${detailedOrderInfo.discount}`,
+          totalPayment: `${orderGroup.totalPrice-detailedOrderInfo.discount} ₺`
         }
       };
 

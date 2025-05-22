@@ -8,7 +8,10 @@
         "loading": "Loading...",
         "confirm": "Confirm",
         "save": "Save",
-        "close": "Close"
+        "close": "Close",
+        "saveChanges": "Save Changes",
+        "delete": "Delete",
+        "edit": "Edit"
     },
     "homepage": {
         "hero": {
@@ -113,6 +116,7 @@
         "restaurants": "Restaurants",
         "favorites": "Favorites",
         "myOrders": "My Orders",
+        "coupons": "Coupons",
         "aboutUs": "About Us",
         "contact": "Contact",
         "dashboard": "Dashboard",
@@ -157,7 +161,8 @@
         "noteUpdateError": "Failed to update note",
         "minAmountMissing": "{{amount}}₺ more needs to be added.",
         "minAmountWarningGlobal": "You must reach the minimum order amount for all restaurants.",
-        "minAmount": "Minimum Cart Amount: "
+        "minAmount": "Minimum Cart Amount: ",
+        "promoCodeInvalidated": "Applied promo code has been removed from the cart."
     },
     "restaurant": {
         "new": "New Restaurant",
@@ -351,7 +356,10 @@
             "itemTotal": "Item Total",
             "discount": "Discount",
             "total": "Total",
-            "proceedToPayment": "Proceed To Payment"
+            "proceedToPayment": "Proceed To Payment",
+            "groupTotal": "Restaurant Total",
+            "groupDiscount": "Restaurant Discount",
+            "afterDiscount": "After Discount"
         }
     },
     "payment": {
@@ -451,7 +459,14 @@
         "clear": "Clear Search",
         "tryDifferent": "Try a different search term or browse restaurants below.",
         "backToHome": "Back to Home",
-        "popularSearches": "Popular Searches"
+        "popularSearches": "Popular Searches",
+        "priceRange": "Price Range",
+        "min": "Min",
+        "max": "Max",
+        "filterByDistance": "Filter by distance",
+        "loginForDistance": "Login to filter by distance",
+        "maxDistance": "Maximum distance",
+        "resetFilters": "Reset Filters"
     },
     "orders": {
         "orderCancelledSuccess": "Order cancelled successfully!",
@@ -866,6 +881,35 @@
             "promotions": "Manage Promotions"
         }
     },
+    "adminReviewManagement": {
+        "title": "Reviews Management",
+        "totalReviews": "Total Reviews",
+        "refresh": "Refresh",
+        "allReviews": "All Reviews",
+        "withReplies": "With Replies",
+        "mostRecent": "Most Recent",
+        "oldestFirst": "Oldest First",
+        "sort": "Sort",
+        "unknownDate": "Unknown Date",
+        "errorLoading": "Error Loading Reviews",
+        "tryAgain": "Try Again",
+        "noReviewsFound": "No Reviews Found",
+        "noRepliesFound": "No reviews with restaurant replies found.",
+        "noReviewsInSystem": "There are currently no reviews in the system.",
+        "deleteReview": "Delete Review",
+        "deleteReply": "Delete Restaurant Reply",
+        "restaurantReply": "Restaurant Reply",
+        "deleteReviewTitle": "Delete Review",
+        "deleteReviewMessage": "Are you sure you want to delete this review by {{userName}}? This action cannot be undone.",
+        "deleteReplyTitle": "Delete Restaurant Reply",
+        "deleteReplyMessage": "Are you sure you want to delete the restaurant reply for {{userName}}'s review? This action cannot be undone.",
+        "cancel": "Cancel",
+        "deleteReviewBtn": "Delete Review",
+        "deleteReplyBtn": "Delete Reply",
+        "deleteSuccess": "{{userName}}'s review has been deleted successfully.",
+        "deleteReplySuccess": "Restaurant reply has been deleted successfully.",
+        "orderNumber": "Order #{{orderGroupId}}"
+    },
     "role": {
         "customer": "Customer",
         "restaurant": "Restaurant",
@@ -1236,5 +1280,25 @@
             "REJECTED": "REJECTED",
             "CANCELLED": "CANCELLED"
         }
+    },
+    "coupons": {
+        "title": "Discount Coupons",
+        "subtitle": "Save money on your next order",
+        "loading": "Loading coupons...",
+        "errorTitle": "Error Loading Coupons",
+        "errorRetry": "Try Again",
+        "errorMessage": "Failed to load coupons. Please try again later.",
+        "statusActive": "Active",
+        "statusExpired": "Expired",
+        "discountOff": "OFF",
+        "couponCode": "Coupon Code",
+        "minOrder": "Min. order",
+        "validUntil": "Valid until",
+        "expired": "Expired",
+        "availableCoupons": "Available Coupons",
+        "expiredCoupons": "Expired Coupons",
+        "noCouponsTitle": "No Coupons Available",
+        "noCouponsMessage": "Check back later for new discount offers!",
+        "copySuccess": "Coupon code copied to clipboard!"
     }
 }

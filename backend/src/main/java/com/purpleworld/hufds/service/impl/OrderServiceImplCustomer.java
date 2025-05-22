@@ -34,8 +34,9 @@ public class OrderServiceImplCustomer implements OrderServiceForCustomer {
     private final RemovableElementRepository removableElementRepository;
     private final OrderRepository orderRepository;
     private final ReviewRepository reviewRepository;
+    private final CouponRepository couponRepository;
 
-    
+
     @Transactional
     @Override
     public PlaceOrderResponse placeOrder(String email, PlaceOrderRequest request) {
@@ -54,17 +55,18 @@ public class OrderServiceImplCustomer implements OrderServiceForCustomer {
             throw new RuntimeException("Sepetinizde ürün bulunmamaktadır.");
         }
 
+        // Check minimum order amount for each restaurant
         for (CartGroup cartGroup : cart.getCartGroups()) {
             int total = 0;
             for (CartItem cartItem : cartGroup.getCartItems()) {
                 total += cartItem.getMenuItem().getPrice() * cartItem.getQuantity();
-                System.out.println(total);
             }
 
             if (total < cartGroup.getRestaurant().getMinOrderAmount()){
                 throw new RuntimeException("Minimum sepet tutarını geçmelisin.");
             }
         }
+
         Order order = new Order();
         order.setCustomer(customer);
         order.setAddressId(customer.getCurrentAddressId());
@@ -74,6 +76,7 @@ public class OrderServiceImplCustomer implements OrderServiceForCustomer {
         int totalPrice = 0;
         List<OrderGroup> orderGroups = new ArrayList<>();
 
+        // First pass: Create order groups and calculate totals
         for (CartGroup cartGroup : cart.getCartGroups()) {
             OrderGroup orderGroup = new OrderGroup();
             orderGroup.setOrder(order);
@@ -89,7 +92,7 @@ public class OrderServiceImplCustomer implements OrderServiceForCustomer {
                 orderItem.setMenuItem(cartItem.getMenuItem());
                 orderItem.setQuantity(cartItem.getQuantity());
                 orderItem.setPrice(cartItem.getMenuItem().getPrice());
-                
+
                 // Copy removable elements from cart item to order item
                 for (RemovableElement element : cartItem.getRemovableElements()) {
                     orderItem.getRemovableElements().add(element);
@@ -102,16 +105,54 @@ public class OrderServiceImplCustomer implements OrderServiceForCustomer {
             orderGroup.setRestaurantTotal(groupTotal);
             orderGroup.setOrderItems(orderItems);
             orderGroup.setNote(cartGroup.getNote());
+            orderGroup.setDiscount(0.0); // Initialize discount to zero
 
             orderGroups.add(orderGroup);
             totalPrice += groupTotal;
         }
 
-        order.setPrice(totalPrice);
-        order.setOrderGroups(orderGroups);
-        orderRepository.save(order);
+        // Apply coupon if available
+        Coupon coupon = null;
+        double totalDiscountAmount = 0;
 
-        // Clean cart not delete
+        if (cart.getCoupon() != null) {
+            coupon = cart.getCoupon();
+
+            if (totalPrice >= coupon.getMinOrderPrice()) {
+                order.setCouponId(coupon.getId());
+                cart.setCoupon(null);
+
+                if (coupon.isPercent()) {
+                    totalDiscountAmount = totalPrice * (coupon.getDiscountAmount() / 100.0);
+                } else {
+                    totalDiscountAmount = coupon.getDiscountAmount();
+                }
+
+                // Distribute discount proportionally across order groups
+                if (totalDiscountAmount > 0) {
+                    // Second pass: Apply discount to each order group proportionally
+                    for (OrderGroup orderGroup : orderGroups) {
+                        double groupRatio = (double) orderGroup.getRestaurantTotal() / totalPrice;
+                        double groupDiscount = totalDiscountAmount * groupRatio;
+
+                        // Round to 2 decimal places for precision
+                        groupDiscount = Math.round(groupDiscount * 100) / 100.0;
+
+                        // Set the discount for this order group
+                        orderGroup.setDiscount(groupDiscount);
+                    }
+                }
+            }
+        }
+
+        order.setOrderGroups(orderGroups);
+
+        // Final price = total - discount (but never negative)
+        int finalPrice = (int) Math.max(0, totalPrice - totalDiscountAmount);
+        order.setPrice(finalPrice);
+        order = orderRepository.save(order);
+
+        // Clean cart groups but keep the cart
         cartGroupRepository.deleteAll(cart.getCartGroups());
         cart.getCartGroups().clear();
         cartRepository.save(cart);
@@ -119,7 +160,8 @@ public class OrderServiceImplCustomer implements OrderServiceForCustomer {
         return new PlaceOrderResponse(
                 order.getId(),
                 order.getPrice(),
-                order.getPaymentType()
+                order.getPaymentType(),
+                totalDiscountAmount
         );
     }
 
@@ -203,4 +245,6 @@ public class OrderServiceImplCustomer implements OrderServiceForCustomer {
         dto.setStatus(determineOrderStatus(order));
         return dto;
     }
+
+
 }

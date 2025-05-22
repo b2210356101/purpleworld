@@ -33,6 +33,24 @@ const OrderDetailsModal: React.FC<Props> = ({
     0
   );
 
+  // Helper function to format price
+  const formatPrice = (price: string | number): string => {
+    const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
+    return isNaN(numericPrice) ? price.toString() : numericPrice.toFixed(2);
+  };
+
+  // Helper function to format discount
+  const formatDiscount = (discount: string): string => {
+    const numericDiscount = parseFloat(discount);
+    if (isNaN(numericDiscount)) return discount;
+    
+    if (discount.startsWith("0")) {
+      return `${numericDiscount.toFixed(2)}₺`;
+    } else {
+      return `-${numericDiscount.toFixed(2)}₺`;
+    }
+  };
+
   return (
     <Dialog
       open={open}
@@ -139,7 +157,7 @@ const OrderDetailsModal: React.FC<Props> = ({
                       color: theme.palette.text.secondary,
                     }}
                   >
-                    {item.price}
+                    {formatPrice(item.price)}₺
                   </Typography>
                   <Typography
                     variant="body1"
@@ -256,7 +274,7 @@ const OrderDetailsModal: React.FC<Props> = ({
               color: theme.palette.text.secondary,
             }}
           >
-            {orderDetails.billing.itemTotal}
+            {formatPrice(orderDetails.billing.itemTotal)}₺
           </Typography>
         </Box>
         <Box mb={3} display="flex" justifyContent="space-between">
@@ -276,9 +294,7 @@ const OrderDetailsModal: React.FC<Props> = ({
               color: theme.palette.text.secondary,
             }}
           >
-            {orderDetails.billing.discount.startsWith("-")
-              ? orderDetails.billing.discount
-              : `-${orderDetails.billing.discount}`}
+            {formatDiscount(orderDetails.billing.discount)}
           </Typography>
         </Box>
         <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -300,7 +316,7 @@ const OrderDetailsModal: React.FC<Props> = ({
               color: theme.palette.text.primary,
             }}
           >
-            {orderDetails.billing.totalPayment}
+            {formatPrice(orderDetails.billing.totalPayment)}₺
           </Typography>
         </Box>
       </DialogContent>

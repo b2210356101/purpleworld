@@ -1,9 +1,7 @@
 package com.purpleworld.hufds.service;
 
 import com.purpleworld.hufds.dto.request.CouponRequest;
-import com.purpleworld.hufds.dto.response.CouponResponse;
-import com.purpleworld.hufds.dto.response.CourierResponseForAdmin;
-import com.purpleworld.hufds.dto.response.RestaurantResponseForAdmin;
+import com.purpleworld.hufds.dto.response.*;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -31,5 +29,12 @@ public interface AdminService {
     ResponseEntity<?> updateCoupon(Long couponId, CouponRequest request);
     ResponseEntity<?> deleteCoupon(Long couponId);
     ResponseEntity<List<CouponResponse>> getAllCoupons();
+
+    // Review Management
+    ResponseEntity<List<ReviewResponseForAdmin>> getAllReviews();
+    ResponseEntity<?> deleteReview(Long reviewId);
+    ResponseEntity<?> deleteRestaurantReply(Long restaurantId);
+
 }
+
 

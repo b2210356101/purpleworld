@@ -5,6 +5,8 @@ import com.purpleworld.hufds.dto.request.CartGroupNoteRequest;
 import com.purpleworld.hufds.dto.request.UpdateCartItemRequest;
 import com.purpleworld.hufds.dto.response.AddToCartResponse;
 import com.purpleworld.hufds.dto.response.CartAmountResponse;
+import com.purpleworld.hufds.dto.response.CartSummaryResponse;
+import com.purpleworld.hufds.dto.response.CouponResponse;
 import com.purpleworld.hufds.service.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CartController {
     private final CartService cartService;
+
 
     @PostMapping("/add")
     public ResponseEntity<AddToCartResponse> addToCart(@RequestBody AddToCartRequest request,
@@ -60,6 +63,19 @@ public class CartController {
     public ResponseEntity<List<CartAmountResponse>> checkAmount(@AuthenticationPrincipal String email) {
         List<CartAmountResponse> response = cartService.checkCartAmount(email);
         return ResponseEntity.ok(response);
+    }
+
+
+    @PostMapping("/apply-coupon")
+    public ResponseEntity<CouponResponse> applyCouponToCart(
+            @AuthenticationPrincipal String email,
+            @RequestParam String code) {
+        return ResponseEntity.ok(cartService.applyCouponToCart(email, code));
+    }
+
+    @GetMapping("/summary")
+    public CartSummaryResponse getCartSummary(@AuthenticationPrincipal String email) {
+        return cartService.getCartSummary(email);
     }
 
 

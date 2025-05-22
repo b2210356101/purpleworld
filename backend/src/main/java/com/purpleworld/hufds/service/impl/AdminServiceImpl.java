@@ -2,23 +2,18 @@ package com.purpleworld.hufds.service.impl;
 
 import com.purpleworld.hufds.dto.AdminStats;
 import com.purpleworld.hufds.dto.request.CouponRequest;
-import com.purpleworld.hufds.dto.response.CouponResponse;
-import com.purpleworld.hufds.dto.response.CourierResponseForAdmin;
-import com.purpleworld.hufds.dto.response.RestaurantResponseForAdmin;
-import com.purpleworld.hufds.entity.Coupon;
-import com.purpleworld.hufds.entity.Courier;
-import com.purpleworld.hufds.entity.Restaurant;
+import com.purpleworld.hufds.dto.response.*;
+import com.purpleworld.hufds.entity.*;
 import com.purpleworld.hufds.enums.AccountStatus;
-import com.purpleworld.hufds.repository.AdminRepository;
 import com.purpleworld.hufds.repository.CouponRepository;
 import com.purpleworld.hufds.repository.CourierRepository;
 import com.purpleworld.hufds.repository.RestaurantRepository;
+import com.purpleworld.hufds.repository.ReviewRepository;
 import com.purpleworld.hufds.service.AdminService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -30,10 +25,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
 
-    private final AdminRepository adminRepository;
     private final RestaurantRepository restaurantRepository;
     private final CourierRepository courierRepository;
     private final CouponRepository couponRepository;
+    private final ReviewRepository reviewRepository;
 
     @Override
     public ResponseEntity<?> getStats(String email) {
@@ -181,11 +176,11 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public ResponseEntity<?> createCoupon(CouponRequest request) {
         Coupon coupon = new Coupon();
-        coupon.setCode(request.getName());
+        coupon.setCode(request.getCode());
         coupon.setDescription(request.getDescription());
         coupon.setPercent(request.getIsPercent());
         coupon.setDiscountAmount(request.getDiscountAmount());
-        coupon.setMinOrderPrice(request.getMinOrderAmount());
+        coupon.setMinOrderPrice(request.getMinOrderPrice());
         coupon.setExpiryDate(LocalDate.now().plusMonths(1));
         coupon.setActive(true);
         couponRepository.save(coupon);
@@ -198,11 +193,11 @@ public class AdminServiceImpl implements AdminService {
         Optional<Coupon> couponOpt = couponRepository.findById(couponId);
         if (couponOpt.isEmpty()) return ResponseEntity.badRequest().body("Coupon not found");
         Coupon coupon = couponOpt.get();
-        coupon.setCode(request.getName());
+        coupon.setCode(request.getCode());
         coupon.setDescription(request.getDescription());
         coupon.setPercent(request.getIsPercent());
         coupon.setDiscountAmount(request.getDiscountAmount());
-        coupon.setMinOrderPrice(request.getMinOrderAmount());
+        coupon.setMinOrderPrice(request.getMinOrderPrice());
         coupon.setExpiryDate(request.getExpiryDate());
         couponRepository.save(coupon);
         return ResponseEntity.ok("Coupon updated successfully.");
@@ -233,5 +228,51 @@ public class AdminServiceImpl implements AdminService {
                 )
         ).collect(Collectors.toList());
         return ResponseEntity.ok(responses);
+    }
+
+    // Review Management
+    @Override
+    public ResponseEntity<List<ReviewResponseForAdmin>> getAllReviews() {
+        List<Review> reviews = reviewRepository.findAll(Sort.by(Sort.Direction.DESC, "reviewDate"));
+        List<ReviewResponseForAdmin> responses = reviews.stream().map(r ->
+                new ReviewResponseForAdmin(r.getId(), r.getUserName(), r.getUserAvatar(),
+                        r.getReviewDate(), r.getOrderGroup().getId(),
+                        r.getOrderGroup().getRestaurant().getRestaurantName(),
+                        r.getReview(), r.getRestaurantReply(),
+                        "Order #" + r.getOrderGroup().getId() + " (" + r.getOrderGroup().getOrderedDate() + ")")
+        ).collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<?> deleteReview(Long reviewId) {
+        Optional<Review> reviewOpt = reviewRepository.findById(reviewId);
+        if (reviewOpt.isEmpty()) return ResponseEntity.badRequest().body("Review not found");
+
+        Review review = reviewOpt.get();
+        reviewRepository.delete(review);
+
+        return ResponseEntity.ok("Review deleted successfully.");
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<?> deleteRestaurantReply(Long reviewId) {
+        Optional<Review> reviewOpt = reviewRepository.findById(reviewId);
+        if (reviewOpt.isEmpty()) return ResponseEntity.badRequest().body("Review not found");
+
+        Review review = reviewOpt.get();
+
+        // Check if restaurant reply exists
+        if (review.getRestaurantReply() == null || review.getRestaurantReply().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("No restaurant reply found for this review");
+        }
+
+        // Clear the restaurant reply
+        review.setRestaurantReply(null);
+        reviewRepository.save(review);
+
+        return ResponseEntity.ok("Restaurant reply deleted successfully.");
     }
 }

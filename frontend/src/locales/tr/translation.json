@@ -8,7 +8,10 @@
         "loading": "Yükleniyor...",
         "confirm": "Onayla",
         "save": "Kaydet",
-        "close": "Kapat"
+        "close": "Kapat",
+        "saveChanges": "Değişiklikleri Kaydet",
+        "delete": "Sil",
+        "edit": "Düzenle"
     },
     "homepage": {
         "hero": {
@@ -112,6 +115,7 @@
         "restaurants": "Restoranlar",
         "favorites": "Favoriler",
         "myOrders": "Siparişlerim",
+        "coupons": "Kuponlar",
         "aboutUs": "Hakkımızda",
         "contact": "İletişim",
         "dashboard": "Kontrol Paneli",
@@ -156,7 +160,8 @@
         "noteUpdateError": "Not güncellenemedi",
         "minAmountMissing": "{{amount}}₺'lik ürün daha eklenmeli.",
         "minAmountWarningGlobal": "Tüm restoranlar için minimum sepet tutarını geçmelisiniz.",
-        "minAmount": "Minimum Sepet Tutarı: "
+        "minAmount": "Minimum Sepet Tutarı: ",
+        "promoCodeInvalidated": "Uygulanan kupon sepetten kaldırıldı."
     },
     "restaurant": {
         "new": "Yeni Restaurant",
@@ -338,7 +343,14 @@
         "clear": "Aramayı Temizle",
         "tryDifferent": "Farklı bir arama terimi deneyin veya aşağıdaki restoranları inceleyin.",
         "backToHome": "Ana Sayfaya Dön",
-        "popularSearches": "Popüler Aramalar"
+        "popularSearches": "Popüler Aramalar",
+        "priceRange": "Fiyat Aralığı",
+        "min": "Min",
+        "max": "Maks",
+        "filterByDistance": "Mesafeye göre filtrele",
+        "loginForDistance": "Mesafeye göre filtrelemek için giriş yapın",
+        "maxDistance": "Maksimum mesafe",
+        "resetFilters": "Filtreleri Sıfırla"
     },
     "orders": {
         "orderCancelledSuccess": "Sipariş başarıyla iptal edildi!",
@@ -416,7 +428,10 @@
             "itemTotal": "Ürün Toplamı",
             "discount": "İndirim",
             "total": "Toplam",
-            "proceedToPayment": "Ödemeyi Tamamla"
+            "proceedToPayment": "Ödemeyi Tamamla",
+            "groupTotal": "Restoran Toplamı",
+            "groupDiscount": "Restoran İndirimi",
+            "afterDiscount": "İndirim Sonrası"
         }
     },
     "orderTracking": {
@@ -865,6 +880,35 @@
             "promotions": "Promosyonları Yönet"
         }
     },
+    "adminReviewManagement": {
+        "title": "Değerlendirme Yönetimi",
+        "totalReviews": "Toplam Değerlendirme",
+        "refresh": "Yenile",
+        "allReviews": "Tüm Değerlendirmeler",
+        "withReplies": "Cevaplı Olanlar",
+        "mostRecent": "En Yeni",
+        "oldestFirst": "En Eski",
+        "sort": "Sırala",
+        "unknownDate": "Bilinmeyen Tarih",
+        "errorLoading": "Değerlendirmeler Yüklenirken Hata",
+        "tryAgain": "Tekrar Dene",
+        "noReviewsFound": "Değerlendirme Bulunamadı",
+        "noRepliesFound": "Restoran cevaplı değerlendirme bulunamadı.",
+        "noReviewsInSystem": "Sistemde şu anda hiç değerlendirme bulunmuyor.",
+        "deleteReview": "Değerlendirmeyi Sil",
+        "deleteReply": "Restoran Cevabını Sil",
+        "restaurantReply": "Restoran Cevabı",
+        "deleteReviewTitle": "Değerlendirmeyi Sil",
+        "deleteReviewMessage": "{{userName}} tarafından yapılan bu değerlendirmeyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+        "deleteReplyTitle": "Restoran Cevabını Sil",
+        "deleteReplyMessage": "{{userName}}'ın değerlendirmesine verilen restoran cevabını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+        "cancel": "İptal",
+        "deleteReviewBtn": "Değerlendirmeyi Sil",
+        "deleteReplyBtn": "Cevabı Sil",
+        "deleteSuccess": "{{userName}}'ın değerlendirmesi başarıyla silindi.",
+        "deleteReplySuccess": "Restoran cevabı başarıyla silindi.",
+        "orderNumber": "Sipariş #{{orderGroupId}}"
+    },
     "role": {
         "customer": "Müşteri",
         "restaurant": "Restoran",
@@ -1235,5 +1279,25 @@
             "REJECTED": "REDDEDİLDİ",
             "CANCELLED": "İPTAL EDİLDİ"
         }
+    },
+    "coupons": {
+        "title": "İndirim Kuponları",
+        "subtitle": "Bir sonraki siparişinizde tasarruf edin",
+        "loading": "Kuponlar yükleniyor...",
+        "errorTitle": "Kuponlar Yüklenirken Hata",
+        "errorRetry": "Tekrar Dene",
+        "errorMessage": "Kuponlar yüklenemedi. Lütfen daha sonra tekrar deneyin.",
+        "statusActive": "Aktif",
+        "statusExpired": "Süresi Dolmuş",
+        "discountOff": "İNDİRİM",
+        "couponCode": "Kupon Kodu",
+        "minOrder": "Min. sipariş",
+        "validUntil": "Geçerlilik tarihi",
+        "expired": "Süresi dolmuş",
+        "availableCoupons": "Geçerli Kuponlar",
+        "expiredCoupons": "Süresi Dolmuş Kuponlar",
+        "noCouponsTitle": "Kupon Bulunmuyor",
+        "noCouponsMessage": "Yeni indirim teklifleri için daha sonra kontrol edin!",
+        "copySuccess": "Kupon kodu panoya kopyalandı!"
     }
 }

@@ -41,6 +41,9 @@ public class OrderGroup {
     
     @Column(name = "note")
     private String note;
+
+    @Column(name = "discount")
+    private Double discount;
     
     @ManyToOne
     @JoinColumn(name = "restaurant_id")

@@ -17,6 +17,7 @@ public class OrderDetailsResponse {
     private String addressFull;
     private String addressCity;
     private LocalDateTime date;
+    private Double discount;
 
     private List<OrderItemDTO> items;
 

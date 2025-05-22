@@ -35,7 +35,9 @@ import { ForgotPasswordPage } from "../pages/ForgotPasswordPage";
 import AdminPromotionManagementPage from '../pages/AdminPromotionManagementPage';
 import ProfileManagement from "../pages/ProfileManagement";
 import CourierOrdersPage from '../pages/CourierOrdersPage';
+import CouponsPage from '../pages/CouponsPage';
 
+import AdminReviewManagementPage from '../pages/AdminReviewManagementPage';
 
 
 
@@ -234,6 +236,10 @@ const router = createBrowserRouter([
                         element: <RoleBasedRoute allowedRoles={['ADMIN']}> <AdminCourierManagementPage /> </RoleBasedRoute>
                     },
                     {
+                        path: 'admin/reviews',
+                        element: <RoleBasedRoute allowedRoles={['ADMIN']}> <AdminReviewManagementPage /> </RoleBasedRoute>
+                    },
+                    {
                         path: 'admin/promotions',
                         element: <RoleBasedRoute allowedRoles={['ADMIN']}> <AdminPromotionManagementPage /> </RoleBasedRoute>
                     },
@@ -252,6 +258,10 @@ const router = createBrowserRouter([
                     {
                         path: 'courier/orders',
                         element: <CourierOrdersPage />
+                    },
+                    {
+                        path: 'coupons',
+                        element: <RoleBasedRoute allowedRoles={['CUSTOMER']}> <CouponsPage /> </RoleBasedRoute>
                     },
                     {
                         path: '*',

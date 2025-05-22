@@ -2,8 +2,12 @@ package com.purpleworld.hufds.service.impl;
 
 import com.purpleworld.hufds.dto.request.CouponRequest;
 import com.purpleworld.hufds.dto.response.CouponResponse;
+import com.purpleworld.hufds.entity.Admin;
 import com.purpleworld.hufds.entity.Coupon;
+import com.purpleworld.hufds.entity.Customer;
+import com.purpleworld.hufds.repository.AdminRepository;
 import com.purpleworld.hufds.repository.CouponRepository;
+import com.purpleworld.hufds.repository.CustomerRepository;
 import com.purpleworld.hufds.service.CouponService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -19,16 +23,26 @@ import java.util.stream.Collectors;
 public class CouponServiceImpl implements CouponService {
 
     private final CouponRepository couponRepository;
+    private final CustomerRepository customerRepository;
+    private final AdminRepository adminRepository;
 
     @Override
     @Transactional
-    public ResponseEntity<?> createCoupon(CouponRequest request) {
+    public ResponseEntity<?> createCoupon(String email,CouponRequest request) {
+
+        Admin admin = adminRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Admin not found"));
+
+        if (couponRepository.existsByCode(request.getCode())) {
+            return ResponseEntity.badRequest().body("Coupon code already exists.");
+        }
+
         Coupon coupon = new Coupon();
-        coupon.setCode(request.getName());
+        coupon.setCode(request.getCode());
         coupon.setDescription(request.getDescription());
         coupon.setPercent(request.getIsPercent());
         coupon.setDiscountAmount(request.getDiscountAmount());
-        coupon.setMinOrderPrice(request.getMinOrderAmount());
+        coupon.setMinOrderPrice(request.getMinOrderPrice());
         coupon.setActive(true);
         coupon.setExpiryDate(request.getExpiryDate());
 
@@ -46,11 +60,11 @@ public class CouponServiceImpl implements CouponService {
         }
 
         Coupon coupon = couponOpt.get();
-        coupon.setCode(request.getName());
+        coupon.setCode(request.getCode());
         coupon.setDescription(request.getDescription());
         coupon.setPercent(request.getIsPercent());
         coupon.setDiscountAmount(request.getDiscountAmount());
-        coupon.setMinOrderPrice(request.getMinOrderAmount());
+        coupon.setMinOrderPrice(request.getMinOrderPrice());
         coupon.setExpiryDate(request.getExpiryDate());
 
         couponRepository.save(coupon);
@@ -85,4 +99,7 @@ public class CouponServiceImpl implements CouponService {
 
         return ResponseEntity.ok(responses);
     }
+
+
+
 }

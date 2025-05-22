@@ -22,5 +22,22 @@ public class GlobalExceptionHandler {
                 .body(new BackendErrorResponse(ex.getError(), ex.getMessage(), ex.getStatusCode()));
     }
 
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<?> handleRuntimeException(RuntimeException ex) {
+        return ResponseEntity
+                .badRequest()
+                .body(new ErrorResponse("Runtime Error", ex.getMessage()));
+    }
+
+    public static class ErrorResponse {
+        public String error;
+        public String message;
+
+        public ErrorResponse(String error, String message) {
+            this.error = error;
+            this.message = message;
+        }
+    }
+
 
 }

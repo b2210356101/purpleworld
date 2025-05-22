@@ -3,12 +3,16 @@ package com.purpleworld.hufds.controller;
 import com.purpleworld.hufds.dto.OrderDetailsResponse;
 import com.purpleworld.hufds.dto.request.AddressRequest;
 import com.purpleworld.hufds.dto.request.ReviewRequest;
+import com.purpleworld.hufds.dto.response.CouponResponse;
 import com.purpleworld.hufds.dto.request.ChangePasswordRequest;
 import com.purpleworld.hufds.dto.request.ProfileUpdateRequest;
 import com.purpleworld.hufds.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -177,6 +181,10 @@ public class CustomerController {
         }
 
 
+    }
+    @GetMapping("coupons/list")
+    public ResponseEntity<List<CouponResponse>> getAllCoupons() {
+        return customerService.getAllCoupons();
     }
 }
 

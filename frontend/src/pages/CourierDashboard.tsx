@@ -19,7 +19,7 @@ import Loading from "../components/Loading";
 import { useTranslation } from 'react-i18next';
 
 const CourierDashboard = () => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [stats, setStats] = useState<Stat[]>([]);
     const [isAvailable, setIsAvailable] = useState<boolean>(false);
     const [currentOrders, setCurrentOrders] = useState<CourierOrder[]>([]);
@@ -32,6 +32,44 @@ const CourierDashboard = () => {
 
     const [openConfirmDialog, setOpenConfirmDialog] = useState<boolean>(false);
     const [pendingAvailabilityStatus, setPendingAvailabilityStatus] = useState<boolean>(false);
+
+    // Format date function
+    const formatDate = (dateValue: any): string => {
+        try {
+            // Get current locale from i18n
+            const locale = i18n.language === 'tr' ? 'tr-TR' : 'en-US';
+            
+            if (Array.isArray(dateValue)) {
+                const [year, month, day, hour = 0, minute = 0, second = 0] = dateValue;
+                const date = new Date(year, month - 1, day, hour, minute, second);
+                if (!isNaN(date.getTime())) {
+                    return date.toLocaleString(locale, {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit"
+                    });
+                }
+            } else if (typeof dateValue === "string") {
+                const date = new Date(dateValue);
+                if (!isNaN(date.getTime())) {
+                    return date.toLocaleString(locale, {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit"
+                    });
+                }
+            }
+            console.warn("Could not parse date:", dateValue);
+            return t('courier.order.unknownDate');
+        } catch (error) {
+            console.error("Error parsing date:", error);
+            return t('courier.order.unknownDate');
+        }
+    };
 
     // Fetch courier orders and stats 
     useEffect(() => {
@@ -216,7 +254,7 @@ const CourierDashboard = () => {
                                             {t('courier.order.number', { id: activeOrder.orderGroupId })}
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary">
-                                            {t('courier.order.placedAt', { time: new Date(activeOrder.orderedDate).toLocaleString() })}
+                                            {t('courier.order.placedAt', { time: formatDate(activeOrder.orderedDate) })}
                                         </Typography>
                                     </Box>
                                 </Box>
@@ -290,7 +328,7 @@ const CourierDashboard = () => {
                                                         {t('courier.order.number', { id: order.orderGroupId })}
                                                     </Typography>
                                                     <Typography variant="body2" color="text.secondary">
-                                                        {t('courier.order.placedAt', { time: new Date(order.orderedDate).toLocaleString() })}
+                                                        {t('courier.order.placedAt', { time: formatDate(order.orderedDate) })}
                                                     </Typography>
                                                 </Box>
                                             </Box>

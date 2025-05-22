@@ -2,6 +2,7 @@ package com.purpleworld.hufds.controller;
 
 import com.purpleworld.hufds.dto.response.CourierResponseForAdmin;
 import com.purpleworld.hufds.dto.response.RestaurantResponseForAdmin;
+import com.purpleworld.hufds.dto.response.ReviewResponseForAdmin;
 import com.purpleworld.hufds.service.AdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -67,6 +68,23 @@ public class AdminController {
     @PostMapping("/courier/unban/{courierId}")
     public ResponseEntity<?> unbanCourier(@PathVariable Long courierId) {
         return adminService.unbanCourier(courierId);
+    }
+
+    // REVIEW MANAGEMENT
+
+    @GetMapping("/reviews")
+    public ResponseEntity<List<ReviewResponseForAdmin>> getAllReviews() {
+        return adminService.getAllReviews();
+    }
+
+    @DeleteMapping("/reviews/{reviewId}")
+    public ResponseEntity<?> deleteReview(@PathVariable Long reviewId) {
+        return adminService.deleteReview(reviewId);
+    }
+
+    @DeleteMapping("/reviews/{reviewId}/reply")
+    public ResponseEntity<?> deleteRestaurantReply(@PathVariable Long reviewId) {
+        return adminService.deleteRestaurantReply(reviewId);
     }
 
     @GetMapping("/stats")

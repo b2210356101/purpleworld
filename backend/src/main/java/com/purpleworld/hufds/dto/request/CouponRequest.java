@@ -10,10 +10,10 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CouponRequest {
-    private String name;
+    private String code;
     private String description;
     private Boolean isPercent;
     private Integer discountAmount;
-    private Integer minOrderAmount;
+    private Integer minOrderPrice;
     private LocalDate expiryDate;
 }

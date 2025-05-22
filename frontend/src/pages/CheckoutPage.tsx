@@ -55,6 +55,8 @@ interface CartGroup {
   restaurantName: string;
   note: string;
   items: CartItem[];
+  calculatedDiscount?: number;
+  afterDiscount?: number;
 }
 interface Address {
   id?: string;
@@ -69,6 +71,7 @@ interface CheckoutData {
   discount: number;
   total: number;
   itemTotal: number;
+  couponCode?: string;
 }
 
 const CheckoutPage: React.FC = () => {
@@ -84,6 +87,7 @@ const CheckoutPage: React.FC = () => {
     discount: 0,
     total: 0,
     itemTotal: 0,
+    couponCode: "",
   });
 
   // UI states
@@ -121,37 +125,50 @@ const CheckoutPage: React.FC = () => {
 
         const cart: ViewCartResponse = await viewCart();
 
-        // Convert API response to our grouped cart structure
-        const groups: CartGroup[] = cart.groups.map((g: CartGroupResponse) => ({
-          groupId: String(g.groupId),
-          restaurantId: String(g.restaurantId),
-          restaurantName: g.restaurantName,
-          note: g.note || "",
-          items: g.items.map((i: CartItemResponse) => ({
-            id: String(i.itemId),
-            name: i.itemName,
-            img: i.itemImg,
-            price: i.itemPrice,
-            quantity: i.quantity,
-          })),
-        }));
-
-        // Calculate item total
-        const itemTotal = groups.reduce(
-          (total, group) =>
-            total +
-            group.items.reduce(
-              (groupTotal, item) => groupTotal + item.price * item.quantity,
-              0
-            ),
-          0
+        const itemTotal = cart.groups.reduce(
+            (total, g) =>
+                total +
+                g.items.reduce(
+                    (groupTotal, item) => groupTotal + item.itemPrice * item.quantity,
+                    0
+                ),
+            0
         );
+
+        const groups: CartGroup[] = cart.groups.map((g: CartGroupResponse) => {
+          const groupTotal = g.items.reduce(
+              (sum, i) => sum + i.itemPrice * i.quantity,
+              0
+          );
+
+          const ratio = itemTotal > 0 ? groupTotal / itemTotal : 0;
+          const groupDiscount = parseFloat((ratio * (cart.discountAmount || 0)).toFixed(2));
+          const afterDiscount = groupTotal - groupDiscount;
+
+          return {
+            groupId: String(g.groupId),
+            restaurantId: String(g.restaurantId),
+            restaurantName: g.restaurantName,
+            note: g.note || "",
+            items: g.items.map((i: CartItemResponse) => ({
+              id: String(i.itemId),
+              name: i.itemName,
+              img: i.itemImg,
+              price: i.itemPrice,
+              quantity: i.quantity,
+            })),
+            calculatedDiscount: groupDiscount,
+            afterDiscount: afterDiscount,
+          };
+        });
+
 
         setCheckoutData((prev) => ({
           ...prev,
           cartGroups: groups,
           itemTotal: itemTotal,
-          total: cart.cartTotal,
+          total: cart.finalTotal,
+          discount: cart.discountAmount || 0,
         }));
       } catch (e) {
         console.error("Fetch error:", e);
@@ -235,7 +252,8 @@ const CheckoutPage: React.FC = () => {
       
       const orderReq = {
         paymentType: checkoutData.paymentType,
-        note: combinedNote.substring(0, MAX_NOTE_LENGTH),
+        couponCode: checkoutData.couponCode || "",
+
       };
       
       const orderResp = await placeOrder(orderReq);
@@ -246,10 +264,10 @@ const CheckoutPage: React.FC = () => {
           orderData: {
             orderId: orderResp.orderId,
             status: orderResp.status, // Fallback if status is missing
-            totalPrice: orderResp.totalPrice, 
+            totalPrice: orderResp.totalPrice,
             estimatedDuration: orderResp.estimatedDuration,  // Fallback
             paymentType: checkoutData.paymentType,
-            note: orderReq.note
+            discount: checkoutData.discount
           },
         },
       });

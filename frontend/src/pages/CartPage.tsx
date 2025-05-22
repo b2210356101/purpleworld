@@ -22,10 +22,10 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import { useNavigate } from "react-router-dom";
 import {
-    viewCart,
-    updateItemQuantity,
-    removeItemFromCart,
-    updateCartGroupNote, checkMinimumAmounts,
+  viewCart,
+  updateItemQuantity,
+  removeItemFromCart,
+  updateCartGroupNote, checkMinimumAmounts, applyCoupon, getCartSummary,
 } from "../utils/api";
 import {
     ViewCartResponse,
@@ -64,17 +64,72 @@ const ShoppingCartPage: React.FC = () => {
     try {
       setLoading(true);
       const data: ViewCartResponse = await viewCart();
-      const nonEmptyGroups = data.groups.filter(
-        (group) => group.items.length > 0
-      );
-      const minErrors = await checkMinimumAmounts();setCartItems(nonEmptyGroups);
+      const nonEmptyGroups = data.groups.filter(group => group.items.length > 0);
+
+      const minErrors = await checkMinimumAmounts();
+
+      setCartItems(nonEmptyGroups);
       setMinAmountErrors(minErrors);
       setItemTotal(`${data.cartTotal}₺`);
-      setTotalAmount(`${data.cartTotal}₺`);
+
+      setDiscount(
+          data.couponCode
+              ? data.isPercent
+                  ? `${data.discountAmount}₺`
+                  : `${data.discountAmount}₺`
+              : "0₺"
+      );
+
+      const previousCouponCode = promoCode;
+
+      setPromoCode(data.couponCode || "");
+      setTotalAmount(`${data.finalTotal?.toFixed(2) || data.cartTotal}₺`);
+
+      if (previousCouponCode && !data.couponCode) {
+        setPromoCodeMessage({
+          text: t("cart.promoCodeInvalidated"),
+          isError: true,
+        });
+      } else {
+        setPromoCodeMessage(
+            data.couponCode
+                ? { text: `${data.couponCode} ${t("cart.promoCodeApplied")}`, isError: false }
+                : null
+        );
+      }
     } catch (err) {
       setError(t("cart.error"));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const refreshCartSummary = async () => {
+    try {
+      const summary = await getCartSummary();
+      setItemTotal(`${summary.cartTotal}₺`);
+      setTotalAmount(`${summary.finalTotal}₺`);
+      setDiscount(
+          summary.couponCode
+              ? summary.isPercent
+                  ? `%${summary.discountAmount}`
+                  : `${summary.discountAmount}₺`
+              : "0₺"
+      );
+      if (promoCode && !summary.couponCode) {
+        setPromoCodeMessage({
+          text: t("cart.promoCodeInvalidated"),
+          isError: true,
+        });
+      } else {
+        setPromoCodeMessage(
+            summary.couponCode
+                ? { text: `${summary.couponCode} ${t("cart.promoCodeApplied")}`, isError: false }
+                : null
+        );
+      }
+    } catch (e) {
+      console.error("Failed to refresh summary", e);
     }
   };
 
@@ -116,17 +171,12 @@ const ShoppingCartPage: React.FC = () => {
       }
 
       // Fetch updated cart to ensure consistency
-      const data = await viewCart();
-      const nonEmptyGroups = data.groups.filter(
-        (group: { items: any[] }) => group.items.length > 0
+      await refreshCartSummary();
+      const updated = await viewCart();
+      const nonEmptyGroups = updated.groups.filter(
+          (group: { items: any[] }) => group.items.length > 0
       );
       setCartItems(nonEmptyGroups);
-      setItemTotal(`${data.cartTotal}₺`);
-      setTotalAmount(
-          promoCode === "SEPETTE80"
-              ? `${data.cartTotal - 80}₺`
-              : `${data.cartTotal}₺`
-      );
 
       const minErrors = await checkMinimumAmounts();
       setMinAmountErrors((prev) => {
@@ -636,19 +686,25 @@ const ShoppingCartPage: React.FC = () => {
                                 minWidth: isMobile ? "100%" : 80,
                                 mt: isMobile ? 1 : 0
                               }}
-                              onClick={() => {
-                                if (promoCode === "SEPETTE80") {
+                              onClick={async () => {
+                                try {
+                                  setPromoCodeLoading(true);
+                                  await applyCoupon(promoCode);
+                                  await fetchCart();
                                   setPromoCodeMessage({
-                                    text: t('cart.promoCodeApplied'),
+                                    text: t("cart.promoCodeApplied"),
                                     isError: false,
                                   });
-                                  setDiscount("80₺");
-                                  setTotalAmount(`${parseFloat(itemTotal) - 80}₺`);
-                                } else {
+                                } catch (err: any) {
+                                  const backendMessage =
+                                      err?.response?.data?.message || t("cart.invalidPromoCode");
+
                                   setPromoCodeMessage({
-                                    text: t('cart.invalidPromoCode'),
+                                    text: backendMessage,
                                     isError: true,
                                   });
+                                } finally {
+                                  setPromoCodeLoading(false);
                                 }
                               }}
                           >

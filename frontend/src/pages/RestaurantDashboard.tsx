@@ -16,6 +16,7 @@ import {
   IconButton,
   useMediaQuery,
   Slide,
+  alpha,
 } from "@mui/material";
 import {
   ArrowBack as ArrowBackIcon,
@@ -23,6 +24,7 @@ import {
   Close as CloseIcon,
   Check as CheckIcon,
 } from "@mui/icons-material";
+import { Rating } from "@mui/material";
 import theme from "../theme";
 import {
   getActiveOrdersForRestaurant,
@@ -30,20 +32,12 @@ import {
   rejectOrder,
   markOrderAsPrepared,
   getRestaurantStats,
+  getRestaurantReviews, // Add this import
 } from "../utils/api";
-import { OrderGroupDTO, Stat } from "../types";
+import { OrderGroupDTO, Stat, ReviewDTO } from "../types"; // Add ReviewDTO import
 import Loading from "../components/Loading";
 import { useTranslation } from "react-i18next";
-
-// Review type
-interface Review {
-  id: number;
-  name: string;
-  avatar: string;
-  date: string;
-  text: string;
-  rating: number;
-}
+import { useNavigate } from "react-router-dom";
 
 const RestaurantDashboard = () => {
   const [orders, setOrders] = useState<OrderGroupDTO[]>([]);
@@ -57,7 +51,13 @@ const RestaurantDashboard = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [containerWidth, setContainerWidth] = useState<string>("100%");
   const [isAnimating, setIsAnimating] = useState(false);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+
+  // Reviews state - replace hardcoded reviews with real data
+  const [reviews, setReviews] = useState<ReviewDTO[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -82,7 +82,7 @@ const RestaurantDashboard = () => {
 
     const intervalId = setInterval(() => {
       fetchOrders();
-    }, 10000); // 10000 ms = 10 saniye
+    }, 10000);
 
     const handleOrderPlaced = () => {
       console.log("Order placed event received");
@@ -96,17 +96,33 @@ const RestaurantDashboard = () => {
     };
   }, []);
 
+  // Fetch real reviews
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        setReviewsLoading(true);
+        const reviewsData = await getRestaurantReviews();
+        setReviews(reviewsData);
+      } catch (err) {
+        console.error("Error fetching reviews:", err);
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+
+    fetchReviews();
+  }, []);
+
   const handleDetailsClick = (order: OrderGroupDTO) => {
     setIsAnimating(true);
     setSelectedOrder(order);
 
     if (!isMobile) {
-      // Animate width change for desktop - make it narrower to fit details
       setContainerWidth("60%");
       setTimeout(() => {
         setShowDetails(true);
         setIsAnimating(false);
-      }, 300); // Match transition duration
+      }, 300);
     } else {
       setShowDetails(true);
       setIsAnimating(false);
@@ -118,11 +134,10 @@ const RestaurantDashboard = () => {
     setShowDetails(false);
 
     if (!isMobile) {
-      // Wait for animation to complete before resetting width
       setTimeout(() => {
         setContainerWidth("100%");
         setIsAnimating(false);
-      }, 300); // Match transition duration
+      }, 300);
     } else {
       setIsAnimating(false);
     }
@@ -131,7 +146,6 @@ const RestaurantDashboard = () => {
   const handleRejectOrder = async (orderId: number) => {
     try {
       await rejectOrder(orderId);
-      // Remove the rejected order from the list
       setOrders(orders.filter((order) => order.orderGroupId !== orderId));
       handleCloseDetails();
     } catch (err: any) {
@@ -208,6 +222,7 @@ const RestaurantDashboard = () => {
       />
     );
   };
+
   const formatTime = (dateString: string | null | undefined) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
@@ -217,37 +232,99 @@ const RestaurantDashboard = () => {
     }).format(date);
   };
 
-  const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(date);
+  const formatDate = (dateValue: any): string => {
+    try {
+      // Get current locale from i18n
+      const locale = i18n.language === "tr" ? "tr-TR" : "en-US";
+
+      if (Array.isArray(dateValue)) {
+        const [year, month, day, hour = 0, minute = 0, second = 0] = dateValue;
+        const date = new Date(year, month - 1, day, hour, minute, second);
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleDateString(locale, {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+        }
+      } else if (typeof dateValue === "string") {
+        const date = new Date(dateValue);
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleDateString(locale, {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+        }
+      }
+      console.warn("Could not parse date:", dateValue);
+      return t("restaurantReviewManagement.unknownDate");
+    } catch (error) {
+      console.error("Error parsing date:", error);
+      return t("restaurantReviewManagement.unknownDate");
+    }
   };
 
-  // Render star rating
+  // Calculate average rating from ReviewDTO
+  const calculateAverageRating = (review: ReviewDTO): number => {
+    return Math.round(
+      (review.tasteRating + review.deliveryRating + review.serviceRating) / 3
+    );
+  };
+
+  // Rating color based on rating value
+  const getRatingColor = (rating: number): string => {
+    if (rating >= 4.5) return "#4CAF50";
+    if (rating >= 3.5) return "#8BC34A";
+    if (rating >= 2.5) return "#FFC107";
+    if (rating >= 1.5) return "#FF9800";
+    return "#F44336";
+  };
+
+  // Render star rating with Material-UI Rating component
   const renderStars = (rating: number) => {
-    const stars = [];
-    for (let i = 0; i < 5; i++) {
-      stars.push(
-        <Typography
-          key={i}
-          component="span"
-          sx={{ color: i < rating ? "#FFC107" : "#E0E0E0", fontSize: "1rem" }}
-        >
-          ★
-        </Typography>
+    return (
+      <Rating
+        value={rating}
+        readOnly
+        size="small"
+        sx={{
+          "& .MuiRating-iconFilled": {
+            color: "#FFC107",
+          },
+          "& .MuiRating-iconEmpty": {
+            color: "#E0E0E0",
+          },
+        }}
+      />
+    );
+  };
+
+  // Review navigation functions
+  const handlePreviousReview = () => {
+    if (reviews.length > 0) {
+      setCurrentReviewIndex((prev) =>
+        prev === 0 ? Math.max(0, reviews.length - 3) : Math.max(0, prev - 3)
       );
     }
-    return stars;
+  };
+
+  const handleNextReview = () => {
+    if (reviews.length > 0) {
+      setCurrentReviewIndex((prev) =>
+        prev + 3 >= reviews.length ? 0 : prev + 3
+      );
+    }
+  };
+
+  // Get visible reviews (3 at a time)
+  const getVisibleReviews = () => {
+    if (reviews.length === 0) return [];
+    return reviews.slice(currentReviewIndex, currentReviewIndex + 3);
   };
 
   const [stats, setStats] = useState<Stat[]>([]);
-  const [statsLoading, setStatsLoading] = useState(true); // 👈 yeni
+  const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -264,34 +341,6 @@ const RestaurantDashboard = () => {
 
     fetchStats();
   }, []);
-
-  // Reviews
-  const reviews: Review[] = [
-    {
-      id: 1,
-      name: "Jons Sena",
-      avatar: "https://i.pravatar.cc/150?img=3",
-      date: "2 days ago",
-      text: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text",
-      rating: 5,
-    },
-    {
-      id: 2,
-      name: "Sofia",
-      avatar: "https://i.pravatar.cc/150?img=5",
-      date: "2 days ago",
-      text: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text",
-      rating: 5,
-    },
-    {
-      id: 3,
-      name: "Anandreansyah",
-      avatar: "https://i.pravatar.cc/150?img=8",
-      date: "2 days ago",
-      text: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text",
-      rating: 4,
-    },
-  ];
 
   // Order details component
   const OrderDetailsContent = () => {
@@ -492,7 +541,6 @@ const RestaurantDashboard = () => {
     );
   }
 
-  // Helper function to safely check array existence
   const hasOrders = Array.isArray(orders) && orders.length > 0;
 
   return (
@@ -625,7 +673,6 @@ const RestaurantDashboard = () => {
                     sx={{
                       flexGrow: 1,
                       overflow: "auto",
-                      // Ensure horizontal scrolling works
                       width: "100%",
                     }}
                   >
@@ -817,7 +864,7 @@ const RestaurantDashboard = () => {
         </Box>
       )}
 
-      {/* Reviews Section */}
+      {/* Reviews Section - Updated with consistent width */}
       <Box
         sx={{
           display: "flex",
@@ -836,12 +883,18 @@ const RestaurantDashboard = () => {
               mr: 2,
               color: "#845EC2",
               display: { xs: "none", sm: "block" },
+              cursor: "pointer",
+              textDecoration: "underline",
+              "&:hover": { color: "#6d4ba1" },
             }}
+            onClick={() => navigate("/restaurant/reviews")}
           >
             {t("dashboard.viewAll")}
           </Typography>
           <IconButton
             size="small"
+            onClick={handlePreviousReview}
+            disabled={reviews.length <= 3}
             sx={{
               bgcolor: "#EDE7F6",
               mr: 1,
@@ -854,6 +907,8 @@ const RestaurantDashboard = () => {
           </IconButton>
           <IconButton
             size="small"
+            onClick={handleNextReview}
+            disabled={reviews.length <= 3}
             sx={{
               bgcolor: "#EDE7F6",
               "&:hover": { bgcolor: "#D1C4E9" },
@@ -867,45 +922,187 @@ const RestaurantDashboard = () => {
       </Box>
       <Divider sx={{ mb: 3 }} />
 
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", md: "row" },
-          gap: 3,
-        }}
-      >
-        {reviews.map((review) => (
-          <Paper
-            key={review.id}
-            sx={{
-              borderRadius: 3,
-              p: 3,
-              bgcolor: "primary.light",
-              flex: 1,
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-              <Avatar
-                src={review.avatar}
-                alt={review.name}
-                sx={{ width: 40, height: 40, mr: 2 }}
-              />
-              <Box>
-                <Typography variant="subtitle1" fontWeight="medium">
-                  {review.name}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {review.date}
-                </Typography>
+      {reviewsLoading ? (
+        <Loading />
+      ) : reviews.length === 0 ? (
+        <Paper
+          sx={{
+            borderRadius: 3,
+            p: 4,
+            textAlign: "center",
+            bgcolor: "primary.light",
+          }}
+        >
+          <Typography variant="body1" color="text.secondary">
+            {t("restaurantReviews.noReviews", "No reviews yet")}
+          </Typography>
+        </Paper>
+      ) : (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            gap: 3,
+            flexWrap: "wrap", // Allow wrapping for responsiveness
+            justifyContent: "flex-start", // Align reviews to the start
+          }}
+        >
+          {getVisibleReviews().map((review) => (
+            <Paper
+              key={review.orderGroupId}
+              sx={{
+                borderRadius: 3,
+                p: 3,
+                bgcolor: "primary.light",
+                flex: { xs: "1 0 100%", md: "0 0 calc(33.333% - 16px)" }, // Fixed width: 1/3 minus gap
+                maxWidth: { md: "calc(33.333% - 16px)" }, // Ensure max width matches 1/3
+                minWidth: { md: "300px" }, // Minimum width for readability
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                <Avatar
+                  src={review.userAvatar || undefined}
+                  alt={review.userName}
+                  sx={{ width: 40, height: 40, mr: 2 }}
+                >
+                  {review.userName.charAt(0)}
+                </Avatar>
+                <Box>
+                  <Typography variant="subtitle1" fontWeight="medium">
+                    {review.userName}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {formatDate(review.reviewDate)}
+                  </Typography>
+                </Box>
               </Box>
-            </Box>
-            <Typography variant="body2" sx={{ mb: 2 }}>
-              {review.text}
-            </Typography>
-            <Box>{renderStars(review.rating)}</Box>
-          </Paper>
-        ))}
-      </Box>
+              <Typography variant="body2" sx={{ mb: 2 }}>
+                {review.review ||
+                  t("dashboard.noReviewText", "No review text provided")}
+              </Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 0.5,
+                  p: 1.5,
+                  borderRadius: 2,
+                  backgroundColor: alpha(theme.palette.primary.light, 0.1),
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      width: 60,
+                      color: "text.secondary",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {t("restaurantReviews.ratings.taste")}:
+                  </Typography>
+                  <Rating
+                    value={review.tasteRating}
+                    readOnly
+                    precision={0.5}
+                    size="small"
+                    sx={{
+                      "& .MuiRating-iconFilled": {
+                        color: getRatingColor(review.tasteRating),
+                      },
+                    }}
+                  />
+                </Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      width: 60,
+                      color: "text.secondary",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {t("restaurantReviews.ratings.service")}:
+                  </Typography>
+                  <Rating
+                    value={review.serviceRating}
+                    readOnly
+                    precision={0.5}
+                    size="small"
+                    sx={{
+                      "& .MuiRating-iconFilled": {
+                        color: getRatingColor(review.serviceRating),
+                      },
+                    }}
+                  />
+                </Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      width: 60,
+                      color: "text.secondary",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {t("restaurantReviews.ratings.delivery")}:
+                  </Typography>
+                  <Rating
+                    value={review.deliveryRating}
+                    readOnly
+                    precision={0.5}
+                    size="small"
+                    sx={{
+                      "& .MuiRating-iconFilled": {
+                        color: getRatingColor(review.deliveryRating),
+                      },
+                    }}
+                  />
+                </Box>
+              </Box>
+              {review.restaurantAnswer && (
+                <Box
+                  sx={{
+                    mt: 2,
+                    p: 2,
+                    bgcolor: "background.paper",
+                    borderRadius: 2,
+                  }}
+                >
+                  <Typography
+                    variant="body2"
+                    fontWeight="medium"
+                    sx={{ mb: 1 }}
+                  >
+                    {t("restaurantReviews.restaurantReply")}:
+                  </Typography>
+                  <Typography variant="body2">
+                    {review.restaurantAnswer}
+                  </Typography>
+                </Box>
+              )}
+            </Paper>
+          ))}
+        </Box>
+      )}
     </Box>
   );
 };

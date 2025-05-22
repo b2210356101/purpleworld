@@ -7,7 +7,9 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 public interface CouponService {
-    ResponseEntity<?> createCoupon(CouponRequest request);
+    ResponseEntity<?> createCoupon(String email,CouponRequest request);
     ResponseEntity<?> updateCoupon(Long couponId, CouponRequest request);
     ResponseEntity<?> deleteCoupon(Long couponId);
-    ResponseEntity<List<CouponResponse>> getAllCoupons();}
+    ResponseEntity<List<CouponResponse>> getAllCoupons();
+}
+

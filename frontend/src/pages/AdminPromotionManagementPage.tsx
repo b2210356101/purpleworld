@@ -45,7 +45,7 @@ const AdminPromotionManagementPage = () => {
   const { t } = useTranslation();
     
   // State for form values
-  const [name, setName] = useState('');
+  const [code, setCode] = useState('');
   const [description, setDescription] = useState('');
   const [discountAmount, setDiscountAmount] = useState('');
   const [minOrderAmount, setMinOrderAmount] = useState('');
@@ -63,7 +63,7 @@ const AdminPromotionManagementPage = () => {
   // State for update modal
   const [openUpdateDialog, setOpenUpdateDialog] = useState(false);
   const [selectedCoupon, setSelectedCoupon] = useState<CouponResponse | null>(null);
-  const [updateName, setUpdateName] = useState('');
+  const [updateCode, setUpdateCode] = useState('');
   const [updateDescription, setUpdateDescription] = useState('');
   const [updateDiscountAmount, setUpdateDiscountAmount] = useState('');
   const [updateMinOrderAmount, setUpdateMinOrderAmount] = useState('');
@@ -112,7 +112,7 @@ const AdminPromotionManagementPage = () => {
   // Function to create a new coupon
   const handleCreateCoupon = async () => {
     // Validate inputs
-    if (!name || !discountAmount || !minOrderAmount || !expiryDate) {
+    if (!code || !discountAmount || !minOrderAmount || !expiryDate) {
       setError(t('promotions.error.requiredFields'));
       setSnackbarType('error');
       setOpenSnackbar(true);
@@ -122,10 +122,10 @@ const AdminPromotionManagementPage = () => {
     try {
       setLoading(true);
       const couponRequest: CouponRequest = {
-        name,
+        code,
         description,
         discountAmount: parseInt(discountAmount),
-        minOrderAmount: parseInt(minOrderAmount),
+        minOrderPrice: parseInt(minOrderAmount),
         expiryDate,
         isPercent 
       };
@@ -133,7 +133,7 @@ const AdminPromotionManagementPage = () => {
       await createCoupon(couponRequest);
       
       // Reset form fields
-      setName('');
+      setCode('');
       setDescription('');
       setDiscountAmount('');
       setMinOrderAmount('');
@@ -180,7 +180,7 @@ const AdminPromotionManagementPage = () => {
   // Function to open update dialog and set selected coupon
   const handleOpenUpdateDialog = (coupon: CouponResponse) => {
     setSelectedCoupon(coupon);
-    setUpdateName(coupon.code);
+    setUpdateCode(coupon.code);
     setUpdateDescription(coupon.description || '');
     setUpdateDiscountAmount(coupon.discountAmount.toString());
     setUpdateMinOrderAmount(coupon.minOrderPrice.toString());
@@ -201,7 +201,7 @@ const AdminPromotionManagementPage = () => {
     if (!selectedCoupon) return;
     
     // Validate inputs
-    if (!updateName || !updateDiscountAmount || !updateMinOrderAmount || !updateExpiryDate) {
+    if (!updateCode || !updateDiscountAmount || !updateMinOrderAmount || !updateExpiryDate) {
       setError(t('promotions.error.requiredFields'));
       setSnackbarType('error');
       setOpenSnackbar(true);
@@ -211,10 +211,10 @@ const AdminPromotionManagementPage = () => {
     try {
       setLoading(true);
       const couponRequest: CouponRequest = {
-        name: updateName,
+        code: updateCode,
         description: updateDescription,
         discountAmount: parseInt(updateDiscountAmount),
-        minOrderAmount: parseInt(updateMinOrderAmount),
+        minOrderPrice: parseInt(updateMinOrderAmount),
         expiryDate: updateExpiryDate,
         isPercent: updateIsPercent // Include the discount type flag
       };
@@ -277,7 +277,7 @@ const AdminPromotionManagementPage = () => {
       </PageHeader>
       
       {/* Create Coupon Form */}
-      <Paper sx={{ p: 3, mb: 4 }}>
+      <Paper sx={{ borderRadius: 4, p: 3, mb: 4 }}>
         <Typography variant="h6" gutterBottom>
           {t('promotions.create')}
         </Typography>
@@ -292,28 +292,26 @@ const AdminPromotionManagementPage = () => {
           }}>
             <Box sx={{ flex: 1 }}>
               <FormControl fullWidth>
-                <FormLabel>{t('promotions.couponCode')}</FormLabel>
                 <TextField
                   fullWidth
-                  placeholder="e.g., SUMMER2025"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  label={t('promotions.couponCode')}
+                  placeholder="SUMMER2025"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
                   variant="outlined"
-                  size="small"
                 />
               </FormControl>
             </Box>
             
             <Box sx={{ flex: 1 }}>
               <FormControl fullWidth>
-                <FormLabel>{t('promotions.description')}</FormLabel>
                 <TextField
                   fullWidth
-                  placeholder="e.g., Summer campaign discount"
+                  label={t('promotions.description')}
+                  placeholder="Summer campaign discount"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   variant="outlined"
-                  size="small"
                 />
               </FormControl>
             </Box>
@@ -329,10 +327,10 @@ const AdminPromotionManagementPage = () => {
             flexDirection: { xs: 'column', sm: 'row' }, gap: 2,  }}>
                 <Box sx={{ flex: 1 }}>
                     <FormControl fullWidth>
-                        <FormLabel>{t('promotions.discountAmount')}</FormLabel>
                         <TextField
                         fullWidth
-                        placeholder={isPercent ? "e.g., 10" : "e.g., 50"}
+                        label={t('promotions.discountAmount')}
+                        placeholder={isPercent ? "10" : "50"}
                         value={discountAmount}
                         onChange={(e) => setDiscountAmount(e.target.value)}
                         variant="outlined"
@@ -349,7 +347,6 @@ const AdminPromotionManagementPage = () => {
 
                     <Box sx={{ flex: 1.5 }}>
                     <FormControl fullWidth>
-                        <FormLabel component="legend">{t('promotions.discountType')}</FormLabel>
                         <ToggleButtonGroup
                         value={isPercent}
                         exclusive
@@ -376,10 +373,10 @@ const AdminPromotionManagementPage = () => {
             
             <Box sx={{ flex: 1 }}>
               <FormControl fullWidth>
-                <FormLabel>{t('promotions.minOrderAmount')}</FormLabel>
                 <TextField
                   fullWidth
-                  placeholder="e.g., 150"
+                  label={t('promotions.minOrderAmount')}
+                  placeholder="150"
                   value={minOrderAmount}
                   onChange={(e) => setMinOrderAmount(e.target.value)}
                   variant="outlined"
@@ -395,9 +392,9 @@ const AdminPromotionManagementPage = () => {
 
          
           <FormControl fullWidth>
-            <FormLabel>{t('promotions.expiryDate')}</FormLabel>
             <TextField
               fullWidth
+              label={t('promotions.expiryDate')}
               type="date"
               value={expiryDate}
               onChange={(e) => setExpiryDate(e.target.value)}
@@ -420,7 +417,7 @@ const AdminPromotionManagementPage = () => {
             color="primary"
             onClick={handleCreateCoupon}
             disabled={loading}
-            sx={{ borderRadius: 2, px: 4 }}
+            sx={{ px: 4 }}
           >
             {loading ? <CircularProgress sx={{color: 'white'}} size={24} /> : t('promotions.createPromotion')}
           </Button>
@@ -428,7 +425,7 @@ const AdminPromotionManagementPage = () => {
       </Paper>
       
       {/* Coupons List */}
-      <Paper sx={{ p: 3 }}>
+      <Paper sx={{ borderRadius: 4, p: 3 }}>
         <Typography variant="h6" gutterBottom>
           {t('promotions.list')}
         </Typography>
@@ -469,7 +466,7 @@ const AdminPromotionManagementPage = () => {
                     </Box>
                   }
                   sx={{
-                    borderRadius: 1,
+                    borderRadius: 3,
                     mb: 1,
                     bgcolor: 'primary.light',
                   }}
@@ -537,12 +534,12 @@ const AdminPromotionManagementPage = () => {
             }}>
               <Box sx={{ flex: 1 }}>
                 <FormControl fullWidth>
-                  <FormLabel>{t('promotions.couponCode')}</FormLabel>
                   <TextField
                     fullWidth
-                    placeholder="e.g., SUMMER2025"
-                    value={updateName}
-                    onChange={(e) => setUpdateName(e.target.value)}
+                    label={t('promotions.couponCode')}
+                    placeholder="SUMMER2025"
+                    value={updateCode}
+                    onChange={(e) => setUpdateCode(e.target.value)}
                     variant="outlined"
                     size="small"
                   />
@@ -551,10 +548,10 @@ const AdminPromotionManagementPage = () => {
               
               <Box sx={{ flex: 1 }}>
                 <FormControl fullWidth>
-                  <FormLabel>{t('promotions.description')}</FormLabel>
                   <TextField
                     fullWidth
-                    placeholder="e.g., Summer campaign discount"
+                    label={t('promotions.description')}
+                    placeholder="Summer campaign discount"
                     value={updateDescription}
                     onChange={(e) => setUpdateDescription(e.target.value)}
                     variant="outlined"
@@ -566,9 +563,6 @@ const AdminPromotionManagementPage = () => {
 
             {/* Discount Type Toggle for Update */}
             <Box sx={{ mb: 3 }}>
-                <FormLabel component="legend" sx={{ mb: 1 }}>
-                    {t('promotions.discountType')}
-                </FormLabel>
                 <ToggleButtonGroup
                     value={updateIsPercent}
                     exclusive
@@ -602,10 +596,10 @@ const AdminPromotionManagementPage = () => {
             }}>
               <Box sx={{ flex: 1 }}>
                 <FormControl fullWidth>
-                  <FormLabel>{t('promotions.discountAmount')}</FormLabel>
                   <TextField
                     fullWidth
-                    placeholder={updateIsPercent ? "e.g., 10" : "e.g., 50"}
+                    label={t('promotions.discountAmount')}
+                    placeholder={updateIsPercent ? "10" : "50"}
                     value={updateDiscountAmount}
                     onChange={(e) => setUpdateDiscountAmount(e.target.value)}
                     variant="outlined"
@@ -622,10 +616,10 @@ const AdminPromotionManagementPage = () => {
               
               <Box sx={{ flex: 1 }}>
                 <FormControl fullWidth>
-                  <FormLabel>{t('promotions.minOrderAmount')}</FormLabel>
                   <TextField
                     fullWidth
-                    placeholder="e.g., 150"
+                    label={t('promotions.minOrderAmount')}
+                    placeholder="150"
                     value={updateMinOrderAmount}
                     onChange={(e) => setUpdateMinOrderAmount(e.target.value)}
                     variant="outlined"
@@ -640,9 +634,9 @@ const AdminPromotionManagementPage = () => {
             </Box>
 
             <FormControl fullWidth>
-              <FormLabel>{t('promotions.expiryDate')}</FormLabel>
               <TextField
                 fullWidth
+                label={t('promotions.expiryDate')}
                 type="date"
                 value={updateExpiryDate}
                 onChange={(e) => setUpdateExpiryDate(e.target.value)}

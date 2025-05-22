@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PlaceOrderRequest {
     private String paymentType;  //"CASH", "CREDIT_CARD"
-    private String note;
+    private String couponCode;
 }
