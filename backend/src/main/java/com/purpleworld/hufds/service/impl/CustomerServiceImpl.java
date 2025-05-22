@@ -49,6 +49,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final FavoriteRepository favoriteRepository;
     private final PasswordEncoder passwordEncoder;
     private final ReviewRepository reviewRepository;
+    private final CouponRepository couponRepository;
 
     @Override
     public ResponseEntity<String> dashboard() {
